@@ -7,12 +7,12 @@ import { QnatkModule } from './qnatk/src';
 import { NirbhayaQnatkService } from './nirbhaya-qnatk.service';
 import { NirbhayaQnatkControllerService } from './nirbhaya-qnatk-controller.service';
 import { ModelActions } from './modal-actions';
-import { User } from './qnatk/src/models/User';
-import { EmergencyContact } from './qnatk/src/models/EmergencyContact';
-import { SosEvent } from './qnatk/src/models/SosEvent';
-import { UserLocation } from './qnatk/src/models/UserLocation';
-import { Notification } from './qnatk/src/models/Notification';
-import { Responder } from './qnatk/src/models/Responder';
+import { User } from './models/User';
+import { EmergencyContact } from './models/EmergencyContact';
+import { SosEvent } from './models/SosEvent';
+import { UserLocation } from './models/UserLocation';
+import { Notification } from './models/Notification';
+import { Responder } from './models/Responder';
 
 export const sequelizeModelArray = [
   User,
