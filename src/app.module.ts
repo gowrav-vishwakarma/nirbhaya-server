@@ -7,8 +7,21 @@ import { QnatkModule } from './qnatk/src';
 import { NirbhayaQnatkService } from './nirbhaya-qnatk.service';
 import { NirbhayaQnatkControllerService } from './nirbhaya-qnatk-controller.service';
 import { ModelActions } from './modal-actions';
+import { User } from './qnatk/src/models/User';
+import { EmergencyContact } from './qnatk/src/models/EmergencyContact';
+import { SosEvent } from './qnatk/src/models/SosEvent';
+import { UserLocation } from './qnatk/src/models/UserLocation';
+import { Notification } from './qnatk/src/models/Notification';
+import { Responder } from './qnatk/src/models/Responder';
 
-export const sequelizeModelArray = [];
+export const sequelizeModelArray = [
+  User,
+  EmergencyContact,
+  SosEvent,
+  UserLocation,
+  Notification,
+  Responder,
+];
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -25,7 +38,10 @@ export const sequelizeModelArray = [];
         database: configService.get<string>('DB_NAME'),
         autoLoadModels: true,
         logQueryParameters: true,
-        synchronize: false,
+        synchronize: true,
+        sync: {
+          force: true,
+        },
         logging: console.log,
         timezone: '+05:30',
         dialectOptions: {
