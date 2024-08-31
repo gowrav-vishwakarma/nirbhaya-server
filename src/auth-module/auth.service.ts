@@ -165,7 +165,9 @@ export class AuthService {
 
       if (!user) {
         throw new ValidationException({
-          contactPhone: ['Contact does not exists on the app'],
+          [contactData.contactPhone]: [
+            `Contact ${contactData.contactPhone} is not on the app`,
+          ],
         });
       }
 
@@ -193,37 +195,26 @@ export class AuthService {
   }
 
   async userLocationAdd(userId: number, locations: any[]): Promise<any> {
-    // await this.userLocationModel.destroy({
-    //   where: {
-    //     userId: userId,
-    //   },
-    // });
-    for (const locationData of locations) {
-      // const location = {
-      //   type: 'Point',
-      //   coordinates: [locationData.longitude, locationData.latitude],
-      // };
-      await this.userLocationModel.findOrCreate({
-        where: {
-          userId: userId,
-          location: locationData.location,
-        },
-        defaults: {
-          name: locationData.name,
-          userId: userId,
-          location: locationData.location,
-        },
-      });
-    }
-    // remove all other locations
     await this.userLocationModel.destroy({
       where: {
         userId: userId,
-        location: {
-          [Op.notIn]: locations.map((location) => location.location),
-        },
       },
     });
+    for (const locationData of locations) {
+      const location = {
+        type: 'Point',
+        coordinates: [
+          locationData.location.coordinates[0],
+          locationData.location.coordinates[1],
+        ],
+      };
+      await this.userLocationModel.create({
+        userId: userId,
+        name: locationData.name,
+        location: location,
+      });
+    }
+
     return { message: 'User locations updated successfully' };
   }
 
