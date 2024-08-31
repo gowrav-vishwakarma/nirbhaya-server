@@ -8,10 +8,10 @@ import {
   HttpStatus,
   Injectable,
 } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+// import * as bcrypt from 'bcrypt';
 import { User } from 'src/models/User';
 import { EmergencyContact } from 'src/models/EmergencyContact';
-import axios, { Method } from 'axios';
+// import axios, { Method } from 'axios';
 import { UserLocation } from 'src/models/UserLocation';
 import { SosEvent } from 'src/models/SosEvent';
 
@@ -215,34 +215,34 @@ export class AuthService {
     }
   }
 
-  async getLocationFromCoordinates(
-    latitude: number,
-    longitude: number,
-  ): Promise<string> {
-    console.log('llllllll', latitude, longitude);
+  // async getLocationFromCoordinates(
+  //   latitude: number,
+  //   longitude: number,
+  // ): Promise<string> {
+  //   console.log('llllllll', latitude, longitude);
 
-    try {
-      const response = await axios.get(
-        'https://nominatim.openstreetmap.org/reverse',
-        {
-          params: {
-            lat: Number(latitude),
-            lon: Number(longitude),
-            format: 'json',
-          },
-        },
-      );
+  //   try {
+  //     const response = await axios.get(
+  //       'https://nominatim.openstreetmap.org/reverse',
+  //       {
+  //         params: {
+  //           lat: Number(latitude),
+  //           lon: Number(longitude),
+  //           format: 'json',
+  //         },
+  //       },
+  //     );
 
-      if (response.data && response.data.display_name) {
-        return response.data.display_name;
-      }
+  //     if (response.data && response.data.display_name) {
+  //       return response.data.display_name;
+  //     }
 
-      return 'Location not found';
-    } catch (error) {
-      console.error('Error fetching location:', error);
-      return 'Error fetching location';
-    }
-  }
+  //     return 'Location not found';
+  //   } catch (error) {
+  //     console.error('Error fetching location:', error);
+  //     return 'Error fetching location';
+  //   }
+  // }
 
   async sosLocationCrud(data: any): Promise<any> {
     try {
