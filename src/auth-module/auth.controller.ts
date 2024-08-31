@@ -18,6 +18,14 @@ export class AuthController {
   logIn(@Body() LogInDto: any): Promise<any> {
     return this.authService.logIn(LogInDto);
   }
+  @Post('/user-emergency-contect-add')
+  userEmergencyContactAdd(@Body() data: any): Promise<any> {
+    return this.authService.userEmergencyContactAdd(data);
+  }
+  @Post('/user-profile-update')
+  userProfileUpdate(@Body() data: any): Promise<any> {
+    return this.authService.userProfileUpdate(data);
+  }
 
   @UseGuards(AuthGuard)
   @Post('/checkLoggedIn')

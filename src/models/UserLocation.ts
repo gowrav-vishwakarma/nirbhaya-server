@@ -22,6 +22,9 @@ export class UserLocation extends Model<UserLocation> {
   @Column(DataType.INTEGER)
   userId: number;
 
+  @Column(DataType.STRING)
+  name: string;
+
   @BelongsTo(() => User)
   user: User;
 
