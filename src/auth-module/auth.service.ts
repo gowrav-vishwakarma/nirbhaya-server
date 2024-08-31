@@ -13,6 +13,7 @@ import { User } from 'src/models/User';
 import { EmergencyContact } from 'src/models/EmergencyContact';
 import axios, { Method } from 'axios';
 import { UserLocation } from 'src/models/UserLocation';
+import { SosEvent } from 'src/models/SosEvent';
 
 import { ValidationException } from '../qnatk/src/Exceptions/ValidationException';
 @Injectable()
@@ -24,6 +25,8 @@ export class AuthService {
     private readonly emergencyContactModel: typeof EmergencyContact,
     @InjectModel(UserLocation)
     private readonly userLocationModel: typeof UserLocation,
+    @InjectModel(SosEvent)
+    private readonly sosEventModel: typeof SosEvent,
   ) {}
 
   async signUp(signUpDto: any): Promise<any> {
@@ -238,6 +241,41 @@ export class AuthService {
     } catch (error) {
       console.error('Error fetching location:', error);
       return 'Error fetching location';
+    }
+  }
+
+  async sosLocationCrud(data: any): Promise<any> {
+    try {
+      console.log('data...........', data);
+      const sosUserData = await this.sosEventModel.findOne({
+        where: { userId: data.userId },
+        raw: true,
+      });
+
+      const location = {
+        type: 'Point',
+        coordinates: [data.location.longitude, data.location.latitude],
+      };
+
+      if (sosUserData) {
+        const updatedSosUserData = await this.sosEventModel.update(
+          { location },
+          { where: { userId: data.userId } },
+        );
+        console.log('updatedSosUserData...........', updatedSosUserData);
+        return updatedSosUserData;
+      } else {
+        const createdSosUserData = await this.sosEventModel.create({
+          location,
+          userId: data.userId,
+          status: 'created',
+        });
+        console.log('createdSosUserData...........', createdSosUserData);
+        return createdSosUserData;
+      }
+    } catch (error) {
+      console.error('Error in sosLocationCrud:', error);
+      throw new Error('Failed to process SOS location');
     }
   }
 

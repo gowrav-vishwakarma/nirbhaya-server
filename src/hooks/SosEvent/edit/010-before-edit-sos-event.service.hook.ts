@@ -4,7 +4,7 @@ import { NirbhayaQnatkControllerService } from 'src/nirbhaya-qnatk-controller.se
 import { BaseHook } from 'src/qnatk/src/hooks/base-hook';
 
 @Injectable()
-export class SosEditHook extends BaseHook {
+export class SosCreateHook extends BaseHook {
   priority = 1;
   constructor(
     private readonly nirbhayaQnatkControllerService: NirbhayaQnatkControllerService,
@@ -15,6 +15,17 @@ export class SosEditHook extends BaseHook {
     previousData: BeforeHookParams<any, any>,
   ): Promise<BeforeHookParams<any, any>> {
     console.log('previousData.files...........', previousData);
+
+    if (previousData.data.location) {
+      const location = {
+        type: 'Point',
+        coordinates: [
+          previousData.data.location.longitude,
+          previousData.data.location.latitude,
+        ],
+      };
+      previousData.data.location = location;
+    }
 
     return previousData;
   }

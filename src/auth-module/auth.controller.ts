@@ -26,6 +26,10 @@ export class AuthController {
   userProfileUpdate(@Body() data: any): Promise<any> {
     return this.authService.userProfileUpdate(data);
   }
+  @Post('/sos-location-crud')
+  sosLocationCrud(@Body() data: any): Promise<any> {
+    return this.authService.sosLocationCrud(data);
+  }
 
   @UseGuards(AuthGuard)
   @Post('/checkLoggedIn')
