@@ -40,10 +40,10 @@ export const sequelizeModelArray = [
         database: configService.get<string>('DB_NAME'),
         autoLoadModels: true,
         logQueryParameters: true,
-        synchronize: true,
-        sync: {
-          force: true,
-        },
+        // synchronize: true,
+        // sync: {
+        //   force: true,
+        // },
         logging: console.log,
         timezone: '+05:30',
         dialectOptions: {

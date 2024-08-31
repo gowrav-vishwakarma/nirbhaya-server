@@ -258,8 +258,15 @@ export class AuthService {
       };
 
       if (sosUserData) {
+        const formatedSosData = {
+          location: location,
+          status: data.status,
+        };
+        if (sosUserData.status == 'active') {
+          delete formatedSosData.status;
+        }
         const updatedSosUserData = await this.sosEventModel.update(
-          { location },
+          formatedSosData,
           { where: { userId: data.userId } },
         );
         console.log('updatedSosUserData...........', updatedSosUserData);
@@ -268,7 +275,7 @@ export class AuthService {
         const createdSosUserData = await this.sosEventModel.create({
           location,
           userId: data.userId,
-          status: 'created',
+          status: data.status,
         });
         console.log('createdSosUserData...........', createdSosUserData);
         return createdSosUserData;
