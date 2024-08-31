@@ -14,6 +14,7 @@ import { UserLocation } from 'src/models/UserLocation';
 import { SosEvent } from 'src/models/SosEvent';
 
 import { ValidationException } from '../qnatk/src/Exceptions/ValidationException';
+import { UserJWT } from 'src/dto/user-jwt.dto';
 @Injectable()
 export class AuthService {
   constructor(
@@ -100,7 +101,8 @@ export class AuthService {
       }),
     };
 
-    const tokenPayload = {
+    const tokenPayload: UserJWT = {
+      id: user.id,
       phoneNumber: user.phoneNumber,
     };
 
@@ -139,9 +141,7 @@ export class AuthService {
       user.save();
 
       // Handle emergency contacts if provided
-      if (data.emergencyContacts && data.emergencyContacts.length > 0) {
-        await this.userEmergencyContactAdd(user.id, data.emergencyContacts);
-      }
+      await this.userEmergencyContactAdd(user.id, data.emergencyContacts);
 
       // Handle notification locations if provided
       if (data.locations && data.locations.length > 0) {
@@ -163,13 +163,13 @@ export class AuthService {
         },
       });
 
-      if (user) {
+      if (!user) {
         throw new ValidationException({
           contactPhone: ['Contact does not exists on the app'],
         });
       }
 
-      await this.emergencyContactModel.findOrCreate({
+      const [contact, created] = await this.emergencyContactModel.findOrCreate({
         where: {
           userId: userId,
           contactPhone: contactData.contactPhone,
@@ -181,45 +181,68 @@ export class AuthService {
         },
       });
     }
+    await this.emergencyContactModel.destroy({
+      where: {
+        userId: userId,
+        contactPhone: {
+          [Op.notIn]: contacts.map((contact) => contact.contactPhone),
+        },
+      },
+    });
     return { message: 'Emergency contacts updated successfully' };
   }
 
   async userLocationAdd(userId: number, locations: any[]): Promise<any> {
-    await this.userLocationModel.destroy({
-      where: {
-        userId: userId,
-      },
-    });
+    // await this.userLocationModel.destroy({
+    //   where: {
+    //     userId: userId,
+    //   },
+    // });
     for (const locationData of locations) {
       // const location = {
       //   type: 'Point',
       //   coordinates: [locationData.longitude, locationData.latitude],
       // };
-      await this.userLocationModel.create({
-        name: locationData.name,
-        userId: userId,
-        location: locationData.location,
+      await this.userLocationModel.findOrCreate({
+        where: {
+          userId: userId,
+          location: locationData.location,
+        },
+        defaults: {
+          name: locationData.name,
+          userId: userId,
+          location: locationData.location,
+        },
       });
     }
+    // remove all other locations
+    await this.userLocationModel.destroy({
+      where: {
+        userId: userId,
+        location: {
+          [Op.notIn]: locations.map((location) => location.location),
+        },
+      },
+    });
     return { message: 'User locations updated successfully' };
   }
 
-  async sosLocationCrud(data: any): Promise<any> {
+  async sosLocationCrud(data: any, user: UserJWT): Promise<any> {
     try {
       console.log('data...........', data);
       const sosUserData = await this.sosEventModel.findOne({
-        where: { userId: data.userId },
+        where: { userId: user.id },
         raw: true,
       });
 
       const location = {
         type: 'Point',
-        coordinates: [data.location.longitude, data.location.latitude],
+        coordinates: [data.location?.longitude, data.location?.latitude],
       };
 
       if (sosUserData) {
         const formatedSosData = {
-          location: location,
+          location: data.location ? location : null,
           status: data.status,
         };
         if (sosUserData.status == 'active') {
@@ -227,14 +250,14 @@ export class AuthService {
         }
         const updatedSosUserData = await this.sosEventModel.update(
           formatedSosData,
-          { where: { userId: data.userId } },
+          { where: { userId: user.id } },
         );
         console.log('updatedSosUserData...........', updatedSosUserData);
         return updatedSosUserData;
       } else {
         const createdSosUserData = await this.sosEventModel.create({
-          location,
-          userId: data.userId,
+          location: data.location ? location : null,
+          userId: user.id,
           status: data.status,
         });
         console.log('createdSosUserData...........', createdSosUserData);

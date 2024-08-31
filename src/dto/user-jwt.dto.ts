@@ -1,3 +1,4 @@
 export class UserJWT {
-  mobileNumber: string;
+  id: number;
+  phoneNumber: string;
 }

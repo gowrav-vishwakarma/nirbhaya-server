@@ -30,7 +30,7 @@ export class SosEvent extends Model<SosEvent> {
 
   @Column({
     type: DataType.GEOMETRY('POINT', 4326),
-    allowNull: false,
+    allowNull: true,
   })
   location: any; // Using 'any' as Sequelize doesn't have a specific type for GEOMETRY
 

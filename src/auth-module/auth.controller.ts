@@ -13,22 +13,21 @@ export class AuthController {
     return this.authService.signUp(SignUpDto);
   }
 
-  // @UseGuards(AuthGuard)
   @Post('/login')
   logIn(@Body() LogInDto: any): Promise<any> {
     return this.authService.logIn(LogInDto);
   }
-  // @Post('/user-emergency-contect-add')
-  // userEmergencyContactAdd(@Body() data: any): Promise<any> {
-  //   return this.authService.userEmergencyContactAdd([data]);
-  // }
+
   @Post('/user-profile-update')
+  @UseGuards(AuthGuard)
   userProfileUpdate(@Body() data: any): Promise<any> {
     return this.authService.userProfileUpdate(data);
   }
   @Post('/sos-location-crud')
-  sosLocationCrud(@Body() data: any): Promise<any> {
-    return this.authService.sosLocationCrud(data);
+  @UseGuards(AuthGuard)
+  sosLocationCrud(@Body() data: any, @GetUser() user: UserJWT): Promise<any> {
+    console.log('user...........', user);
+    return this.authService.sosLocationCrud(data, user);
   }
 
   @UseGuards(AuthGuard)
