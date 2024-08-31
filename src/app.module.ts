@@ -14,6 +14,7 @@ import { UserLocation } from './models/UserLocation';
 import { Notification } from './models/Notification';
 import { Responder } from './models/Responder';
 import { AuthModule } from './auth-module/auth.module';
+import { NirbhayaQnatkController } from './nirbhaya.controller';
 
 export const sequelizeModelArray = [
   User,
@@ -71,7 +72,7 @@ export const sequelizeModelArray = [
     SequelizeModule.forFeature(sequelizeModelArray),
     AuthModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, NirbhayaQnatkController],
   providers: [AppService],
 })
 export class AppModule {}
