@@ -6,12 +6,8 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
+import { UserJWT } from 'src/dto/user-jwt.dto';
 
-interface decodedTokenDTO {
-  id: number;
-  userType: string;
-  service: string;
-}
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(private jwtService: JwtService) {}
@@ -24,7 +20,7 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException();
     }
     try {
-      const decoded: decodedTokenDTO = await this.jwtService
+      const decoded: UserJWT = await this.jwtService
         .verifyAsync(token, {
           secret: process.env.JWT_SECRET,
         })
@@ -32,24 +28,11 @@ export class AuthGuard implements CanActivate {
           throw new UnauthorizedException('Unauthorized access.');
         });
 
-      if (decoded.userType !== 'employee' && decoded.userType !== 'poc') {
-        throw new UnauthorizedException('Unauthorized access.');
-      }
-      let tokenExpire = false;
-      if (decoded && decoded.id) {
-        //todo logic here
-        tokenExpire = true;
-      }
-
-      if (tokenExpire == true) {
-        throw new UnauthorizedException('Unauthorized access.');
-      }
       request['user'] = decoded;
-      request['token'] = token;
     } catch (error) {
-      // console.log('error', error);
-      throw error;
-      // throw new UnauthorizedException('No token provided.');
+      console.log('error', error);
+
+      throw new UnauthorizedException('No token provided.');
     }
     return true;
   }
