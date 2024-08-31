@@ -40,6 +40,12 @@ export class SosEvent extends Model<SosEvent> {
   })
   status: 'created' | 'active' | 'cancelled' | 'resolved';
 
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  threat: string | null;
+
   @Column(DataType.DATE)
   resolvedAt: Date;
 

@@ -235,6 +235,7 @@ export class AuthService {
         const formatedSosData = {
           location: data.location ? location : null,
           status: data.status,
+          threat: data.threat,
         };
         if (sosUserData.status == 'active') {
           delete formatedSosData.status;

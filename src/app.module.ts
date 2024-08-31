@@ -42,7 +42,7 @@ export const sequelizeModelArray = [
         logQueryParameters: true,
         // synchronize: true,
         // sync: {
-        //   force: true,
+        //     force: true,
         // },
         logging: console.log,
         timezone: '+05:30',
