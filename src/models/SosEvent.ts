@@ -35,10 +35,10 @@ export class SosEvent extends Model<SosEvent> {
   location: any; // Using 'any' as Sequelize doesn't have a specific type for GEOMETRY
 
   @Column({
-    type: DataType.ENUM('active', 'cancelled', 'resolved'),
+    type: DataType.ENUM('created', 'active', 'cancelled', 'resolved'),
     defaultValue: 'active',
   })
-  status: 'active' | 'cancelled' | 'resolved';
+  status: 'created' | 'active' | 'cancelled' | 'resolved';
 
   @Column(DataType.DATE)
   resolvedAt: Date;

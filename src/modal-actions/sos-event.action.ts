@@ -1,6 +1,6 @@
 import { ActionDTO, ActionListDTO } from '../qnatk/src';
 
-export const UserAction: ActionListDTO = {
+export const SoSEventAction: ActionListDTO = {
   addNew: {
     name: 'addNew',
     mode: 'NoRecord',
@@ -35,20 +35,20 @@ export const UserAction: ActionListDTO = {
 
     returnModel: false,
   },
-  // productDetail: {
-  //   name: 'productDetail',
-  //   label: 'productDetail',
-  //   icon: 'settings',
-  //   description: 'add product detail',
-  //   mode: 'SingleRecord',
-  //   loadBy: 'id',
-  //   ui: {
-  //     mode: 'form',
-  //     title: 'add product detail',
-  //     message: 'add product detail',
-  //     cancelLabel: 'Cancel',
-  //     okLabel: 'Save',
-  //   },
-  //   returnModel: false,
-  // },
+  sosCreate: {
+    name: 'sosCreate',
+    label: 'sosCreate',
+    icon: 'settings',
+    description: 'add sosCreate',
+    mode: 'SingleRecord',
+    loadBy: 'id',
+    ui: {
+      mode: 'form',
+      title: 'add sos detail',
+      message: 'add sos detail',
+      cancelLabel: 'Cancel',
+      okLabel: 'Save',
+    },
+    returnModel: false,
+  },
 };

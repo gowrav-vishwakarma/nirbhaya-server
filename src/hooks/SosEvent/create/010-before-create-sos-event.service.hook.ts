@@ -4,7 +4,7 @@ import { NirbhayaQnatkControllerService } from 'src/nirbhaya-qnatk-controller.se
 import { BaseHook } from 'src/qnatk/src/hooks/base-hook';
 
 @Injectable()
-export class UserEditHook extends BaseHook {
+export class SosCreateHook extends BaseHook {
   priority = 1;
   constructor(
     private readonly nirbhayaQnatkControllerService: NirbhayaQnatkControllerService,
