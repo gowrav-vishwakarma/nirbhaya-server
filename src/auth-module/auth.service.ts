@@ -5,11 +5,14 @@ import { Op } from 'sequelize';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { User } from 'src/models/User';
+import { ValidationException } from '../qnatk/src/Exceptions/ValidationException';
+import { UtilityService } from 'src/utility/utility.service';
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
     @InjectModel(User) private readonly userModel: typeof User,
+    private readonly utilityService: UtilityService,
   ) {}
 
   async signUp(signUpDto: any): Promise<any> {
@@ -70,6 +73,7 @@ export class AuthService {
     console.log('login details', mobileNumber, otp);
     let userCond: any = {
       phoneNumber: mobileNumber,
+      otp:otp,
     };
 
     const user = await this.userModel.findOne({
@@ -79,7 +83,6 @@ export class AuthService {
         'userType',
         'name',
         'email',
-        'otp',
         'token',
         'otpExpiresAt',
         'isVerified',
@@ -141,4 +144,116 @@ export class AuthService {
     const [type, token] = tokenData?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;
   }
+
+  async send_otp(mobileNumber: string) {
+    if (!mobileNumber) {
+      throw new ValidationException({
+        mobile: ['mobile, userType and countryCode required'],
+      });
+    }
+    let existingUser = await this.userModel.findOne({
+      attributes: [
+        'id',
+        'phoneNumber',
+        'userType',
+        'name',
+        'email',
+        'otp',
+        'token',
+        'otpExpiresAt',
+        'isVerified',
+        // 'status',
+      ],
+      where: {
+        phoneNumber :mobileNumber,
+      },
+      raw: true,
+    });
+    console.log('existingUser...........', existingUser);
+
+    // if (
+    //   existingUser.status == 'InActive' ||
+    //   existingUser.status == 'Rejected' ||
+    //   existingUser.status == 'Blocked'
+    // ) {
+    //   throw new ValidationException({
+    //     mobile: [
+    //       `Your account is ${existingUser.status}. Please connect to Nebula Slice.`,
+    //     ],
+    //   });
+    // }
+    const newOtp = await this.utilityService.generateOtp(4);
+
+    if (
+      existingUser
+    ) {
+      await this.userModel.update(
+        { otp: newOtp },
+        {
+          where: {
+            id: existingUser.id,
+          },
+        },
+      );
+
+    }else {
+      existingUser = await this.userModel.create( { otp: newOtp, phoneNumber: mobileNumber, userType: 'child' } );
+    }
+
+
+    return {otpSent:true};
+  }
+  // async generateAndSendOtp(
+  //   id: number,
+  //   toMobile: string = null,
+  // ) {
+  //   console.log(purpose,);
+  //   const user = await this.userModel.findOne({
+  //     attributes: ['mobile'],
+  //     where: {
+  //       id,
+  //     },
+  //     raw: true,
+  //   });
+  //   if (!user) {
+  //     throw new ValidationException({
+  //       uniqueId: ['User not found'],
+  //     });
+  //   }
+  //   const newOtp = this.utilityService.generateOtp(4);
+  //   await this.userModel.update(
+  //     { otp: newOtp },
+  //     {
+  //       where: {
+  //         id,
+  //       },
+  //     },
+  //   );
+  //   let otpMobile = user.mobile;
+
+  //   if (toMobile && toMobile.length == 10) {
+  //     otpMobile = toMobile;
+  //     if (!toCountryCode) {
+  //       throw new ValidationException({
+  //         toCountryCode: ['Country Code is required'],
+  //       });
+  //     }
+  //   }
+  //     // await this.smsService.sendOtp({
+  //     //   template: 'OTP SMS Template',
+  //     //   mobile: otpMobile,
+  //     //   countryCode: '+91',
+  //     //   replaceData: {
+  //     //     purpose: purpose,
+  //     //     otp: newOtp,
+  //     //     mins: '10',
+  //     //   },
+  //     // });
+
+  //   // TODO: sendOtp to whatsapp
+
+  //   return {
+  //     message: 'Otp Sent',
+  //   };
+  // }
 }

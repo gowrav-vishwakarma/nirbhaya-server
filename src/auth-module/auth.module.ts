@@ -6,6 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthGuard } from './auth.guard';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { User } from 'src/models/User';
+import { UtilityService } from 'src/utility/utility.service';
 // import { SequelizeModule } from '@nestjs/sequelize';
 // import { User } from 'src/models/user.model';
 
@@ -22,10 +23,10 @@ import { User } from 'src/models/User';
         },
       }),
     } as JwtModuleAsyncOptions),
-    SequelizeModule.forFeature([User])
+    SequelizeModule.forFeature([User]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, AuthGuard],
+  providers: [AuthService, AuthGuard, UtilityService],
   exports: [AuthService, AuthGuard, JwtModule],
 })
 export class AuthModule {}
