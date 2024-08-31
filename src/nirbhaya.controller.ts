@@ -18,7 +18,7 @@ import { GetUser } from './auth-module/getuser.decorator';
 import { QnatkListDTO, ActionListDTO } from './qnatk/src';
 import { UserJWT } from './dto/user-jwt.dto';
 
-@Controller('user/qnatk')
+@Controller('qnatk')
 @UseGuards(AuthGuard)
 export class NirbhayaQnatkController {
   constructor(private qnatkControllerService: NirbhayaQnatkControllerService) {}
