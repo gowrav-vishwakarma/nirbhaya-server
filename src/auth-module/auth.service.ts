@@ -11,6 +11,8 @@ import {
 import * as bcrypt from 'bcrypt';
 import { User } from 'src/models/User';
 import { EmergencyContact } from 'src/models/EmergencyContact';
+import axios, { Method } from 'axios';
+import { UserLocation } from 'src/models/UserLocation';
 
 import { ValidationException } from '../qnatk/src/Exceptions/ValidationException';
 import { UtilityService } from 'src/utility/utility.service';
@@ -21,6 +23,8 @@ export class AuthService {
     @InjectModel(User) private readonly userModel: typeof User,
     @InjectModel(EmergencyContact)
     private readonly emergencyContactModel: typeof EmergencyContact,
+    @InjectModel(UserLocation)
+    private readonly userLocationModel: typeof UserLocation,
     private readonly utilityService: UtilityService,
   ) {}
 
@@ -155,18 +159,16 @@ export class AuthService {
       if (data.emergencyContacts && data.emergencyContacts.length > 0) {
         await this.userEmergencyContactAdd(data.emergencyContacts);
       }
+      if (data.notificationLocations && data.notificationLocations.length > 0) {
+        await this.userLoactionAdd(data.notificationLocations);
+      }
 
       return { success: true, message: 'User profile updated successfully' };
     } catch (error) {
       console.error('Error updating user profile:', error);
-      return {
-        success: false,
-        message: 'An error occurred during profile update',
-        error,
-      };
+      throw new BadRequestException(error);
     }
   }
-
   async userEmergencyContactAdd(data: any): Promise<any> {
     console.log('user,,,,,,,,', data);
 
@@ -179,17 +181,65 @@ export class AuthService {
       console.log('user........', user);
       if (!user) {
         throw new BadRequestException(
-          `User with mobile number ${contectData.number} not found`,
+          `Emergency contact User with mobile number ${contectData.number} not found`,
         );
         return;
       }
       await this.emergencyContactModel.create({
-        userId: contectData.userId,
+        userId: 1,
         contactName: contectData.name,
         contactPhone: contectData.number,
         isAppUser: true,
       });
       return { message: 'Emergency contact updated successfully' };
+    }
+  }
+
+  async userLoactionAdd(data: any): Promise<any> {
+    console.log(data);
+    for (const locationData of data) {
+      console.log('locationData.........', locationData);
+
+      const location = {
+        type: 'Point',
+        coordinates: [locationData.longitude, locationData.latitude],
+      };
+      const user = await this.userLocationModel.create({
+        name: locationData.name,
+        userId: 1,
+        location: location,
+      });
+      console.log('user........', user);
+      return { message: 'User Location updated successfully' };
+    }
+  }
+
+  async getLocationFromCoordinates(
+    latitude: number,
+    longitude: number,
+  ): Promise<string> {
+    console.log('llllllll', latitude, longitude);
+
+    try {
+      const response = await axios.get(
+        'https://nominatim.openstreetmap.org/reverse',
+        {
+          params: {
+            lat: Number(latitude),
+            lon: Number(longitude),
+            format: 'json',
+          },
+        },
+      );
+
+      if (response.data && response.data.display_name) {
+        return response.data.display_name;
+      }
+
+      return 'Location not found';
+    } catch (error) {
+      console.error('Error fetching location:', error);
+      return 'Error fetching location';
     }
   }
 
@@ -209,6 +259,7 @@ export class AuthService {
       return false;
     }
   }
+
   private extractTokenFromHeader(tokenData: string): string | undefined {
     const [type, token] = tokenData?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;

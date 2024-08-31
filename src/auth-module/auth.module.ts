@@ -7,6 +7,7 @@ import { AuthGuard } from './auth.guard';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { User } from 'src/models/User';
 import { EmergencyContact } from 'src/models/EmergencyContact';
+import { UserLocation } from 'src/models/UserLocation';
 import { UtilityService } from 'src/utility/utility.service';
 // import { SequelizeModule } from '@nestjs/sequelize';
 // import { User } from 'src/models/user.model';
@@ -24,7 +25,7 @@ import { UtilityService } from 'src/utility/utility.service';
         },
       }),
     } as JwtModuleAsyncOptions),
-    SequelizeModule.forFeature([User, EmergencyContact]),
+    SequelizeModule.forFeature([User, EmergencyContact, UserLocation]),
   ],
   controllers: [AuthController],
   providers: [AuthService, AuthGuard, UtilityService],
