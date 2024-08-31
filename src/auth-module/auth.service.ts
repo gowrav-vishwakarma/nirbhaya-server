@@ -4,12 +4,12 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Op } from 'sequelize';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-// import { User } from 'src/models/user.model';
+import { User } from 'src/models/User';
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
-    // @InjectModel(User) private readonly userModel: typeof User,
+    @InjectModel(User) private readonly userModel: typeof User,
   ) {}
 
   async signUp(signUpDto: any): Promise<any> {
@@ -17,51 +17,108 @@ export class AuthService {
   }
 
   //async login(@Body() loginDto: { username: string; password: string; servicetype: string; }) {
-  async logIn(logInDto, t?: Transaction): Promise<any> {
-    const { username, password, servicetype } = logInDto;
+  // async logIn(logInDto, t?: Transaction): Promise<any> {
+  //   const { username, password, servicetype } = logInDto;
 
-    console.log('call login api', username, password, servicetype);
+  //   console.log('call login api', username, password, servicetype);
+  //   let userCond: any = {
+  //     email: username,
+  //   };
+
+  //   // const user = await this.userModel.findOne({
+  //   //   attributes: [
+  //   //     'id',
+  //   //     'first_name',
+  //   //     'last_name',
+  //   //     'mobile',
+  //   //     'email',
+  //   //     'userType',
+  //   //     'password',
+  //   //     'profile_id',
+  //   //     'partnerId',
+  //   //     'partnerInfo',
+  //   //     'secretKey',
+  //   //     'service',
+  //   //   ],
+  //   //   where: userCond,
+  //   //   raw: true,
+  //   //   transaction: t,
+  //   // });
+
+  //   // if (!user) {
+  //   //   throw new HttpException('Unauthorized access.', HttpStatus.UNAUTHORIZED);
+  //   // }
+
+  //   // const isPasswordValid = await bcrypt.compare(password, user.password);
+
+  //   // if (!isPasswordValid) {
+  //   //   throw new HttpException('Unauthorized access.', HttpStatus.UNAUTHORIZED);
+  //   // }
+
+  //   // delete user.password;
+
+  //   // const token = this.jwtService.sign(...user);
+
+  //   // return {
+  //   //   user,
+  //   // };
+  // }
+
+  async logIn(logInDto, t?: Transaction): Promise<any> {
+    const { mobileNumber, otp } = logInDto;
+
+    console.log('login details', mobileNumber, otp);
     let userCond: any = {
-      email: username,
+      phoneNumber: mobileNumber,
     };
 
-    // const user = await this.userModel.findOne({
-    //   attributes: [
-    //     'id',
-    //     'first_name',
-    //     'last_name',
-    //     'mobile',
-    //     'email',
-    //     'userType',
-    //     'password',
-    //     'profile_id',
-    //     'partnerId',
-    //     'partnerInfo',
-    //     'secretKey',
-    //     'service',
-    //   ],
-    //   where: userCond,
-    //   raw: true,
-    //   transaction: t,
-    // });
+    const user = await this.userModel.findOne({
+      attributes: [
+        'id',
+        'phoneNumber',
+        'userType',
+        'name',
+        'email',
+        'otp',
+        'token',
+        'otpExpiresAt',
+        'isVerified',
+      ],
+      where: userCond,
+      raw: true,
+      transaction: t,
+    });
 
-    // if (!user) {
-    //   throw new HttpException('Unauthorized access.', HttpStatus.UNAUTHORIZED);
-    // }
+    if (!user) {
+      throw new HttpException('Unauthorized access.', HttpStatus.UNAUTHORIZED);
+    }
 
-    // const isPasswordValid = await bcrypt.compare(password, user.password);
 
-    // if (!isPasswordValid) {
-    //   throw new HttpException('Unauthorized access.', HttpStatus.UNAUTHORIZED);
-    // }
+    delete user.otp;
 
-    // delete user.password;
 
-    // const token = this.jwtService.sign(...user);
+    const tokenPayload = {
+      ...user,
+    };
 
-    // return {
-    //   user,
-    // };
+    const token = this.jwtService.sign(tokenPayload);
+
+    //if (!passwordChange) {
+    await this.userModel.update(
+      { token: token },
+      {
+        where: {
+          id: user.id,
+        },
+        transaction: t,
+      },
+    );
+    //}
+
+    return {
+      ...tokenPayload,
+      token,
+    };
   }
 
   async checkAuth(tokenData: string): Promise<any> {

@@ -37,6 +37,9 @@ export class User extends Model<User> {
   @Column(DataType.STRING(6))
   otp: string;
 
+  @Column(DataType.TEXT)
+  token: String;
+
   @Column(DataType.DATE)
   otpCreatedAt: Date;
 

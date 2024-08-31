@@ -13,6 +13,7 @@ import { SosEvent } from './models/SosEvent';
 import { UserLocation } from './models/UserLocation';
 import { Notification } from './models/Notification';
 import { Responder } from './models/Responder';
+import { AuthModule } from './auth-module/auth.module';
 
 export const sequelizeModelArray = [
   User,
@@ -68,6 +69,7 @@ export const sequelizeModelArray = [
       [NirbhayaQnatkControllerService],
     ),
     SequelizeModule.forFeature(sequelizeModelArray),
+    AuthModule
   ],
   controllers: [AppController],
   providers: [AppService],
