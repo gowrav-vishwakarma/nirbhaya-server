@@ -29,7 +29,7 @@ export class UserLocation extends Model<UserLocation> {
   user: User;
 
   @Column({
-    type: DataType.GEOMETRY('POINT', 4326),
+    type: DataType.GEOMETRY('POINT'),
     allowNull: false,
   })
   location: any; // Using 'any' as Sequelize doesn't have a specific type for GEOMETRY

@@ -1,4 +1,4 @@
-import { Table, Column, Model, DataType, HasMany,UpdatedAt,CreatedAt } from 'sequelize-typescript';
+import { Table, Column, Model, DataType, HasMany } from 'sequelize-typescript';
 import { EmergencyContact } from './EmergencyContact';
 import { UserLocation } from './UserLocation';
 import { SosEvent } from './SosEvent';
@@ -54,6 +54,15 @@ export class User extends Model<User> {
     defaultValue: false,
   })
   isVerified: boolean;
+
+  @Column(DataType.STRING(100))
+  city: string;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+  })
+  liveSosEventChecking: boolean;
 
   @HasMany(() => EmergencyContact)
   emergencyContacts: EmergencyContact[];
