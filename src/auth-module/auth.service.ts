@@ -15,7 +15,6 @@ import axios, { Method } from 'axios';
 import { UserLocation } from 'src/models/UserLocation';
 
 import { ValidationException } from '../qnatk/src/Exceptions/ValidationException';
-import { UtilityService } from 'src/utility/utility.service';
 @Injectable()
 export class AuthService {
   constructor(
@@ -25,7 +24,6 @@ export class AuthService {
     private readonly emergencyContactModel: typeof EmergencyContact,
     @InjectModel(UserLocation)
     private readonly userLocationModel: typeof UserLocation,
-    private readonly utilityService: UtilityService,
   ) {}
 
   async signUp(signUpDto: any): Promise<any> {
@@ -302,7 +300,7 @@ export class AuthService {
     //     ],
     //   });
     // }
-    const newOtp = await this.utilityService.generateOtp(4);
+    const newOtp = this.generateOtp(4);
 
     if (existingUser) {
       await this.userModel.update(
@@ -323,6 +321,16 @@ export class AuthService {
 
     return { otpSent: true };
   }
+
+  generateOtp(characters: number): string {
+    if (process.env.CURRENT_ENVIRONMENT == 'staging') {
+      return '1234';
+    }
+    return Math.floor(
+      10 ** (characters - 1) + Math.random() * (9 * 10 ** (characters - 1)),
+    ).toString();
+  }
+
   // async generateAndSendOtp(
   //   id: number,
   //   toMobile: string = null,
@@ -340,7 +348,7 @@ export class AuthService {
   //       uniqueId: ['User not found'],
   //     });
   //   }
-  //   const newOtp = this.utilityService.generateOtp(4);
+  //   const newOtp = this.generateOtp(4);
   //   await this.userModel.update(
   //     { otp: newOtp },
   //     {
