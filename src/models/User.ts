@@ -1,4 +1,4 @@
-import { Table, Column, Model, DataType, HasMany } from 'sequelize-typescript';
+import { Table, Column, Model, DataType, HasMany,UpdatedAt,CreatedAt } from 'sequelize-typescript';
 import { EmergencyContact } from './EmergencyContact';
 import { UserLocation } from './UserLocation';
 import { SosEvent } from './SosEvent';
@@ -39,6 +39,9 @@ export class User extends Model<User> {
 
   @Column(DataType.TEXT)
   token: String;
+
+  // @Column(DataType.STRING(25))
+  // status: string;
 
   @Column(DataType.DATE)
   otpCreatedAt: Date;

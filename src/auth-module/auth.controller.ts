@@ -32,4 +32,11 @@ export class AuthController {
   checkLoggedIn(@GetUser() user: UserJWT) {
     return user;
   }
+
+  @Post('sendOtp')
+  async sendOtp(
+    @Body('mobileNumber') mobileNumber: string,
+  ) {
+    return this.authService.send_otp(mobileNumber);
+  }
 }
