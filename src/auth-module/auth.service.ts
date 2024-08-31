@@ -249,7 +249,7 @@ export class AuthService {
     //     ],
     //   });
     // }
-    const newOtp = await this.generateOtp(4);
+    const newOtp = this.generateOtp(4);
 
     if (existingUser) {
       await this.userModel.update(
