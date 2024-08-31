@@ -16,6 +16,17 @@ export class SosCreateHook extends BaseHook {
   ): Promise<BeforeHookParams<any, any>> {
     console.log('previousData.files...........', previousData);
 
+    if (previousData.data.location) {
+      const location = {
+        type: 'Point',
+        coordinates: [
+          previousData.data.location.longitude,
+          previousData.data.location.latitude,
+        ],
+      };
+      previousData.data.location = location;
+    }
+
     return previousData;
   }
 }
