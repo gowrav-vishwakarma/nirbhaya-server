@@ -20,7 +20,7 @@ export class AuthController {
   }
   @Post('/user-emergency-contect-add')
   userEmergencyContactAdd(@Body() data: any): Promise<any> {
-    return this.authService.userEmergencyContactAdd(data);
+    return this.authService.userEmergencyContactAdd([data]);
   }
   @Post('/user-profile-update')
   userProfileUpdate(@Body() data: any): Promise<any> {
@@ -34,9 +34,7 @@ export class AuthController {
   }
 
   @Post('sendOtp')
-  async sendOtp(
-    @Body('mobileNumber') mobileNumber: string,
-  ) {
+  async sendOtp(@Body('mobileNumber') mobileNumber: string) {
     return this.authService.send_otp(mobileNumber);
   }
 }
