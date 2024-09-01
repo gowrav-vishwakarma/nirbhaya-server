@@ -11,6 +11,8 @@ import { UserLocation } from 'src/models/UserLocation';
 import { SosEvent } from 'src/models/SosEvent';
 // import { SequelizeModule } from '@nestjs/sequelize';
 // import { User } from 'src/models/user.model';
+import { SosService } from './sos/sos.service';
+import { Notification } from 'src/models/Notification';
 
 @Module({
   imports: [
@@ -30,10 +32,11 @@ import { SosEvent } from 'src/models/SosEvent';
       EmergencyContact,
       UserLocation,
       SosEvent,
+      Notification,
     ]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, AuthGuard],
+  providers: [AuthService, AuthGuard, SosService],
   exports: [AuthService, AuthGuard, JwtModule],
 })
 export class AuthModule {}

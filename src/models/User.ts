@@ -19,11 +19,8 @@ export class User extends Model<User> {
   })
   phoneNumber: string;
 
-  @Column({
-    type: DataType.ENUM('child', 'volunteer'),
-    allowNull: false,
-  })
-  userType: 'child' | 'volunteer';
+  @Column({ allowNull: true })
+  userType: string;
 
   @Column(DataType.STRING(100))
   name: string;

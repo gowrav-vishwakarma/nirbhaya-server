@@ -15,10 +15,12 @@ import { SosEvent } from 'src/models/SosEvent';
 
 import { ValidationException } from '../qnatk/src/Exceptions/ValidationException';
 import { UserJWT } from 'src/dto/user-jwt.dto';
+import { SosService } from './sos/sos.service';
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
+    private readonly sosService: SosService,
     @InjectModel(User) private readonly userModel: typeof User,
     @InjectModel(EmergencyContact)
     private readonly emergencyContactModel: typeof EmergencyContact,
@@ -137,6 +139,7 @@ export class AuthService {
       user.name = data.name;
       user.city = data.city;
       user.liveSosEventChecking = data.liveSosEventChecking;
+      user.userType = data.userType;
 
       user.save();
 
@@ -221,40 +224,39 @@ export class AuthService {
   async sosLocationCrud(data: any, user: UserJWT): Promise<any> {
     try {
       console.log('data...........', data);
-      const sosUserData = await this.sosEventModel.findOne({
-        where: { userId: user.id },
-        raw: true,
+      let sosEvent = await this.sosEventModel.findOne({
+        where: { userId: user.id, status: 'active' },
       });
 
-      const location = {
-        type: 'Point',
-        coordinates: [data.location?.longitude, data.location?.latitude],
-      };
+      const location = data.location
+        ? {
+            type: 'Point',
+            coordinates: [data.location.longitude, data.location.latitude],
+          }
+        : null;
 
-      if (sosUserData) {
+      if (sosEvent) {
         const formatedSosData = {
-          location: data.location ? location : null,
-          status: data.status,
-          threat: data.threat,
+          location: location || sosEvent.location,
+          threat: data.threat || sosEvent.threat,
         };
-        if (sosUserData.status == 'active') {
-          delete formatedSosData.status;
-        }
-        const updatedSosUserData = await this.sosEventModel.update(
-          formatedSosData,
-          { where: { userId: user.id } },
-        );
-        console.log('updatedSosUserData...........', updatedSosUserData);
-        return updatedSosUserData;
+
+        await sosEvent.update(formatedSosData);
+        Object.assign(sosEvent, formatedSosData);
       } else {
-        const createdSosUserData = await this.sosEventModel.create({
-          location: data.location ? location : null,
+        sosEvent = await this.sosEventModel.create({
+          location: location,
           userId: user.id,
-          status: data.status,
+          status: 'active',
+          threat: data.threat,
+          informed: 0,
+          accepted: 0,
+          escalationLevel: 0,
         });
-        console.log('createdSosUserData...........', createdSosUserData);
-        return createdSosUserData;
       }
+
+      // Call sosService.handleSos with the new or updated SOS event
+      return await this.sosService.handleSos(sosEvent);
     } catch (error) {
       console.error('Error in sosLocationCrud:', error);
       throw new Error('Failed to process SOS location');
