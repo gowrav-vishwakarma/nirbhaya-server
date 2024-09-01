@@ -5,6 +5,7 @@ import { User } from 'src/models/User';
 import { EmergencyContact } from 'src/models/EmergencyContact';
 import { Notification } from 'src/models/Notification';
 import { Sequelize } from 'sequelize-typescript';
+import { FirebaseService } from 'src/firebase/firebase.service';
 
 @Injectable()
 export class SosService {
@@ -16,6 +17,7 @@ export class SosService {
     @InjectModel(Notification)
     private readonly notificationModel: typeof Notification,
     private sequelize: Sequelize,
+    private firebaseService: FirebaseService,
   ) {}
 
   private readonly NEARBY_DISTANCE_METERS = 1000; // 1km radius
@@ -55,7 +57,7 @@ export class SosService {
     const [longitude, latitude] = sosEvent.location.coordinates;
 
     const nearbyUsers = await this.userModel.findAll({
-      attributes: ['id'],
+      attributes: ['id', 'fcmToken'],
       where: Sequelize.literal(`ST_Distance_Sphere(
         point(${longitude}, ${latitude}),
         location
@@ -82,16 +84,32 @@ export class SosService {
     sosEvent.informed += nearbyUsers.length;
     sosEvent.escalationLevel = 1;
     await sosEvent.save();
+
+    for (const user of nearbyUsers) {
+      if (user.fcmToken) {
+        await this.firebaseService.sendPushNotification(
+          user.fcmToken,
+          'SOS Alert',
+          'Someone nearby needs help!',
+        );
+      }
+    }
   }
 
   private async notifyEmergencyContacts(sosEvent: SosEvent) {
     const emergencyContacts = await this.emergencyContactModel.findAll({
       where: { userId: sosEvent.userId },
+      include: [
+        {
+          model: User,
+          attributes: ['id', 'fcmToken'],
+        },
+      ],
     });
 
     const notifications = emergencyContacts.map((contact) => ({
       eventId: sosEvent.id,
-      recipientId: contact.id,
+      recipientId: contact.user.id,
       recipientType: 'emergency_contact',
       status: 'sent',
     }));
@@ -100,6 +118,16 @@ export class SosService {
 
     sosEvent.informed += emergencyContacts.length;
     await sosEvent.save();
+
+    for (const contact of emergencyContacts) {
+      if (contact.user && contact.user.fcmToken) {
+        await this.firebaseService.sendPushNotification(
+          contact.user.fcmToken,
+          'Emergency Alert',
+          'Your emergency contact needs help!',
+        );
+      }
+    }
   }
 
   private async updateAcceptedCount(sosEvent: SosEvent) {

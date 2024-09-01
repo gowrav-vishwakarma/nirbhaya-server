@@ -40,4 +40,14 @@ export class AuthController {
   async sendOtp(@Body('mobileNumber') mobileNumber: string) {
     return this.authService.send_otp(mobileNumber);
   }
+
+  @UseGuards(AuthGuard)
+  @Post('update-fcm-token')
+  async updateFcmToken(
+    @GetUser() user: UserJWT,
+    @Body('fcmToken') fcmToken: string,
+  ) {
+    await this.authService.updateFcmToken(user.id, fcmToken);
+    return { message: 'FCM token updated successfully' };
+  }
 }

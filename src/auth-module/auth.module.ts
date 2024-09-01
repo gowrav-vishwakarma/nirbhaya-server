@@ -13,6 +13,7 @@ import { SosEvent } from 'src/models/SosEvent';
 // import { User } from 'src/models/user.model';
 import { SosService } from './sos/sos.service';
 import { Notification } from 'src/models/Notification';
+import { FirebaseService } from 'src/firebase/firebase.service';
 
 @Module({
   imports: [
@@ -36,7 +37,7 @@ import { Notification } from 'src/models/Notification';
     ]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, AuthGuard, SosService],
+  providers: [AuthService, AuthGuard, SosService, FirebaseService],
   exports: [AuthService, AuthGuard, JwtModule],
 })
 export class AuthModule {}

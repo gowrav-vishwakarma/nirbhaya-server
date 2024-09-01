@@ -16,6 +16,7 @@ import { SosEvent } from 'src/models/SosEvent';
 import { ValidationException } from '../qnatk/src/Exceptions/ValidationException';
 import { UserJWT } from 'src/dto/user-jwt.dto';
 import { SosService } from './sos/sos.service';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -339,5 +340,9 @@ export class AuthService {
     return Math.floor(
       10 ** (characters - 1) + Math.random() * (9 * 10 ** (characters - 1)),
     ).toString();
+  }
+
+  async updateFcmToken(userId: number, fcmToken: string): Promise<void> {
+    await this.userModel.update({ fcmToken }, { where: { id: userId } });
   }
 }

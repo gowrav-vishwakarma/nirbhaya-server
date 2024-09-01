@@ -69,4 +69,10 @@ export class User extends Model<User> {
 
   @HasMany(() => SosEvent)
   sosEvents: SosEvent[];
+
+  @Column({
+    type: DataType.TEXT,
+    allowNull: true,
+  })
+  fcmToken: string;
 }
