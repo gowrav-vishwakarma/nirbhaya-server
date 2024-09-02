@@ -20,7 +20,7 @@ export class SosService {
     private firebaseService: FirebaseService,
   ) {}
 
-  private readonly NEARBY_DISTANCE_METERS = 1000; // 1km radius
+  private readonly NEARBY_DISTANCE_METERS = 10000; // 1km radius
 
   async handleSos(sosEvent: SosEvent) {
     if (sosEvent.status === 'created') {
@@ -91,6 +91,8 @@ export class SosService {
           user.fcmToken,
           'SOS Alert',
           'Someone nearby needs help!',
+          sosEvent.id.toString(),
+          JSON.stringify(sosEvent.location.coordinates),
         );
       }
     }
@@ -125,6 +127,8 @@ export class SosService {
           contact.user.fcmToken,
           'Emergency Alert',
           'Your emergency contact needs help!',
+          sosEvent.id.toString(),
+          JSON.stringify(sosEvent.location.coordinates),
         );
       }
     }

@@ -56,7 +56,13 @@ export class FirebaseService {
       : `-----BEGIN PRIVATE KEY-----\n${privateKey}\n-----END PRIVATE KEY-----\n`;
   }
 
-  async sendPushNotification(token: string, title: string, body: string) {
+  async sendPushNotification(
+    token: string,
+    title: string,
+    body: string,
+    sosEventId: string,
+    location: string,
+  ) {
     if (!this.app) {
       this.logger.warn(
         'Firebase is not initialized. Cannot send push notification.',
@@ -68,6 +74,7 @@ export class FirebaseService {
       const message = {
         notification: { title, body },
         token,
+        data: { sosEventId, location },
       };
 
       const response = await this.app.messaging().send(message);
