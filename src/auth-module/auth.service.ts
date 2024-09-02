@@ -7,11 +7,13 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { User } from 'src/models/User';
 import { EmergencyContact } from 'src/models/EmergencyContact';
 import { UserLocation } from 'src/models/UserLocation';
 import { SosEvent } from 'src/models/SosEvent';
+import { Notification } from 'src/models/Notification'; // Add this import
 
 import { ValidationException } from '../qnatk/src/Exceptions/ValidationException';
 import { UserJWT } from 'src/dto/user-jwt.dto';
@@ -29,6 +31,8 @@ export class AuthService {
     private readonly userLocationModel: typeof UserLocation,
     @InjectModel(SosEvent)
     private readonly sosEventModel: typeof SosEvent,
+    @InjectModel(Notification) // Add this line
+    private readonly notificationModel: typeof Notification, // Add this line
   ) {}
 
   async signUp(signUpDto: any): Promise<any> {
@@ -344,5 +348,83 @@ export class AuthService {
 
   async updateFcmToken(userId: number, fcmToken: string): Promise<void> {
     await this.userModel.update({ fcmToken }, { where: { id: userId } });
+  }
+
+  async getNotifications(userId: number): Promise<any[]> {
+    try {
+      const notifications = await this.notificationModel.findAll({
+        where: { recipientId: userId },
+        include: [
+          {
+            model: this.sosEventModel,
+            attributes: ['id', 'location', 'status', 'threat'],
+          },
+        ],
+        order: [['createdAt', 'DESC']],
+        limit: 50, // Limit to the most recent 50 notifications
+      });
+
+      return notifications.map((notification) => {
+        const plainNotification = notification.get({ plain: true });
+        if (plainNotification.sosEvent && plainNotification.sosEvent.location) {
+          plainNotification.sosEvent.location = {
+            type: 'Point',
+            coordinates: plainNotification.sosEvent.location.coordinates,
+          };
+        }
+        return plainNotification;
+      });
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      throw new HttpException(
+        'Failed to fetch notifications',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async acceptNotification(
+    notificationId: number,
+    userId: number,
+  ): Promise<Notification> {
+    const notification = await this.notificationModel.findOne({
+      where: { id: notificationId, recipientId: userId, status: 'sent' },
+      include: [{ model: this.sosEventModel }],
+    });
+
+    if (!notification) {
+      throw new NotFoundException(
+        'Notification not found or cannot be accepted',
+      );
+    }
+
+    notification.status = 'accepted';
+    await notification.save();
+
+    // Update the associated SOS event
+    if (notification.sosEvent) {
+      notification.sosEvent.accepted += 1;
+      await notification.sosEvent.save();
+    }
+
+    return notification;
+  }
+
+  async getUnreadNotificationCount(userId: number): Promise<number> {
+    try {
+      const count = await this.notificationModel.count({
+        where: {
+          recipientId: userId,
+          status: 'sent', // Assuming 'sent' status means unread
+        },
+      });
+      return count;
+    } catch (error) {
+      console.error('Error fetching unread notification count:', error);
+      throw new HttpException(
+        'Failed to fetch unread notification count',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

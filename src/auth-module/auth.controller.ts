@@ -1,8 +1,9 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Param } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
 import { GetUser } from './getuser.decorator';
 import { UserJWT } from 'src/dto/user-jwt.dto';
+import { Notification } from 'src/models/Notification'; // Add this import
 
 @Controller('auth')
 export class AuthController {
@@ -49,5 +50,23 @@ export class AuthController {
   ) {
     await this.authService.updateFcmToken(user.id, fcmToken);
     return { message: 'FCM token updated successfully' };
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('notifications')
+  async getNotifications(@GetUser() user: UserJWT) {
+    return this.authService.getNotifications(user.id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('notifications/:id/accept')
+  async acceptNotification(@Param('id') id: string, @GetUser() user: UserJWT) {
+    return this.authService.acceptNotification(parseInt(id), user.id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('notifications/unread-count')
+  async getUnreadNotificationCount(@GetUser() user: UserJWT) {
+    return this.authService.getUnreadNotificationCount(user.id);
   }
 }
