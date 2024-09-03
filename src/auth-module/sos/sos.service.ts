@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { SosEvent } from 'src/models/SosEvent';
 import { User } from 'src/models/User';
@@ -6,9 +6,15 @@ import { EmergencyContact } from 'src/models/EmergencyContact';
 import { Notification } from 'src/models/Notification';
 import { Sequelize } from 'sequelize-typescript';
 import { FirebaseService } from 'src/firebase/firebase.service';
+import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { Server, Socket } from 'socket.io';
+import { StreamingGateway } from '../../streaming/streaming.gateway';
 
+@WebSocketGateway()
 @Injectable()
 export class SosService {
+  private rooms: Map<string, Set<string>> = new Map();
+
   constructor(
     @InjectModel(SosEvent) private readonly sosEventModel: typeof SosEvent,
     @InjectModel(User) private readonly userModel: typeof User,
@@ -18,6 +24,8 @@ export class SosService {
     private readonly notificationModel: typeof Notification,
     private sequelize: Sequelize,
     private firebaseService: FirebaseService,
+    @Inject(forwardRef(() => StreamingGateway))
+    private streamingGateway: StreamingGateway,
   ) {}
 
   private readonly NEARBY_DISTANCE_METERS = 10000; // 1km radius
@@ -145,7 +153,7 @@ export class SosService {
             'Emergency Alert',
             'Your emergency contact needs help!',
             sosEvent.id.toString(),
-            JSON.stringify(sosEvent.location.coordinates),
+            JSON.stringify(sosEvent.location?.coordinates),
           );
         }
       }
@@ -166,5 +174,37 @@ export class SosService {
 
     sosEvent.accepted = acceptedCount;
     await sosEvent.save();
+  }
+
+  async handleWebRTCSignaling(client: Socket, sosEventId: string, signal: any) {
+    console.log(`Broadcasting WebRTC signal to room ${sosEventId}`);
+    client.to(sosEventId).emit('webrtc_signal', { sosEventId, signal });
+  }
+
+  async joinSosRoom(client: Socket, sosEventId: string) {
+    if (!this.rooms.has(sosEventId)) {
+      this.rooms.set(sosEventId, new Set());
+    }
+    this.rooms.get(sosEventId)!.add(client.id);
+    client.join(sosEventId);
+    console.log(`Client ${client.id} joined room ${sosEventId}`);
+  }
+
+  async leaveSosRoom(client: Socket, sosEventId: string) {
+    if (this.rooms.has(sosEventId)) {
+      this.rooms.get(sosEventId)!.delete(client.id);
+      if (this.rooms.get(sosEventId)!.size === 0) {
+        this.rooms.delete(sosEventId);
+      }
+    }
+    client.leave(sosEventId);
+    console.log(`Client ${client.id} left room ${sosEventId}`);
+  }
+
+  async broadcastAudioData(sosEventId: string, audioData: string) {
+    console.log(`Broadcasting audio data to room ${sosEventId}`);
+    this.streamingGateway.server
+      .to(sosEventId)
+      .emit('audio_data', { audioData });
   }
 }

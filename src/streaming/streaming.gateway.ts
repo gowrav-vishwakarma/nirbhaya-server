@@ -2,19 +2,22 @@ import {
   WebSocketGateway,
   WebSocketServer,
   SubscribeMessage,
-  OnGatewayConnection,
-  OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import * as fs from 'fs';
-import * as path from 'path';
+import { SosService } from '../auth-module/sos/sos.service';
+import { Inject, forwardRef } from '@nestjs/common';
 
-@WebSocketGateway({ cors: true })
-export class StreamingGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
-{
+@WebSocketGateway({
+  namespace: 'sos',
+  cors: true,
+})
+export class StreamingGateway {
   @WebSocketServer() server: Server;
-  private streams: Map<string, fs.WriteStream> = new Map();
+
+  constructor(
+    @Inject(forwardRef(() => SosService))
+    private sosService: SosService,
+  ) {}
 
   handleConnection(client: Socket) {
     console.log(`Client connected: ${client.id}`);
@@ -22,31 +25,42 @@ export class StreamingGateway
 
   handleDisconnect(client: Socket) {
     console.log(`Client disconnected: ${client.id}`);
-    this.endStream(client.id);
   }
 
-  @SubscribeMessage('stream-chunk')
-  handleStreamChunk(client: Socket, payload: Buffer) {
-    let stream = this.streams.get(client.id);
-    if (!stream) {
-      const fileName = `sos_stream_${client.id}_${Date.now()}.webm`;
-      const filePath = path.join(__dirname, '..', '..', 'uploads', fileName);
-      stream = fs.createWriteStream(filePath);
-      this.streams.set(client.id, stream);
-    }
-    stream.write(payload);
+  @SubscribeMessage('join_sos_room')
+  async handleJoinSosRoom(client: Socket, sosEventId: string) {
+    console.log(`Client ${client.id} joining SOS room: ${sosEventId}`);
+    await this.sosService.joinSosRoom(client, sosEventId);
   }
 
-  @SubscribeMessage('end-stream')
-  handleEndStream(client: Socket) {
-    this.endStream(client.id);
+  @SubscribeMessage('leave_sos_room')
+  async handleLeaveSosRoom(client: Socket, sosEventId: string) {
+    await this.sosService.leaveSosRoom(client, sosEventId);
   }
 
-  private endStream(clientId: string) {
-    const stream = this.streams.get(clientId);
-    if (stream) {
-      stream.end();
-      this.streams.delete(clientId);
-    }
+  @SubscribeMessage('webrtc_signal')
+  async handleWebRTCSignal(
+    client: Socket,
+    payload: { sosEventId: string; signal: any },
+  ) {
+    console.log(`Received WebRTC signal for SOS event: ${payload.sosEventId}`);
+    console.log('Signal type:', payload.signal.type);
+    console.log('Client ID:', client.id);
+    await this.sosService.handleWebRTCSignaling(
+      client,
+      payload.sosEventId,
+      payload.signal,
+    );
+  }
+
+  @SubscribeMessage('audio_data')
+  async handleAudioData(
+    client: Socket,
+    payload: { sosEventId: string; audioData: string },
+  ) {
+    await this.sosService.broadcastAudioData(
+      payload.sosEventId,
+      payload.audioData,
+    );
   }
 }

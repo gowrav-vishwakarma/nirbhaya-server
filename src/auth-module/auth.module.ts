@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtModule, JwtModuleAsyncOptions } from '@nestjs/jwt';
@@ -45,6 +45,6 @@ import { StreamingGateway } from '../streaming/streaming.gateway';
     FirebaseService,
     StreamingGateway,
   ],
-  exports: [AuthService, AuthGuard, JwtModule],
+  exports: [AuthService, AuthGuard, JwtModule, SosService, StreamingGateway],
 })
 export class AuthModule {}

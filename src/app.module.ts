@@ -15,6 +15,7 @@ import { Notification } from './models/Notification';
 import { Responder } from './models/Responder';
 import { AuthModule } from './auth-module/auth.module';
 import { NirbhayaQnatkController } from './nirbhaya.controller';
+import { StreamingModule } from './streaming/streaming.module';
 
 export const sequelizeModelArray = [
   User,
@@ -71,6 +72,7 @@ export const sequelizeModelArray = [
     ),
     SequelizeModule.forFeature(sequelizeModelArray),
     AuthModule,
+    StreamingModule,
   ],
   controllers: [AppController, NirbhayaQnatkController],
   providers: [AppService],
