@@ -63,6 +63,7 @@ export class AuthService {
       include: [
         {
           model: EmergencyContact,
+          required: false,
           as: 'emergencyContacts',
           attributes: [
             'contactName',
@@ -75,6 +76,7 @@ export class AuthService {
         {
           model: UserLocation,
           as: 'locations',
+          required: false,
           attributes: ['name', 'location'],
         },
       ],
