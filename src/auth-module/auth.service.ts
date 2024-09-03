@@ -232,7 +232,7 @@ export class AuthService {
     try {
       console.log('data...........', data);
       let sosEvent = await this.sosEventModel.findOne({
-        where: { userId: user.id, status: 'created' },
+        where: { userId: user.id, status: 'active' },
       });
 
       const location = data.location
