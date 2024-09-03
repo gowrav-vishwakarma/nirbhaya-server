@@ -14,6 +14,7 @@ import { SosEvent } from 'src/models/SosEvent';
 import { SosService } from './sos/sos.service';
 import { Notification } from 'src/models/Notification';
 import { FirebaseService } from 'src/firebase/firebase.service';
+import { StreamingGateway } from '../streaming/streaming.gateway';
 
 @Module({
   imports: [
@@ -37,7 +38,13 @@ import { FirebaseService } from 'src/firebase/firebase.service';
     ]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, AuthGuard, SosService, FirebaseService],
+  providers: [
+    AuthService,
+    AuthGuard,
+    SosService,
+    FirebaseService,
+    StreamingGateway,
+  ],
   exports: [AuthService, AuthGuard, JwtModule],
 })
 export class AuthModule {}
