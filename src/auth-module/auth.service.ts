@@ -246,6 +246,7 @@ export class AuthService {
         const formatedSosData = {
           location: location || sosEvent.location,
           threat: data.threat || sosEvent.threat,
+          status: data.status || sosEvent.status,
         };
 
         await sosEvent.update(formatedSosData);
