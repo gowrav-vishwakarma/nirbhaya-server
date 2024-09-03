@@ -228,7 +228,7 @@ export class AuthService {
     return { message: 'User locations updated successfully' };
   }
 
-  async sosLocationCrud(data: any, user: UserJWT): Promise<any> {
+  async sosUpdate(data: any, user: UserJWT): Promise<any> {
     try {
       console.log('data...........', data);
       let sosEvent = await this.sosEventModel.findOne({

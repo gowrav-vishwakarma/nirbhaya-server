@@ -24,11 +24,11 @@ export class AuthController {
   userProfileUpdate(@Body() data: any): Promise<any> {
     return this.authService.userProfileUpdate(data);
   }
-  @Post('/sos-location-crud')
+  @Post('/sos-update')
   @UseGuards(AuthGuard)
   sosLocationCrud(@Body() data: any, @GetUser() user: UserJWT): Promise<any> {
     console.log('user...........', user);
-    return this.authService.sosLocationCrud(data, user);
+    return this.authService.sosUpdate(data, user);
   }
 
   @UseGuards(AuthGuard)
