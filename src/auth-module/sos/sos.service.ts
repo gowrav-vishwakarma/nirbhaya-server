@@ -41,17 +41,27 @@ export class SosService {
   }
 
   private async initialEscalation(sosEvent: SosEvent) {
-    await this.notifyNearbyUsers(sosEvent);
-    await this.notifyEmergencyContacts(sosEvent);
+    let notifiedSomeone = false;
 
-    sosEvent.escalationLevel = 1;
-    await sosEvent.save();
+    if (sosEvent.location) {
+      const notifiedNearbyUsers = await this.notifyNearbyUsers(sosEvent);
+      notifiedSomeone = notifiedSomeone || notifiedNearbyUsers;
+    }
+
+    const notifiedEmergencyContacts =
+      await this.notifyEmergencyContacts(sosEvent);
+    notifiedSomeone = notifiedSomeone || notifiedEmergencyContacts;
+
+    if (notifiedSomeone) {
+      sosEvent.escalationLevel = 1;
+      await sosEvent.save();
+    }
   }
 
-  private async notifyNearbyUsers(sosEvent: SosEvent) {
+  private async notifyNearbyUsers(sosEvent: SosEvent): Promise<boolean> {
     if (!sosEvent.location) {
       console.log('No location data for SOS event');
-      return;
+      return false;
     }
 
     const [longitude, latitude] = sosEvent.location.coordinates;
@@ -72,33 +82,39 @@ export class SosService {
       ],
     });
 
-    const notifications = nearbyUsers.map((user) => ({
-      eventId: sosEvent.id,
-      recipientId: user.id,
-      recipientType: 'volunteer',
-      status: 'sent',
-    }));
+    if (nearbyUsers.length > 0) {
+      const notifications = nearbyUsers.map((user) => ({
+        eventId: sosEvent.id,
+        recipientId: user.id,
+        recipientType: 'volunteer',
+        status: 'sent',
+      }));
 
-    await this.notificationModel.bulkCreate(notifications as any);
+      await this.notificationModel.bulkCreate(notifications as any);
 
-    sosEvent.informed += nearbyUsers.length;
-    sosEvent.escalationLevel = 1;
-    await sosEvent.save();
+      sosEvent.informed += nearbyUsers.length;
+      sosEvent.escalationLevel = 1;
+      await sosEvent.save();
 
-    for (const user of nearbyUsers) {
-      if (user.fcmToken) {
-        await this.firebaseService.sendPushNotification(
-          user.fcmToken,
-          'SOS Alert',
-          'Someone nearby needs help!',
-          sosEvent.id.toString(),
-          JSON.stringify(sosEvent.location.coordinates),
-        );
+      for (const user of nearbyUsers) {
+        if (user.fcmToken) {
+          await this.firebaseService.sendPushNotification(
+            user.fcmToken,
+            'SOS Alert #' + sosEvent.id,
+            'Someone nearby needs help!',
+            sosEvent.id.toString(),
+            JSON.stringify(sosEvent.location.coordinates),
+          );
+        }
       }
+
+      return true;
     }
+
+    return false;
   }
 
-  private async notifyEmergencyContacts(sosEvent: SosEvent) {
+  private async notifyEmergencyContacts(sosEvent: SosEvent): Promise<boolean> {
     const emergencyContacts = await this.emergencyContactModel.findAll({
       where: { userId: sosEvent.userId },
       include: [
@@ -109,29 +125,35 @@ export class SosService {
       ],
     });
 
-    const notifications = emergencyContacts.map((contact) => ({
-      eventId: sosEvent.id,
-      recipientId: contact.user.id,
-      recipientType: 'emergency_contact',
-      status: 'sent',
-    }));
+    if (emergencyContacts.length > 0) {
+      const notifications = emergencyContacts.map((contact) => ({
+        eventId: sosEvent.id,
+        recipientId: contact.user.id,
+        recipientType: 'emergency_contact',
+        status: 'sent',
+      }));
 
-    await this.notificationModel.bulkCreate(notifications as any);
+      await this.notificationModel.bulkCreate(notifications as any);
 
-    sosEvent.informed += emergencyContacts.length;
-    await sosEvent.save();
+      sosEvent.informed += emergencyContacts.length;
+      await sosEvent.save();
 
-    for (const contact of emergencyContacts) {
-      if (contact.user && contact.user.fcmToken) {
-        await this.firebaseService.sendPushNotification(
-          contact.user.fcmToken,
-          'Emergency Alert',
-          'Your emergency contact needs help!',
-          sosEvent.id.toString(),
-          JSON.stringify(sosEvent.location.coordinates),
-        );
+      for (const contact of emergencyContacts) {
+        if (contact.user && contact.user.fcmToken) {
+          await this.firebaseService.sendPushNotification(
+            contact.user.fcmToken,
+            'Emergency Alert',
+            'Your emergency contact needs help!',
+            sosEvent.id.toString(),
+            JSON.stringify(sosEvent.location.coordinates),
+          );
+        }
       }
+
+      return true;
     }
+
+    return false;
   }
 
   private async updateAcceptedCount(sosEvent: SosEvent) {
