@@ -338,7 +338,7 @@ export class AuthService {
   }
 
   generateOtp(characters: number): string {
-    if (process.env.CURRENT_ENVIRONMENT == 'staging') {
+    if (process.env.NODE_ENVIRONMENT == 'staging') {
       return '1234';
     }
     return Math.floor(
