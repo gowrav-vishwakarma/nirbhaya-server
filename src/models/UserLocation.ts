@@ -3,12 +3,12 @@ import {
   Column,
   Model,
   DataType,
-  HasMany,
   BelongsTo,
   ForeignKey,
 } from 'sequelize-typescript';
 
 import { User } from './User';
+
 @Table
 export class UserLocation extends Model<UserLocation> {
   @Column({
@@ -29,10 +29,42 @@ export class UserLocation extends Model<UserLocation> {
   user: User;
 
   @Column({
-    type: DataType.GEOMETRY('POINT'),
+    type: DataType.GEOMETRY('POINT', 4326),
     allowNull: false,
+    get() {
+      const point = this.getDataValue('location');
+      if (!point) return null;
+
+      if (point.x !== undefined && point.y !== undefined) {
+        return {
+          type: 'Point',
+          coordinates: [point.x, point.y],
+        };
+      } else if (
+        Array.isArray(point.coordinates) &&
+        point.coordinates.length === 2
+      ) {
+        return {
+          type: 'Point',
+          coordinates: point.coordinates,
+        };
+      } else {
+        console.error('Invalid point data:', point);
+        return null;
+      }
+    },
+    set(value: { type: string; coordinates: number[] } | null) {
+      if (value && value.type === 'Point' && Array.isArray(value.coordinates)) {
+        this.setDataValue('location', {
+          type: 'Point',
+          coordinates: value.coordinates,
+        });
+      } else {
+        this.setDataValue('location', null);
+      }
+    },
   })
-  location: any; // Using 'any' as Sequelize doesn't have a specific type for GEOMETRY
+  location: { type: string; coordinates: number[] } | null;
 
   @Column({
     type: DataType.DATE,

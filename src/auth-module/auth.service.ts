@@ -1,7 +1,6 @@
 import { JwtService } from '@nestjs/jwt';
 import { Transaction } from 'sequelize';
 import { InjectModel } from '@nestjs/sequelize';
-import { Op } from 'sequelize';
 import {
   BadRequestException,
   HttpException,
@@ -43,7 +42,7 @@ export class AuthService {
     const { mobileNumber, otp } = logInDto;
 
     console.log('login details', mobileNumber, otp);
-    let userCond: any = {
+    const userCond = {
       phoneNumber: mobileNumber,
       otp: otp,
     };
@@ -58,7 +57,7 @@ export class AuthService {
         'token',
         'otpExpiresAt',
         'isVerified',
-        'availableForCommunity', // Changed from liveSosEventChecking
+        'availableForCommunity',
       ],
       include: [
         {
@@ -73,12 +72,6 @@ export class AuthService {
             'priority',
           ],
         },
-        {
-          model: UserLocation,
-          as: 'locations',
-          required: false,
-          attributes: ['name', 'location'],
-        },
       ],
       where: userCond,
       transaction: t,
@@ -90,6 +83,12 @@ export class AuthService {
 
     delete user.otp;
 
+    // Fetch user locations separately
+    const userLocations = await this.userLocationModel.findAll({
+      where: { userId: user.id },
+      attributes: ['id', 'name', 'location', 'timestamp'],
+    });
+
     const userDetails = {
       phoneNumber: user.phoneNumber,
       userType: user.userType,
@@ -97,17 +96,14 @@ export class AuthService {
       email: user.email,
       isVerified: user.isVerified,
       city: user.city,
-      availableForCommunity: user.availableForCommunity, // Changed from liveSosEventChecking
+      availableForCommunity: user.availableForCommunity,
       emergencyContacts: user.emergencyContacts,
-      locations: user.locations.map((location) => {
-        return {
-          name: location.name,
-          location: {
-            type: 'Point',
-            coordinates: [location.location.x, location.location.y],
-          },
-        };
-      }),
+      locations: userLocations.map((location) => ({
+        id: location.id,
+        name: location.name,
+        location: location.location,
+        timestamp: location.timestamp,
+      })),
     };
 
     const tokenPayload: UserJWT = {
@@ -133,32 +129,78 @@ export class AuthService {
     };
   }
 
-  async userProfileUpdate(data: any): Promise<any> {
+  async userProfileUpdate(data: any, loggedInUser: UserJWT): Promise<any> {
     try {
       console.log('update data...', data);
 
       const user = await this.userModel.findOne({
         where: {
-          phoneNumber: data.phoneNumber,
+          id: loggedInUser.id,
         },
+        include: [
+          {
+            model: EmergencyContact,
+            as: 'emergencyContacts',
+          },
+        ],
       });
 
-      user.name = data.name;
-      user.city = data.city;
-      user.availableForCommunity = data.availableForCommunity; // Changed from liveSosEventChecking
-      user.userType = data.userType;
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
 
-      user.save();
+      // Update only the fields that are provided in the data object
+      if (data.name !== undefined) user.name = data.name;
+      if (data.city !== undefined) user.city = data.city;
+      if (data.availableForCommunity !== undefined)
+        user.availableForCommunity = data.availableForCommunity;
+      if (data.userType !== undefined) user.userType = data.userType;
+
+      await user.save();
 
       // Handle emergency contacts if provided
-      await this.userEmergencyContactAdd(user.id, data.emergencyContacts);
+      if (data.emergencyContacts) {
+        await this.userEmergencyContactAdd(user.id, data.emergencyContacts);
+      }
 
       // Handle notification locations if provided
-      if (data.locations && data.locations.length > 0) {
+      if (data.locations) {
         await this.userLocationAdd(user.id, data.locations);
       }
 
-      return { success: true, message: 'User profile updated successfully' };
+      // Fetch the updated user data
+      const updatedUser = await this.userModel.findOne({
+        where: { id: loggedInUser.id },
+        include: [
+          {
+            model: EmergencyContact,
+            as: 'emergencyContacts',
+          },
+        ],
+      });
+
+      // Fetch user locations separately
+      const userLocations = await this.userLocationModel.findAll({
+        where: { userId: loggedInUser.id },
+        attributes: ['id', 'name', 'location', 'timestamp'],
+      });
+
+      // Format the user data before returning
+      const formattedUser = {
+        ...updatedUser.toJSON(),
+        locations: userLocations.map((location) => ({
+          id: location.id,
+          name: location.name,
+          location: location.location,
+          timestamp: location.timestamp,
+        })),
+      };
+
+      return {
+        success: true,
+        message: 'User profile updated successfully',
+        user: formattedUser,
+      };
     } catch (error) {
       console.error('Error updating user profile:', error);
       throw new BadRequestException(error);
@@ -166,6 +208,28 @@ export class AuthService {
   }
 
   async userEmergencyContactAdd(userId: number, contacts: any[]): Promise<any> {
+    // Delete only the contacts that are not in the new list
+    const existingContacts = await this.emergencyContactModel.findAll({
+      where: { userId: userId },
+    });
+
+    const existingPhones = existingContacts.map(
+      (contact) => contact.contactPhone,
+    );
+    const newPhones = contacts.map((contact) => contact.contactPhone);
+
+    const phonesToDelete = existingPhones.filter(
+      (phone) => !newPhones.includes(phone),
+    );
+
+    await this.emergencyContactModel.destroy({
+      where: {
+        userId: userId,
+        contactPhone: phonesToDelete,
+      },
+    });
+
+    // Update or create new contacts
     for (const contactData of contacts) {
       const user = await this.userModel.findOne({
         where: {
@@ -193,23 +257,32 @@ export class AuthService {
         },
       });
     }
-    await this.emergencyContactModel.destroy({
-      where: {
-        userId: userId,
-        contactPhone: {
-          [Op.notIn]: contacts.map((contact) => contact.contactPhone),
-        },
-      },
-    });
     return { message: 'Emergency contacts updated successfully' };
   }
 
   async userLocationAdd(userId: number, locations: any[]): Promise<any> {
+    // Get all existing locations for the user
+    const existingLocations = await this.userLocationModel.findAll({
+      where: { userId: userId },
+    });
+
+    const existingNames = existingLocations.map((location) => location.name);
+    const newNames = locations.map((location) => location.name);
+
+    // Find names to delete (existing names not in the new list)
+    const namesToDelete = existingNames.filter(
+      (name) => !newNames.includes(name),
+    );
+
+    // Delete locations that are not in the new list
     await this.userLocationModel.destroy({
       where: {
         userId: userId,
+        name: namesToDelete,
       },
     });
+
+    // Update or create locations
     for (const locationData of locations) {
       const location = {
         type: 'Point',
@@ -218,11 +291,28 @@ export class AuthService {
           locationData.location.coordinates[1],
         ],
       };
-      await this.userLocationModel.create({
-        userId: userId,
-        name: locationData.name,
-        location: location,
+
+      // Try to find an existing location with the same name
+      const existingLocation = await this.userLocationModel.findOne({
+        where: {
+          userId: userId,
+          name: locationData.name,
+        },
       });
+
+      if (existingLocation) {
+        // Update existing location
+        await existingLocation.update({
+          location: location,
+        });
+      } else {
+        // Create new location
+        await this.userLocationModel.create({
+          userId: userId,
+          name: locationData.name,
+          location: location,
+        });
+      }
     }
 
     return { message: 'User locations updated successfully' };

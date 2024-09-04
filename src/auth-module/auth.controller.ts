@@ -21,8 +21,8 @@ export class AuthController {
 
   @Post('/user-profile-update')
   @UseGuards(AuthGuard)
-  userProfileUpdate(@Body() data: any): Promise<any> {
-    return this.authService.userProfileUpdate(data);
+  userProfileUpdate(@Body() data: any, @GetUser() user: UserJWT): Promise<any> {
+    return this.authService.userProfileUpdate(data, user);
   }
   @Post('/sos-update')
   @UseGuards(AuthGuard)
