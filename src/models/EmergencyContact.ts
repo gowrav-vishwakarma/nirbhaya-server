@@ -24,7 +24,7 @@ export class EmergencyContact extends Model {
   })
   userId: number;
 
-  @BelongsTo(() => User)
+  @BelongsTo(() => User, 'userId')
   user: User;
 
   @ForeignKey(() => User)
@@ -34,7 +34,7 @@ export class EmergencyContact extends Model {
   })
   contactUserId: number;
 
-  @BelongsTo(() => User)
+  @BelongsTo(() => User, 'contactUserId')
   contactUser: User;
 
   @Column({
@@ -51,7 +51,7 @@ export class EmergencyContact extends Model {
 
   @Column({
     type: DataType.STRING(50),
-    allowNull: true, // If relationship can be optional
+    allowNull: true,
   })
   relationship: string;
 
@@ -63,7 +63,7 @@ export class EmergencyContact extends Model {
 
   @Column({
     type: DataType.INTEGER,
-    allowNull: true, // If priority can be optional
+    allowNull: true,
   })
   priority: number;
 }
