@@ -528,4 +528,20 @@ export class AuthService {
       );
     }
   }
+
+  async validatePhone(phoneNumber: string): Promise<{ isValid: boolean }> {
+    try {
+      const user = await this.userModel.findOne({
+        where: { phoneNumber },
+      });
+
+      return { isValid: !!user };
+    } catch (error) {
+      console.error('Error validating phone number:', error);
+      throw new HttpException(
+        'Error validating phone number',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }

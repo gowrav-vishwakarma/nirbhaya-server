@@ -69,4 +69,9 @@ export class AuthController {
   async getUnreadNotificationCount(@GetUser() user: UserJWT) {
     return this.authService.getUnreadNotificationCount(user.id);
   }
+
+  @Post('validate-phone')
+  async validatePhone(@Body('phoneNumber') phoneNumber: string) {
+    return this.authService.validatePhone(phoneNumber);
+  }
 }
