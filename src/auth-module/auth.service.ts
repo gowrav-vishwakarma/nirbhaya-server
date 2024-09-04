@@ -343,7 +343,7 @@ export class AuthService {
         Object.assign(sosEvent, formatedSosData);
       } else {
         sosEvent = await this.sosEventModel.create({
-          location: location,
+          location: location ? location : null,
           userId: user.id,
           status: 'active',
           threat: data.threat,
@@ -351,6 +351,10 @@ export class AuthService {
           accepted: 0,
           escalationLevel: 0,
         });
+      }
+
+      if (!sosEvent.location) {
+        return;
       }
 
       // Call sosService.handleSos with the new or updated SOS event
