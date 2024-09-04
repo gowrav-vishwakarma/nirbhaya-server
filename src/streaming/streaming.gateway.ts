@@ -9,7 +9,12 @@ import { Inject, forwardRef } from '@nestjs/common';
 
 @WebSocketGateway({
   namespace: 'sos',
-  cors: true,
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type'],
+    credentials: true,
+  },
 })
 export class StreamingGateway {
   @WebSocketServer() server: Server;
