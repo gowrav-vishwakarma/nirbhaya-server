@@ -57,7 +57,7 @@ export class User extends Model<User> {
 
   @Column({
     type: DataType.BOOLEAN,
-    defaultValue: false,
+    defaultValue: true,
   })
   availableForCommunity: boolean; // Changed from liveSosEventChecking
 
