@@ -59,7 +59,7 @@ export class User extends Model<User> {
     type: DataType.BOOLEAN,
     defaultValue: false,
   })
-  liveSosEventChecking: boolean;
+  availableForCommunity: boolean; // Changed from liveSosEventChecking
 
   @HasMany(() => EmergencyContact)
   emergencyContacts: EmergencyContact[];

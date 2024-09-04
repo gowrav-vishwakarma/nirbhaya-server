@@ -58,7 +58,7 @@ export class AuthService {
         'token',
         'otpExpiresAt',
         'isVerified',
-        'liveSosEventChecking',
+        'availableForCommunity', // Changed from liveSosEventChecking
       ],
       include: [
         {
@@ -97,7 +97,7 @@ export class AuthService {
       email: user.email,
       isVerified: user.isVerified,
       city: user.city,
-      liveSosEventChecking: user.liveSosEventChecking,
+      availableForCommunity: user.availableForCommunity, // Changed from liveSosEventChecking
       emergencyContacts: user.emergencyContacts,
       locations: user.locations.map((location) => {
         return {
@@ -145,7 +145,7 @@ export class AuthService {
 
       user.name = data.name;
       user.city = data.city;
-      user.liveSosEventChecking = data.liveSosEventChecking;
+      user.availableForCommunity = data.availableForCommunity; // Changed from liveSosEventChecking
       user.userType = data.userType;
 
       user.save();
