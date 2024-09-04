@@ -437,7 +437,6 @@ export class AuthService {
       existingUser = await this.userModel.create({
         otp: newOtp,
         phoneNumber: mobileNumber,
-        userType: 'child',
       });
     }
 
