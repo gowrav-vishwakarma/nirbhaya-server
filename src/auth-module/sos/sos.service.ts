@@ -87,7 +87,7 @@ export class SosService {
       where: Sequelize.literal(`ST_Distance_Sphere(
         point(${longitude}, ${latitude}),
         location
-      ) <= ${this.NEARBY_DISTANCE_METERS}`),
+      ) <= ${this.NEARBY_DISTANCE_METERS} AND User.id != ${sosEvent.userId}`), // Skip self user
     });
 
     if (nearbyUsers.length > 0) {
@@ -121,11 +121,11 @@ export class SosService {
           const distanceMessage = `${Math.round(notification.distanceToEvent)} meters away from your ${notification.userLocationName}`;
           await this.firebaseService.sendPushNotification(
             user.fcmToken,
-            'SOS Alert #' + sosEvent.id,
+            `SOS Alert #${sosEvent.id}`,
             `Someone nearby needs help! ${distanceMessage}`,
             sosEvent.id.toString(),
             JSON.stringify(sosEvent.location.coordinates),
-            { distanceMessage },
+            { distanceMessage }, // Removed sosEventId from data
           );
         }
       }
@@ -142,12 +142,16 @@ export class SosService {
       include: [
         {
           model: User,
-          attributes: ['id', 'fcmToken'],
+          attributes: ['id', 'fcmToken', 'name'],
         },
       ],
     });
 
-    if (emergencyContacts.length > 0) {
+    const victim = await this.userModel.findByPk(sosEvent.userId, {
+      attributes: ['name'],
+    });
+
+    if (emergencyContacts.length > 0 && victim) {
       const notifications = emergencyContacts.map((contact) => ({
         eventId: sosEvent.id,
         recipientId: contact.user.id,
@@ -164,10 +168,11 @@ export class SosService {
         if (contact.user && contact.user.fcmToken) {
           await this.firebaseService.sendPushNotification(
             contact.user.fcmToken,
-            'Emergency Alert',
-            'Your emergency contact needs help!',
+            `Emergency Alert #${sosEvent.id}`,
+            `${victim.name} needs help!`,
             sosEvent.id.toString(),
             JSON.stringify(sosEvent.location?.coordinates),
+            {}, // Removed sosEventId and victimName from data
           );
         }
       }
