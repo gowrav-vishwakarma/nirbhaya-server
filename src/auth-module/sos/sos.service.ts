@@ -76,27 +76,38 @@ export class SosService {
 
     const nearbyUsers = await this.userModel.findAll({
       attributes: ['id', 'fcmToken'],
-      where: Sequelize.literal(`ST_Distance_Sphere(
-        point(${longitude}, ${latitude}),
-        location
-      ) <= ${this.NEARBY_DISTANCE_METERS}`),
       include: [
         {
           model: this.userModel.sequelize.models.UserLocation,
           as: 'locations',
-          attributes: [],
+          attributes: ['name', 'location'],
           required: true,
         },
       ],
+      where: Sequelize.literal(`ST_Distance_Sphere(
+        point(${longitude}, ${latitude}),
+        location
+      ) <= ${this.NEARBY_DISTANCE_METERS}`),
     });
 
     if (nearbyUsers.length > 0) {
-      const notifications = nearbyUsers.map((user) => ({
-        eventId: sosEvent.id,
-        recipientId: user.id,
-        recipientType: 'volunteer',
-        status: 'sent',
-      }));
+      const notifications = nearbyUsers.map((user) => {
+        const userLocation = user.locations[0];
+        const distance = this.calculateDistance(
+          sosEvent.location.coordinates,
+          userLocation.location.coordinates,
+        );
+
+        return {
+          eventId: sosEvent.id,
+          recipientId: user.id,
+          recipientType: 'volunteer',
+          status: 'sent',
+          userLocationName: userLocation.name,
+          userLocation: userLocation.location,
+          distanceToEvent: distance,
+        };
+      });
 
       await this.notificationModel.bulkCreate(notifications as any);
 
@@ -104,14 +115,17 @@ export class SosService {
       sosEvent.escalationLevel = 1;
       await sosEvent.save();
 
-      for (const user of nearbyUsers) {
-        if (user.fcmToken) {
+      for (const notification of notifications) {
+        const user = nearbyUsers.find((u) => u.id === notification.recipientId);
+        if (user && user.fcmToken) {
+          const distanceMessage = `${Math.round(notification.distanceToEvent)} meters away from your ${notification.userLocationName}`;
           await this.firebaseService.sendPushNotification(
             user.fcmToken,
             'SOS Alert #' + sosEvent.id,
-            'Someone nearby needs help!',
+            `Someone nearby needs help! ${distanceMessage}`,
             sosEvent.id.toString(),
             JSON.stringify(sosEvent.location.coordinates),
+            { distanceMessage },
           );
         }
       }
@@ -206,5 +220,22 @@ export class SosService {
     this.streamingGateway.server
       .to(sosEventId)
       .emit('audio_data', { audioData });
+  }
+
+  private calculateDistance(coord1: number[], coord2: number[]): number {
+    const [lon1, lat1] = coord1;
+    const [lon2, lat2] = coord2;
+    const R = 6371e3; // Earth's radius in meters
+    const φ1 = (lat1 * Math.PI) / 180;
+    const φ2 = (lat2 * Math.PI) / 180;
+    const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+    const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+
+    const a =
+      Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c; // Distance in meters
   }
 }

@@ -3,7 +3,6 @@ import {
   Column,
   Model,
   DataType,
-  HasMany,
   BelongsTo,
   ForeignKey,
 } from 'sequelize-typescript';
@@ -45,4 +44,13 @@ export class Notification extends Model<Notification> {
     defaultValue: 'sent',
   })
   status: 'sent' | 'received' | 'accepted' | 'ignored';
+
+  @Column(DataType.STRING)
+  userLocationName: string;
+
+  @Column(DataType.GEOMETRY('POINT'))
+  userLocation: any;
+
+  @Column(DataType.FLOAT)
+  distanceToEvent: number;
 }

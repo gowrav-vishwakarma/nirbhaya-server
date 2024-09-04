@@ -62,27 +62,26 @@ export class FirebaseService {
     body: string,
     sosEventId: string,
     location: string,
+    additionalData?: any,
   ) {
-    if (!this.app) {
-      this.logger.warn(
-        'Firebase is not initialized. Cannot send push notification.',
-      );
-      return null;
-    }
+    const message = {
+      notification: {
+        title,
+        body,
+      },
+      data: {
+        sosEventId,
+        location,
+        ...additionalData,
+      },
+      token,
+    };
 
     try {
-      const message = {
-        notification: { title, body },
-        token,
-        data: { sosEventId, location },
-      };
-
       const response = await this.app.messaging().send(message);
-      this.logger.log('Successfully sent message:', response);
-      return response;
+      console.log('Successfully sent message:', response);
     } catch (error) {
-      this.logger.error('Error sending message:', error);
-      throw error;
+      console.log('Error sending message:', error);
     }
   }
 }
