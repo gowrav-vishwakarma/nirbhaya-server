@@ -79,7 +79,7 @@ export class FirebaseService {
 
     try {
       const response = await this.app.messaging().send(message);
-      console.log('Successfully sent message:', response);
+      console.log('Successfully sent message:', message, response);
     } catch (error) {
       console.log('Error sending message:', error);
     }

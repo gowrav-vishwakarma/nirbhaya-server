@@ -27,6 +27,16 @@ export class EmergencyContact extends Model {
   @BelongsTo(() => User)
   user: User;
 
+  @ForeignKey(() => User)
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+  })
+  contactUserId: number;
+
+  @BelongsTo(() => User)
+  contactUser: User;
+
   @Column({
     type: DataType.STRING(100),
     allowNull: false,

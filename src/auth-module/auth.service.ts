@@ -254,8 +254,18 @@ export class AuthService {
           contactName: contactData.contactName,
           contactPhone: contactData.contactPhone,
           isAppUser: true,
+          contactUserId: user.id, // Add this line to save the contact's user ID
         },
       });
+
+      if (!created) {
+        // If the contact already exists, update its details
+        await contact.update({
+          contactName: contactData.contactName,
+          isAppUser: true,
+          contactUserId: user.id, // Update the contact's user ID
+        });
+      }
     }
     return { message: 'Emergency contacts updated successfully' };
   }

@@ -32,6 +32,15 @@ export class SosService {
 
   async handleSos(sosEvent: SosEvent) {
     if (sosEvent.status === 'created') {
+      // cancel existing sos events for the same user
+      await this.sosEventModel.update(
+        { status: 'cancelled' },
+        {
+          where: {
+            userId: sosEvent.userId,
+          },
+        },
+      );
       return {
         message: 'SOS event created',
       };
@@ -142,6 +151,7 @@ export class SosService {
       include: [
         {
           model: User,
+          as: 'contactUser',
           attributes: ['id', 'fcmToken', 'name'],
         },
       ],
@@ -154,7 +164,7 @@ export class SosService {
     if (emergencyContacts.length > 0 && victim) {
       const notifications = emergencyContacts.map((contact) => ({
         eventId: sosEvent.id,
-        recipientId: contact.user.id,
+        recipientId: contact.contactUserId,
         recipientType: 'emergency_contact',
         status: 'sent',
       }));
@@ -165,14 +175,14 @@ export class SosService {
       await sosEvent.save();
 
       for (const contact of emergencyContacts) {
-        if (contact.user && contact.user.fcmToken) {
+        if (contact.contactUser && contact.contactUser.fcmToken) {
           await this.firebaseService.sendPushNotification(
-            contact.user.fcmToken,
+            contact.contactUser.fcmToken,
             `Emergency Alert #${sosEvent.id}`,
             `${victim.name} needs help!`,
             sosEvent.id.toString(),
             JSON.stringify(sosEvent.location?.coordinates),
-            {}, // Removed sosEventId and victimName from data
+            {},
           );
         }
       }

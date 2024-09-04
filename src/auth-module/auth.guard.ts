@@ -7,10 +7,15 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { UserJWT } from 'src/dto/user-jwt.dto';
+import { InjectModel } from '@nestjs/sequelize';
+import { User } from 'src/models/User';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    private jwtService: JwtService,
+    @InjectModel(User) private readonly userModel: typeof User,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
@@ -28,11 +33,16 @@ export class AuthGuard implements CanActivate {
           throw new UnauthorizedException('Unauthorized access.');
         });
 
+      // Check if the user exists in the database
+      const user = await this.userModel.findByPk(decoded.id);
+      if (!user) {
+        throw new UnauthorizedException('User not found in the database.');
+      }
+
       request['user'] = decoded;
     } catch (error) {
       console.log('error', error);
-
-      throw new UnauthorizedException('No token provided.');
+      throw new UnauthorizedException(error.message || 'Unauthorized access.');
     }
     return true;
   }
