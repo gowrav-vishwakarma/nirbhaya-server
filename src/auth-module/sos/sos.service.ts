@@ -28,7 +28,7 @@ export class SosService {
     private streamingGateway: StreamingGateway,
   ) {}
 
-  private readonly NEARBY_DISTANCE_METERS = 10000; // 1km radius
+  private readonly NEARBY_DISTANCE_METERS = 1000; // 1km radius
 
   async handleSos(sosEvent: SosEvent) {
     if (sosEvent.status === 'created') {
