@@ -451,10 +451,11 @@ export class AuthService {
           {
             model: this.sosEventModel,
             attributes: ['id', 'location', 'status', 'threat'],
+            where: { status: 'active' }, // Only include active SOS events
           },
         ],
         order: [['createdAt', 'DESC']],
-        limit: 50, // Limit to the most recent 50 notifications
+        limit: 50,
       });
 
       return notifications.map((notification) => {
@@ -508,8 +509,15 @@ export class AuthService {
       const count = await this.notificationModel.count({
         where: {
           recipientId: userId,
-          status: 'sent', // Assuming 'sent' status means unread
+          status: 'sent',
         },
+        include: [
+          {
+            model: this.sosEventModel,
+            where: { status: 'active' }, // Only count notifications for active SOS events
+            required: true,
+          },
+        ],
       });
       return count;
     } catch (error) {
