@@ -5,6 +5,7 @@ import {
   DataType,
   BelongsTo,
   ForeignKey,
+  Index,
 } from 'sequelize-typescript';
 
 import { User } from './User';
@@ -18,6 +19,7 @@ export class UserLocation extends Model<UserLocation> {
   })
   id: number;
 
+  @Index // Add index to userId
   @ForeignKey(() => User)
   @Column(DataType.INTEGER)
   userId: number;
@@ -28,6 +30,7 @@ export class UserLocation extends Model<UserLocation> {
   @BelongsTo(() => User)
   user: User;
 
+  @Index
   @Column({
     type: DataType.GEOMETRY('POINT', 4326),
     allowNull: false,

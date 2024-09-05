@@ -6,6 +6,7 @@ import {
   HasMany,
   BelongsTo,
   ForeignKey,
+  Index,
 } from 'sequelize-typescript';
 
 import { User } from './User';
@@ -14,23 +15,15 @@ import { Responder } from './Responder';
 
 @Table
 export class SosEvent extends Model<SosEvent> {
-  @Column({
-    type: DataType.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  })
-  id: number;
-
+  @Index // Add index to userId
   @ForeignKey(() => User)
   @Column(DataType.INTEGER)
   userId: number;
 
-  @BelongsTo(() => User)
-  user: User;
-
+  @Index
   @Column({
     type: DataType.GEOMETRY('POINT', 4326),
-    allowNull: true,
+    allowNull: false,
     get() {
       const point = this.getDataValue('location');
       if (!point) return null;
@@ -66,18 +59,21 @@ export class SosEvent extends Model<SosEvent> {
   })
   location: { type: string; coordinates: number[] } | null;
 
+  @Index
   @Column({
     type: DataType.ENUM('created', 'active', 'cancelled', 'resolved'),
     defaultValue: 'active',
   })
   status: 'created' | 'active' | 'cancelled' | 'resolved';
 
+  @Index
   @Column({
     type: DataType.STRING,
     allowNull: true,
   })
   threat: string | null;
 
+  @Index
   @Column(DataType.DATE)
   resolvedAt: Date;
 

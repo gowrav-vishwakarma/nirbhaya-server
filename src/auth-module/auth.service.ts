@@ -17,6 +17,8 @@ import { Notification } from 'src/models/Notification'; // Add this import
 import { ValidationException } from '../qnatk/src/Exceptions/ValidationException';
 import { UserJWT } from 'src/dto/user-jwt.dto';
 import { SosService } from './sos/sos.service';
+import { UserProfileUpdateDto } from './dto/user-profile-update.dto';
+import { Op, Sequelize } from 'sequelize';
 
 @Injectable()
 export class AuthService {
@@ -114,7 +116,7 @@ export class AuthService {
     const token = this.jwtService.sign(tokenPayload);
 
     await this.userModel.update(
-      { token: token },
+      { token: token, isVerified: true, lastLogin: new Date() },
       {
         where: {
           id: user.id,
@@ -129,7 +131,10 @@ export class AuthService {
     };
   }
 
-  async userProfileUpdate(data: any, loggedInUser: UserJWT): Promise<any> {
+  async userProfileUpdate(
+    data: UserProfileUpdateDto,
+    loggedInUser: UserJWT,
+  ): Promise<any> {
     try {
       console.log('update data...', data);
 
@@ -154,7 +159,11 @@ export class AuthService {
       if (data.city !== undefined) user.city = data.city;
       if (data.availableForCommunity !== undefined)
         user.availableForCommunity = data.availableForCommunity;
+      if (data.availableForPaidProfessionalService !== undefined)
+        user.availableForPaidProfessionalService =
+          data.availableForPaidProfessionalService;
       if (data.userType !== undefined) user.userType = data.userType;
+      if (data.profession !== undefined) user.profession = data.profession;
 
       await user.save();
 
@@ -163,7 +172,7 @@ export class AuthService {
         await this.userEmergencyContactAdd(user.id, data.emergencyContacts);
       }
 
-      // Handle notification locations if provided
+      // Handle locations if provided
       if (data.locations) {
         await this.userLocationAdd(user.id, data.locations);
       }
@@ -340,7 +349,10 @@ export class AuthService {
             type: 'Point',
             coordinates: [data.location.longitude, data.location.latitude],
           }
-        : null;
+        : {
+            type: 'Point',
+            coordinates: [0, 0],
+          };
 
       if (sosEvent) {
         const formatedSosData = {
@@ -553,6 +565,50 @@ export class AuthService {
       console.error('Error validating phone number:', error);
       throw new HttpException(
         'Error validating phone number',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  // Add this new method
+  async getVolunteersNearby(
+    latitude: number,
+    longitude: number,
+    range: number,
+  ): Promise<any[]> {
+    try {
+      const volunteers = await this.userLocationModel.findAll({
+        attributes: ['id', 'location'],
+        include: [
+          {
+            model: this.userModel,
+            attributes: ['id', 'profession'],
+            where: {
+              availableForCommunity: true,
+            },
+          },
+        ],
+        where: Sequelize.where(
+          Sequelize.fn(
+            'ST_Distance_Sphere',
+            Sequelize.col('location'),
+            Sequelize.fn('ST_GeomFromText', `POINT(${longitude} ${latitude})`),
+          ),
+          {
+            [Op.lte]: range,
+          },
+        ),
+      });
+
+      return volunteers.map((volunteer) => ({
+        id: volunteer.user.id,
+        profession: volunteer.user.profession,
+        location: volunteer.location,
+      }));
+    } catch (error) {
+      console.error('Error fetching nearby volunteers:', error);
+      throw new HttpException(
+        'Failed to fetch nearby volunteers',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

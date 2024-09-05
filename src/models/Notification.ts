@@ -5,6 +5,7 @@ import {
   DataType,
   BelongsTo,
   ForeignKey,
+  Index,
 } from 'sequelize-typescript';
 
 import { SosEvent } from './SosEvent';
@@ -19,6 +20,7 @@ export class Notification extends Model<Notification> {
   })
   id: number;
 
+  @Index
   @ForeignKey(() => SosEvent)
   @Column(DataType.INTEGER)
   eventId: number;
@@ -26,6 +28,7 @@ export class Notification extends Model<Notification> {
   @BelongsTo(() => SosEvent)
   sosEvent: SosEvent;
 
+  @Index
   @ForeignKey(() => User)
   @Column(DataType.INTEGER)
   recipientId: number;
@@ -39,6 +42,7 @@ export class Notification extends Model<Notification> {
   })
   recipientType: 'volunteer' | 'emergency_contact';
 
+  @Index
   @Column({
     type: DataType.ENUM('sent', 'received', 'accepted', 'ignored'),
     defaultValue: 'sent',

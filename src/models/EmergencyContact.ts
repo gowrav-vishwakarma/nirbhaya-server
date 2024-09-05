@@ -5,6 +5,7 @@ import {
   DataType,
   BelongsTo,
   ForeignKey,
+  Index,
 } from 'sequelize-typescript';
 import { User } from './User';
 
@@ -17,6 +18,7 @@ export class EmergencyContact extends Model {
   })
   id: number;
 
+  @Index // Add index to userId
   @ForeignKey(() => User)
   @Column({
     type: DataType.INTEGER,
@@ -27,6 +29,7 @@ export class EmergencyContact extends Model {
   @BelongsTo(() => User, 'userId')
   user: User;
 
+  @Index
   @ForeignKey(() => User)
   @Column({
     type: DataType.INTEGER,
@@ -61,6 +64,7 @@ export class EmergencyContact extends Model {
   })
   isAppUser: boolean;
 
+  @Index
   @Column({
     type: DataType.INTEGER,
     allowNull: true,

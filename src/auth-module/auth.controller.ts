@@ -1,9 +1,18 @@
-import { Controller, Post, Body, UseGuards, Get, Param } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Get,
+  Param,
+  Query,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
 import { GetUser } from './getuser.decorator';
 import { UserJWT } from 'src/dto/user-jwt.dto';
 import { Notification } from 'src/models/Notification'; // Add this import
+import { UserProfileUpdateDto } from './dto/user-profile-update.dto'; // Create this DTO
 
 @Controller('auth')
 export class AuthController {
@@ -21,7 +30,10 @@ export class AuthController {
 
   @Post('/user-profile-update')
   @UseGuards(AuthGuard)
-  userProfileUpdate(@Body() data: any, @GetUser() user: UserJWT): Promise<any> {
+  userProfileUpdate(
+    @Body() data: UserProfileUpdateDto,
+    @GetUser() user: UserJWT,
+  ): Promise<any> {
     return this.authService.userProfileUpdate(data, user);
   }
   @Post('/sos-update')
@@ -73,5 +85,16 @@ export class AuthController {
   @Post('validate-phone')
   async validatePhone(@Body('phoneNumber') phoneNumber: string) {
     return this.authService.validatePhone(phoneNumber);
+  }
+
+  // Add this new endpoint
+  @UseGuards(AuthGuard)
+  @Get('volunteers-nearby')
+  async getVolunteersNearby(
+    @Query('location') location: string,
+    @Query('range') range: number,
+  ) {
+    const [latitude, longitude] = location.split(',').map(Number);
+    return this.authService.getVolunteersNearby(latitude, longitude, range);
   }
 }
