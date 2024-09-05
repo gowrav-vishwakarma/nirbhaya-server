@@ -167,6 +167,9 @@ export class SosService {
         recipientId: contact.contactUserId,
         recipientType: 'emergency_contact',
         status: 'sent',
+        userLocationName: victim.name, // Use victim's name here
+        userLocation: null, // Set to null as it's not needed
+        distanceToEvent: null, // Set to null as it's not needed
       }));
 
       await this.notificationModel.bulkCreate(notifications as any);
