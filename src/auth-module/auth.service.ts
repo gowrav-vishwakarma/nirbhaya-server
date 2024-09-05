@@ -613,4 +613,12 @@ export class AuthService {
       );
     }
   }
+
+  async logout(userId: number): Promise<any> {
+    await this.userModel.update(
+      { token: null, fcmToken: null },
+      { where: { id: userId } },
+    );
+    return { message: 'User logged out successfully' };
+  }
 }

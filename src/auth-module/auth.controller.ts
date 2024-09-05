@@ -97,4 +97,10 @@ export class AuthController {
     const [latitude, longitude] = location.split(',').map(Number);
     return this.authService.getVolunteersNearby(latitude, longitude, range);
   }
+
+  @UseGuards(AuthGuard)
+  @Post('logout') // {{ edit_2 }}
+  async logout(@GetUser() user: UserJWT) {
+    return this.authService.logout(user.id); // Call the logout service method
+  }
 }
