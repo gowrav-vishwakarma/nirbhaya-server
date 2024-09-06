@@ -204,7 +204,9 @@ export class SosService {
         if (contact.contactUser && contact.contactUser.fcmToken) {
           await this.firebaseService.sendPushNotification(
             contact.contactUser.fcmToken,
-            `Emergency Alert #${sosEvent.id}`,
+            sosEvent.contactsOnly
+              ? `Help Needed #${sosEvent.id}`
+              : `Emergency Alert #${sosEvent.id}`,
             `${victim.name} needs help!`,
             sosEvent.id.toString(),
             JSON.stringify(sosEvent.location?.coordinates),
