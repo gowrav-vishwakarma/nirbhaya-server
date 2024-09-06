@@ -5,10 +5,12 @@ import {
   DataType,
   HasMany,
   Index,
+  HasOne,
 } from 'sequelize-typescript';
 import { EmergencyContact } from './EmergencyContact';
 import { UserLocation } from './UserLocation';
 import { SosEvent } from './SosEvent';
+import { CommunityApplications } from './CommunityApplications';
 
 @Table
 export class User extends Model<User> {
@@ -64,6 +66,9 @@ export class User extends Model<User> {
   })
   isVerified: boolean;
 
+  @Column(DataType.BOOLEAN)
+  hasJoinedCommunity: boolean;
+
   @Column(DataType.STRING(100))
   city: string;
 
@@ -89,6 +94,9 @@ export class User extends Model<User> {
 
   @HasMany(() => SosEvent)
   sosEvents: SosEvent[];
+
+  @HasOne(() => CommunityApplications)
+  communityApplication: CommunityApplications; // Add this line
 
   @Column({
     type: DataType.TEXT,

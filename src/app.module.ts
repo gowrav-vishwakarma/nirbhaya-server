@@ -16,6 +16,7 @@ import { Responder } from './models/Responder';
 import { AuthModule } from './auth-module/auth.module';
 import { NirbhayaQnatkController } from './nirbhaya.controller';
 import { StreamingModule } from './streaming/streaming.module';
+import { CommunityApplications } from './models/CommunityApplications';
 
 export const sequelizeModelArray = [
   User,
@@ -24,6 +25,7 @@ export const sequelizeModelArray = [
   UserLocation,
   Notification,
   Responder,
+  CommunityApplications,
 ];
 @Module({
   imports: [

@@ -14,6 +14,7 @@ import { Notification } from 'src/models/Notification';
 import { FirebaseService } from 'src/firebase/firebase.service';
 import { StreamingGateway } from '../streaming/streaming.gateway';
 import { SosRoomService } from 'src/streaming/sos-room.service';
+import { CommunityApplications } from 'src/models/CommunityApplications';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { SosRoomService } from 'src/streaming/sos-room.service';
       UserLocation,
       SosEvent,
       Notification,
+      CommunityApplications,
     ]),
   ],
   controllers: [AuthController],

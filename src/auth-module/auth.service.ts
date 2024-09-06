@@ -13,6 +13,7 @@ import { EmergencyContact } from 'src/models/EmergencyContact';
 import { UserLocation } from 'src/models/UserLocation';
 import { SosEvent } from 'src/models/SosEvent';
 import { Notification } from 'src/models/Notification'; // Add this import
+import { CommunityApplications } from 'src/models/CommunityApplications';
 
 import { ValidationException } from '../qnatk/src/Exceptions/ValidationException';
 import { UserJWT } from 'src/dto/user-jwt.dto';
@@ -34,6 +35,8 @@ export class AuthService {
     private readonly sosEventModel: typeof SosEvent,
     @InjectModel(Notification) // Add this line
     private readonly notificationModel: typeof Notification, // Add this line
+    @InjectModel(CommunityApplications)
+    private readonly communityApplicationsModel: typeof CommunityApplications,
   ) {}
 
   async signUp(signUpDto: any): Promise<any> {
@@ -60,6 +63,8 @@ export class AuthService {
         'otpExpiresAt',
         'isVerified',
         'availableForCommunity',
+        'availableForPaidProfessionalService',
+        'hasJoinedCommunity',
       ],
       include: [
         {
@@ -99,6 +104,9 @@ export class AuthService {
       isVerified: user.isVerified,
       city: user.city,
       availableForCommunity: user.availableForCommunity,
+      availableForPaidProfessionalService:
+        user.availableForPaidProfessionalService,
+      hasJoinedCommunity: user.hasJoinedCommunity,
       emergencyContacts: user.emergencyContacts,
       locations: userLocations.map((location) => ({
         id: location.id,
@@ -625,5 +633,16 @@ export class AuthService {
       { where: { id: userId } },
     );
     return { message: 'User logged out successfully' };
+  }
+
+  async applyToCommunity(data: any, userId: number): Promise<any> {
+    const application = await this.communityApplicationsModel.create({
+      userId,
+      inspiration: data.inspiration,
+      contribution: data.contribution,
+      skills: data.skills,
+      time: data.time,
+    });
+    return application;
   }
 }

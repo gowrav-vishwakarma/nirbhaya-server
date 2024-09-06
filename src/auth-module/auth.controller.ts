@@ -102,4 +102,10 @@ export class AuthController {
   async logout(@GetUser() user: UserJWT) {
     return this.authService.logout(user.id); // Call the logout service method
   }
+
+  @UseGuards(AuthGuard)
+  @Post('/apply-community')
+  async applyToCommunity(@Body() data: any, @GetUser() user: UserJWT) {
+    return this.authService.applyToCommunity(data, user.id);
+  }
 }
