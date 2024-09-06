@@ -13,6 +13,7 @@ import { SosService } from './sos/sos.service';
 import { Notification } from 'src/models/Notification';
 import { FirebaseService } from 'src/firebase/firebase.service';
 import { StreamingGateway } from '../streaming/streaming.gateway';
+import { SosRoomService } from 'src/streaming/sos-room.service';
 
 @Module({
   imports: [
@@ -42,7 +43,15 @@ import { StreamingGateway } from '../streaming/streaming.gateway';
     SosService,
     FirebaseService,
     StreamingGateway,
+    SosRoomService,
   ],
-  exports: [AuthService, AuthGuard, JwtModule, SosService, StreamingGateway],
+  exports: [
+    AuthService,
+    AuthGuard,
+    JwtModule,
+    SosService,
+    StreamingGateway,
+    SosRoomService,
+  ],
 })
 export class AuthModule {}

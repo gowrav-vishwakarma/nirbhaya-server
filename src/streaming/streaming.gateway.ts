@@ -6,6 +6,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { SosService } from '../auth-module/sos/sos.service';
 import { Inject, forwardRef } from '@nestjs/common';
+import { SosRoomService } from './sos-room.service';
 
 @WebSocketGateway({
   namespace: 'sos',
@@ -22,6 +23,7 @@ export class StreamingGateway {
   constructor(
     @Inject(forwardRef(() => SosService))
     private sosService: SosService,
+    private sosRoomService: SosRoomService,
   ) {}
 
   handleConnection(client: Socket) {
@@ -43,29 +45,17 @@ export class StreamingGateway {
     await this.sosService.leaveSosRoom(client, sosEventId);
   }
 
-  @SubscribeMessage('webrtc_signal')
-  async handleWebRTCSignal(
+  @SubscribeMessage('register_peer')
+  async handleRegisterPeer(
     client: Socket,
-    payload: { sosEventId: string; signal: any },
+    payload: { peerId: string; sosEventId: string },
   ) {
-    console.log(`Received WebRTC signal for SOS event: ${payload.sosEventId}`);
-    console.log('Signal type:', payload.signal.type);
-    console.log('Client ID:', client.id);
-    await this.sosService.handleWebRTCSignaling(
-      client,
-      payload.sosEventId,
-      payload.signal,
-    );
+    await this.sosRoomService.addPeerToRoom(payload.sosEventId, payload.peerId);
   }
 
-  @SubscribeMessage('audio_data')
-  async handleAudioData(
-    client: Socket,
-    payload: { sosEventId: string; audioData: string },
-  ) {
-    await this.sosService.broadcastAudioData(
-      payload.sosEventId,
-      payload.audioData,
-    );
+  @SubscribeMessage('get_peers_in_room')
+  async handleGetPeersInRoom(client: Socket, sosEventId: string) {
+    const peerIds = await this.sosRoomService.getPeersInRoom(sosEventId);
+    client.emit('peers_in_room', peerIds);
   }
 }
