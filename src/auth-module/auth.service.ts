@@ -375,7 +375,7 @@ export class AuthService {
         });
       }
 
-      if (!sosEvent.location) {
+      if (!sosEvent.location || sosEvent.location.coordinates[0] == 0) {
         return;
       }
 
