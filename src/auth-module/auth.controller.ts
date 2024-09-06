@@ -11,7 +11,6 @@ import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
 import { GetUser } from './getuser.decorator';
 import { UserJWT } from 'src/dto/user-jwt.dto';
-import { Notification } from 'src/models/Notification'; // Add this import
 import { UserProfileUpdateDto } from './dto/user-profile-update.dto'; // Create this DTO
 
 @Controller('auth')

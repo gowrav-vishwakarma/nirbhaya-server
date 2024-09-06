@@ -359,6 +359,7 @@ export class AuthService {
           location: location || sosEvent.location,
           threat: data.threat || sosEvent.threat,
           status: data.status || sosEvent.status,
+          contactsOnly: data.contactsOnly || sosEvent.contactsOnly,
         };
 
         await sosEvent.update(formatedSosData);
@@ -371,6 +372,7 @@ export class AuthService {
           threat: data.threat,
           informed: 0,
           accepted: 0,
+          contactsOnly: data.contactsOnly || false,
           escalationLevel: 0,
         });
       }

@@ -60,7 +60,7 @@ export class SosService {
   private async initialEscalation(sosEvent: SosEvent) {
     let notifiedSomeone = false;
 
-    if (sosEvent.location) {
+    if (sosEvent.location && !sosEvent.contactsOnly) {
       const notifiedNearbyUsers = await this.notifyNearbyUsers(sosEvent);
       notifiedSomeone = notifiedSomeone || notifiedNearbyUsers;
     }

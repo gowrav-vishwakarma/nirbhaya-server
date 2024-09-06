@@ -84,6 +84,12 @@ export class SosEvent extends Model<SosEvent> {
   responders: Responder[];
 
   @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+  })
+  contactsOnly: boolean;
+
+  @Column({
     type: DataType.INTEGER,
     defaultValue: 0,
   })
