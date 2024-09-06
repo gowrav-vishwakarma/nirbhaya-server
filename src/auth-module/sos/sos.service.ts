@@ -9,6 +9,7 @@ import { FirebaseService } from 'src/firebase/firebase.service';
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { StreamingGateway } from '../../streaming/streaming.gateway';
+import { SosRoomService } from '../../streaming/sos-room.service';
 
 @WebSocketGateway()
 @Injectable()
@@ -26,6 +27,7 @@ export class SosService {
     private firebaseService: FirebaseService,
     @Inject(forwardRef(() => StreamingGateway))
     private streamingGateway: StreamingGateway,
+    private sosRoomService: SosRoomService, // Inject SosRoomService
   ) {}
 
   private readonly NEARBY_DISTANCE_METERS = 1000; // 1km radius
@@ -214,26 +216,6 @@ export class SosService {
   async handleWebRTCSignaling(client: Socket, sosEventId: string, signal: any) {
     console.log(`Broadcasting WebRTC signal to room ${sosEventId}`);
     client.to(sosEventId).emit('webrtc_signal', { sosEventId, signal });
-  }
-
-  async joinSosRoom(client: Socket, sosEventId: string) {
-    if (!this.rooms.has(sosEventId)) {
-      this.rooms.set(sosEventId, new Set());
-    }
-    this.rooms.get(sosEventId)!.add(client.id);
-    client.join(sosEventId);
-    console.log(`Client ${client.id} joined room ${sosEventId}`);
-  }
-
-  async leaveSosRoom(client: Socket, sosEventId: string) {
-    if (this.rooms.has(sosEventId)) {
-      this.rooms.get(sosEventId)!.delete(client.id);
-      if (this.rooms.get(sosEventId)!.size === 0) {
-        this.rooms.delete(sosEventId);
-      }
-    }
-    client.leave(sosEventId);
-    console.log(`Client ${client.id} left room ${sosEventId}`);
   }
 
   async broadcastAudioData(sosEventId: string, audioData: string) {

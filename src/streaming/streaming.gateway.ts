@@ -38,12 +38,12 @@ export class StreamingGateway {
   async handleJoinSosRoom(client: Socket, sosEventId: string | number) {
     const sosEventIdString = sosEventId.toString();
     console.log(`Client ${client.id} joining SOS room: ${sosEventIdString}`);
-    await this.sosService.joinSosRoom(client, sosEventIdString);
+    await this.sosRoomService.joinSosRoom(client, sosEventIdString);
   }
 
   @SubscribeMessage('leave_sos_room')
   async handleLeaveSosRoom(client: Socket, sosEventId: string) {
-    await this.sosService.leaveSosRoom(client, sosEventId);
+    await this.sosRoomService.leaveSosRoom(client, sosEventId);
   }
 
   @SubscribeMessage('register_peer')
