@@ -643,6 +643,10 @@ export class AuthService {
       skills: data.skills,
       time: data.time,
     });
+    await this.userModel.update(
+      { hasJoinedCommunity: true },
+      { where: { id: userId } },
+    );
     return application;
   }
 }
