@@ -6,10 +6,11 @@ import { EmergencyContact } from 'src/models/EmergencyContact';
 import { Notification } from 'src/models/Notification';
 import { Sequelize } from 'sequelize-typescript';
 import { FirebaseService } from 'src/firebase/firebase.service';
-import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
+import { WebSocketGateway } from '@nestjs/websockets'; // Removed WebSocketServer
+// import { Server, Socket } from 'socket.io'; // Removed Server
 import { StreamingGateway } from '../../streaming/streaming.gateway';
 import { SosRoomService } from '../../streaming/sos-room.service';
+import { Socket } from 'socket.io';
 
 @WebSocketGateway()
 @Injectable()
@@ -50,24 +51,28 @@ export class SosService {
       };
     }
     if (sosEvent.escalationLevel === 0) {
-      await this.initialEscalation(sosEvent);
+      const initialResult = await this.initialEscalation(sosEvent);
+      sosEvent.informed += initialResult.informedCount; // Update informed count
     } else {
-      await this.updateAcceptedCount(sosEvent);
+      const updateResult = await this.updateAcceptedCount(sosEvent);
+      sosEvent.informed += updateResult.acceptedCount; // Update informed count
     }
 
     return {
       sosEventId: sosEvent.id,
-      informed: sosEvent.informed,
+      informed: sosEvent.informed, // Use updated informed property
       accepted: sosEvent.accepted,
     };
   }
 
   private async initialEscalation(sosEvent: SosEvent) {
     let notifiedSomeone = false;
+    let informedCount = 0; // Track informed count
 
     if (sosEvent.location && !sosEvent.contactsOnly) {
-      const notifiedNearbyUsers = await this.notifyNearbyUsers(sosEvent);
-      notifiedSomeone = notifiedSomeone || notifiedNearbyUsers;
+      const notifiedNearbyUsersCount = await this.notifyNearbyUsers(sosEvent);
+      notifiedSomeone = notifiedSomeone || notifiedNearbyUsersCount > 0;
+      informedCount += notifiedNearbyUsersCount; // Update informed count
     }
 
     const notifiedEmergencyContacts =
@@ -78,15 +83,26 @@ export class SosService {
       sosEvent.escalationLevel = 1;
       await sosEvent.save();
     }
+
+    return { informedCount }; // Return the informed count
   }
 
-  private async notifyNearbyUsers(sosEvent: SosEvent): Promise<boolean> {
+  private async notifyNearbyUsers(sosEvent: SosEvent): Promise<number> {
     if (!sosEvent.location) {
       console.log('No location data for SOS event');
-      return false;
+      return 0; // Return 0 if no location
     }
 
     const [longitude, latitude] = sosEvent.location.coordinates;
+
+    // Fetch emergency contacts to exclude them from notifications
+    const emergencyContacts = await this.emergencyContactModel.findAll({
+      where: { userId: sosEvent.userId },
+      attributes: ['contactUserId'],
+    });
+    const emergencyContactIds = emergencyContacts.map(
+      (contact) => contact.contactUserId,
+    );
 
     const nearbyUsers = await this.userModel.findAll({
       attributes: ['id', 'fcmToken'],
@@ -101,9 +117,11 @@ export class SosService {
       where: Sequelize.literal(`ST_Distance_Sphere(
         point(${longitude}, ${latitude}),
         location
-      ) <= ${this.NEARBY_DISTANCE_METERS} AND User.id != ${sosEvent.userId}`), // Skip self user
+      ) <= ${this.NEARBY_DISTANCE_METERS} AND User.id != ${sosEvent.userId} AND User.id NOT IN (${emergencyContactIds.join(',')})`), // Exclude emergency contacts
     });
 
+    // Notify nearby users and count them
+    let notifiedCount = 0;
     if (nearbyUsers.length > 0) {
       const notifications = nearbyUsers.map((user) => {
         const userLocation = user.locations[0];
@@ -111,6 +129,8 @@ export class SosService {
           sosEvent.location.coordinates,
           userLocation.location.coordinates,
         );
+
+        notifiedCount++; // Increment notified count
 
         return {
           eventId: sosEvent.id,
@@ -125,7 +145,7 @@ export class SosService {
 
       await this.notificationModel.bulkCreate(notifications as any);
 
-      sosEvent.informed += nearbyUsers.length;
+      sosEvent.informed += notifiedCount; // Update informed count
       sosEvent.escalationLevel = 1;
       await sosEvent.save();
 
@@ -139,15 +159,13 @@ export class SosService {
             `Someone nearby needs help! ${distanceMessage}`,
             sosEvent.id.toString(),
             JSON.stringify(sosEvent.location.coordinates),
-            { distanceMessage }, // Removed sosEventId from data
+            { distanceMessage },
           );
         }
       }
-
-      return true;
     }
 
-    return false;
+    return notifiedCount; // Return the count of notified users
   }
 
   private async notifyEmergencyContacts(sosEvent: SosEvent): Promise<boolean> {
@@ -211,6 +229,7 @@ export class SosService {
 
     sosEvent.accepted = acceptedCount;
     await sosEvent.save();
+    return { acceptedCount };
   }
 
   async handleWebRTCSignaling(client: Socket, sosEventId: string, signal: any) {

@@ -389,6 +389,8 @@ export class AuthService {
         return {
           sosEventId: sosEvent.id,
           locationSentToServer: false,
+          informed: 0,
+          accepted: 0,
         };
       }
 
