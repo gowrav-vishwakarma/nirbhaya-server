@@ -378,7 +378,10 @@ export class AuthService {
       }
 
       if (!sosEvent.location || sosEvent.location.coordinates[0] == 0) {
-        return;
+        return {
+          sosEventId: sosEvent.id,
+          locationSentToServer: false,
+        };
       }
 
       // Call sosService.handleSos with the new or updated SOS event

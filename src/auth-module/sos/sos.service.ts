@@ -42,6 +42,8 @@ export class SosService {
         },
       );
       return {
+        sosEventId: sosEvent.id,
+        locationSentToServer: false,
         message: 'SOS event created',
       };
     }
@@ -52,6 +54,7 @@ export class SosService {
     }
 
     return {
+      sosEventId: sosEvent.id,
       informed: sosEvent.informed,
       accepted: sosEvent.accepted,
     };
