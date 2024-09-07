@@ -364,9 +364,6 @@ export class AuthService {
   async sosUpdate(data: any, user: UserJWT): Promise<any> {
     try {
       console.log('data...........', data);
-      let sosEvent = await this.sosEventModel.findOne({
-        where: { userId: user.id, status: 'active' },
-      });
 
       const location = data.location
         ? {
@@ -378,17 +375,19 @@ export class AuthService {
             coordinates: [0, 0],
           };
 
-      if (sosEvent) {
-        const formatedSosData = {
-          location: location || sosEvent.location,
-          threat: data.threat || sosEvent.threat,
-          status: data.status || sosEvent.status,
-          contactsOnly: data.contactsOnly || sosEvent.contactsOnly,
-        };
+      let sosEvent;
 
-        await sosEvent.update(formatedSosData);
-        Object.assign(sosEvent, formatedSosData);
-      } else {
+      if (data.status == 'created') {
+        // cancel existing sos events for the same user
+        await this.sosEventModel.update(
+          { status: 'cancelled' },
+          {
+            where: {
+              userId: user.id,
+              status: ['active', 'created'],
+            },
+          },
+        );
         sosEvent = await this.sosEventModel.create({
           location: location ? location : null,
           userId: user.id,
@@ -399,6 +398,19 @@ export class AuthService {
           contactsOnly: data.contactsOnly || false,
           escalationLevel: 0,
         });
+      } else {
+        sosEvent = await this.sosEventModel.findOne({
+          where: { userId: user.id, status: 'active' },
+        });
+        const formatedSosData = {
+          location: location || sosEvent.location,
+          threat: data.threat || sosEvent.threat,
+          status: data.status || sosEvent.status,
+          contactsOnly: data.contactsOnly || sosEvent.contactsOnly,
+        };
+
+        await sosEvent.update(formatedSosData);
+        Object.assign(sosEvent, formatedSosData);
       }
 
       if (!sosEvent.location || sosEvent.location.coordinates[0] == 0) {

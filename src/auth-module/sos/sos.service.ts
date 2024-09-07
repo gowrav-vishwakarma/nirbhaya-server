@@ -35,15 +35,6 @@ export class SosService {
 
   async handleSos(sosEvent: SosEvent) {
     if (sosEvent.status === 'created') {
-      // cancel existing sos events for the same user
-      await this.sosEventModel.update(
-        { status: 'cancelled' },
-        {
-          where: {
-            userId: sosEvent.userId,
-          },
-        },
-      );
       return {
         sosEventId: sosEvent.id,
         locationSentToServer: false,
