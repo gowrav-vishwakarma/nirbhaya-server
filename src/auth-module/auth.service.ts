@@ -75,7 +75,7 @@ export class AuthService {
   }
 
   async logIn(logInDto, t?: Transaction): Promise<any> {
-    const { mobileNumber, otp } = logInDto;
+    const { mobileNumber, otp, deviceId } = logInDto; // Include deviceId
 
     console.log('login details', mobileNumber, otp);
     const userCond = {
@@ -99,6 +99,7 @@ export class AuthService {
         'startAudioVideoRecordOnSos',
         'streamAudioVideoOnSos',
         'broadcastAudioOnSos',
+        'deviceId',
       ],
       include: [
         {
@@ -137,8 +138,18 @@ export class AuthService {
 
     const token = this.jwtService.sign(tokenPayload);
 
+    // remove fcmToken and tokend from User for this deviceId
     await this.userModel.update(
-      { token: token, isVerified: true, lastLogin: new Date() },
+      { fcmToken: null, token: null, deviceId: null },
+      {
+        where: {
+          deviceId: deviceId,
+        },
+      },
+    );
+
+    await this.userModel.update(
+      { token: token, isVerified: true, lastLogin: new Date(), deviceId }, // Update deviceId
       {
         where: {
           id: user.id,
@@ -192,6 +203,7 @@ export class AuthService {
         user.streamAudioVideoOnSos = data.streamAudioVideoOnSos;
       if (data.broadcastAudioOnSos !== undefined)
         user.broadcastAudioOnSos = data.broadcastAudioOnSos;
+      if (data.deviceId !== undefined) user.deviceId = data.deviceId; // Update deviceId
 
       await user.save();
 
@@ -661,7 +673,7 @@ export class AuthService {
 
   async logout(userId: number): Promise<any> {
     await this.userModel.update(
-      { token: null, fcmToken: null },
+      { token: null, fcmToken: null, deviceId: null },
       { where: { id: userId } },
     );
     return { message: 'User logged out successfully' };

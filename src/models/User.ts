@@ -44,6 +44,10 @@ export class User extends Model<User> {
   @Column(DataType.STRING(6))
   otp: string;
 
+  @Index
+  @Column(DataType.STRING(255))
+  deviceId: string;
+
   @Column(DataType.TEXT)
   token: string;
 

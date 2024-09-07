@@ -76,4 +76,8 @@ export class UserProfileUpdateDto {
   @IsBoolean()
   @IsOptional()
   broadcastAudioOnSos?: boolean;
+
+  @IsOptional()
+  @IsString()
+  deviceId?: string; // Add deviceId here
 }
