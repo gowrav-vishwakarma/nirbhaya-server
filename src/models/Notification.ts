@@ -44,10 +44,10 @@ export class Notification extends Model<Notification> {
 
   @Index
   @Column({
-    type: DataType.ENUM('sent', 'received', 'accepted', 'ignored'),
+    type: DataType.ENUM('sent', 'received', 'accepted', 'ignored', 'discarded'),
     defaultValue: 'sent',
   })
-  status: 'sent' | 'received' | 'accepted' | 'ignored';
+  status: 'sent' | 'received' | 'accepted' | 'ignored' | 'discarded';
 
   @Column(DataType.STRING)
   userLocationName: string;

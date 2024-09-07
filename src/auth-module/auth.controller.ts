@@ -108,4 +108,10 @@ export class AuthController {
   async applyToCommunity(@Body() data: any, @GetUser() user: UserJWT) {
     return this.authService.applyToCommunity(data, user.id);
   }
+
+  @UseGuards(AuthGuard)
+  @Post('notifications/:id/discard') // {{ edit_4 }}
+  async discardNotification(@Param('id') id: string, @GetUser() user: UserJWT) {
+    return this.authService.discardNotification(parseInt(id), user.id);
+  }
 }

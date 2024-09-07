@@ -498,15 +498,16 @@ export class AuthService {
   async getNotifications(userId: number): Promise<any[]> {
     try {
       const notifications = await this.notificationModel.findAll({
-        where: { recipientId: userId },
+        where: { recipientId: userId, status: ['sent', 'accepted'] },
         include: [
           {
             model: this.sosEventModel,
-            attributes: ['id', 'location', 'status', 'threat'],
+            attributes: ['id', 'location', 'status', 'threat', 'contactsOnly'],
             where: { status: 'active' }, // Only include active SOS events
           },
         ],
         order: [['createdAt', 'DESC']],
+        group: ['eventId'],
         limit: 50,
       });
 
@@ -570,8 +571,9 @@ export class AuthService {
             required: true,
           },
         ],
+        group: ['eventId'],
       });
-      return count;
+      return count.length;
     } catch (error) {
       console.error('Error fetching unread notification count:', error);
       throw new HttpException(
@@ -662,5 +664,15 @@ export class AuthService {
       { where: { id: userId } },
     );
     return application;
+  }
+
+  async discardNotification(
+    notificationId: number,
+    userId: number,
+  ): Promise<void> {
+    await this.notificationModel.update(
+      { status: 'discarded' },
+      { where: { id: notificationId, recipientId: userId } },
+    );
   }
 }
