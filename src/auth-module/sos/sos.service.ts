@@ -197,7 +197,7 @@ export class SosService {
 
       await this.notificationModel.bulkCreate(notifications as any);
 
-      sosEvent.informed += emergencyContacts.length;
+      // sosEvent.informed += emergencyContacts.length;
       await sosEvent.save();
 
       for (const contact of emergencyContacts) {
