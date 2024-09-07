@@ -44,6 +44,8 @@ export class StreamingGateway {
   @SubscribeMessage('leave_sos_room')
   async handleLeaveSosRoom(client: Socket, sosEventId: string) {
     await this.sosRoomService.leaveSosRoom(client, sosEventId);
+    // Notify other peers in the room to close their audio streams
+    client.to(sosEventId).emit('peer_left', client.id);
   }
 
   @SubscribeMessage('register_peer')
