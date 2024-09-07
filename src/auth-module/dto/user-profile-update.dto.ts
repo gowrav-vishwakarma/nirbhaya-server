@@ -64,4 +64,16 @@ export class UserProfileUpdateDto {
   @IsBoolean()
   @IsOptional()
   availableForPaidProfessionalService?: boolean; // Added new field
+
+  @IsBoolean()
+  @IsOptional()
+  startAudioVideoRecordOnSos?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  streamAudioVideoOnSos?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  broadcastAudioOnSos?: boolean;
 }

@@ -65,6 +65,9 @@ export class AuthService {
         'availableForCommunity',
         'availableForPaidProfessionalService',
         'hasJoinedCommunity',
+        'startAudioVideoRecordOnSos',
+        'streamAudioVideoOnSos',
+        'broadcastAudioOnSos',
       ],
       include: [
         {
@@ -114,6 +117,9 @@ export class AuthService {
         location: location.location,
         timestamp: location.timestamp,
       })),
+      startAudioVideoRecordOnSos: user.startAudioVideoRecordOnSos,
+      streamAudioVideoOnSos: user.streamAudioVideoOnSos,
+      broadcastAudioOnSos: user.broadcastAudioOnSos,
     };
 
     const tokenPayload: UserJWT = {
@@ -172,6 +178,12 @@ export class AuthService {
           data.availableForPaidProfessionalService;
       if (data.userType !== undefined) user.userType = data.userType;
       if (data.profession !== undefined) user.profession = data.profession;
+      if (data.startAudioVideoRecordOnSos !== undefined)
+        user.startAudioVideoRecordOnSos = data.startAudioVideoRecordOnSos;
+      if (data.streamAudioVideoOnSos !== undefined)
+        user.streamAudioVideoOnSos = data.streamAudioVideoOnSos;
+      if (data.broadcastAudioOnSos !== undefined)
+        user.broadcastAudioOnSos = data.broadcastAudioOnSos;
 
       await user.save();
 

@@ -86,6 +86,24 @@ export class User extends Model<User> {
   })
   availableForPaidProfessionalService: boolean; // Added new field
 
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: true,
+  })
+  startAudioVideoRecordOnSos: boolean;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: true,
+  })
+  streamAudioVideoOnSos: boolean;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: true,
+  })
+  broadcastAudioOnSos: boolean;
+
   @HasMany(() => EmergencyContact)
   emergencyContacts: EmergencyContact[];
 
