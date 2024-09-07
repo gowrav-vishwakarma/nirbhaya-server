@@ -43,6 +43,37 @@ export class AuthService {
     return signUpDto;
   }
 
+  // New common method to format user response
+  private formatUserResponse(
+    user: any,
+    token: string,
+    userLocations: any[],
+  ): any {
+    return {
+      phoneNumber: user.phoneNumber,
+      userType: user.userType,
+      name: user.name,
+      email: user.email,
+      isVerified: user.isVerified,
+      city: user.city,
+      availableForCommunity: user.availableForCommunity,
+      availableForPaidProfessionalService:
+        user.availableForPaidProfessionalService,
+      hasJoinedCommunity: user.hasJoinedCommunity,
+      emergencyContacts: user.emergencyContacts,
+      locations: userLocations.map((location) => ({
+        id: location.id,
+        name: location.name,
+        location: location.location,
+        timestamp: location.timestamp,
+      })),
+      startAudioVideoRecordOnSos: user.startAudioVideoRecordOnSos,
+      streamAudioVideoOnSos: user.streamAudioVideoOnSos,
+      broadcastAudioOnSos: user.broadcastAudioOnSos,
+      token, // Include the token in the response
+    };
+  }
+
   async logIn(logInDto, t?: Transaction): Promise<any> {
     const { mobileNumber, otp } = logInDto;
 
@@ -99,29 +130,6 @@ export class AuthService {
       attributes: ['id', 'name', 'location', 'timestamp'],
     });
 
-    const userDetails = {
-      phoneNumber: user.phoneNumber,
-      userType: user.userType,
-      name: user.name,
-      email: user.email,
-      isVerified: user.isVerified,
-      city: user.city,
-      availableForCommunity: user.availableForCommunity,
-      availableForPaidProfessionalService:
-        user.availableForPaidProfessionalService,
-      hasJoinedCommunity: user.hasJoinedCommunity,
-      emergencyContacts: user.emergencyContacts,
-      locations: userLocations.map((location) => ({
-        id: location.id,
-        name: location.name,
-        location: location.location,
-        timestamp: location.timestamp,
-      })),
-      startAudioVideoRecordOnSos: user.startAudioVideoRecordOnSos,
-      streamAudioVideoOnSos: user.streamAudioVideoOnSos,
-      broadcastAudioOnSos: user.broadcastAudioOnSos,
-    };
-
     const tokenPayload: UserJWT = {
       id: user.id,
       phoneNumber: user.phoneNumber,
@@ -139,10 +147,9 @@ export class AuthService {
       },
     );
 
-    return {
-      ...userDetails,
-      token,
-    };
+    const userDetails = this.formatUserResponse(user, token, userLocations);
+
+    return userDetails;
   }
 
   async userProfileUpdate(
@@ -160,6 +167,7 @@ export class AuthService {
           {
             model: EmergencyContact,
             as: 'emergencyContacts',
+            required: false,
           },
         ],
       });
@@ -204,6 +212,7 @@ export class AuthService {
           {
             model: EmergencyContact,
             as: 'emergencyContacts',
+            required: false,
           },
         ],
       });
@@ -214,21 +223,16 @@ export class AuthService {
         attributes: ['id', 'name', 'location', 'timestamp'],
       });
 
-      // Format the user data before returning
-      const formattedUser = {
-        ...updatedUser.toJSON(),
-        locations: userLocations.map((location) => ({
-          id: location.id,
-          name: location.name,
-          location: location.location,
-          timestamp: location.timestamp,
-        })),
-      };
+      const updatedUserDetails = this.formatUserResponse(
+        updatedUser,
+        user.token,
+        userLocations,
+      );
 
       return {
         success: true,
         message: 'User profile updated successfully',
-        user: formattedUser,
+        user: updatedUserDetails,
       };
     } catch (error) {
       console.error('Error updating user profile:', error);
