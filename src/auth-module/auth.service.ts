@@ -423,10 +423,9 @@ export class AuthService {
 
         await sosEvent.update(formatedSosData);
         Object.assign(sosEvent, formatedSosData);
+        // Always notify emergency contacts regardless of location
+        await this.sosService.handleSos(sosEvent);
       }
-
-      // Always notify emergency contacts regardless of location
-      await this.sosService.handleSos(sosEvent);
 
       if (!sosEvent.location || sosEvent.location.coordinates[0] == 0) {
         return {
