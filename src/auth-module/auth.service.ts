@@ -424,6 +424,13 @@ export class AuthService {
         await sosEvent.update(formatedSosData);
         Object.assign(sosEvent, formatedSosData);
         // Always notify emergency contacts regardless of location
+        // Generate a presigned URL and save it in the sosEvent model
+        const presignedUrl = await this.sosService.initiateMultipartUpload(
+          sosEvent.id,
+          'audio.mp4',
+        ); // Replace 'yourFileName' with actual filename logic
+        sosEvent.presignedUrl = presignedUrl.presignedUrl; // Add this line to save the presigned URL
+        await sosEvent.save();
         await this.sosService.handleSos(sosEvent);
       }
 
@@ -433,6 +440,7 @@ export class AuthService {
           locationSentToServer: false,
           informed: 0,
           accepted: 0,
+          presignedUrl: sosEvent.presignedUrl,
         };
       }
 

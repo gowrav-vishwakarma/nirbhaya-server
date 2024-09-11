@@ -106,4 +106,10 @@ export class SosEvent extends Model<SosEvent> {
     defaultValue: 0,
   })
   accepted: number;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  presignedUrl: string | null;
 }

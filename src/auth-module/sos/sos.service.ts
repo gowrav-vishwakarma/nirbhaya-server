@@ -6,16 +6,16 @@ import { EmergencyContact } from 'src/models/EmergencyContact';
 import { Notification } from 'src/models/Notification';
 import { Sequelize } from 'sequelize-typescript';
 import { FirebaseService } from 'src/firebase/firebase.service';
-import { WebSocketGateway } from '@nestjs/websockets'; // Removed WebSocketServer
-// import { Server, Socket } from 'socket.io'; // Removed Server
+import { WebSocketGateway } from '@nestjs/websockets';
 import { StreamingGateway } from '../../streaming/streaming.gateway';
-import { SosRoomService } from '../../streaming/sos-room.service';
 import { Socket } from 'socket.io';
+import { ConfigService } from '@nestjs/config';
+import * as AWS from 'aws-sdk'; // Use AWS SDK v2
 
 @WebSocketGateway()
 @Injectable()
 export class SosService {
-  private rooms: Map<string, Set<string>> = new Map();
+  private s3: AWS.S3;
 
   constructor(
     @InjectModel(SosEvent) private readonly sosEventModel: typeof SosEvent,
@@ -28,8 +28,46 @@ export class SosService {
     private firebaseService: FirebaseService,
     @Inject(forwardRef(() => StreamingGateway))
     private streamingGateway: StreamingGateway,
-    private sosRoomService: SosRoomService, // Inject SosRoomService
-  ) {}
+    private configService: ConfigService,
+  ) {
+    this.s3 = new AWS.S3({
+      endpoint: this.configService.get('S3_ENDPOINT'),
+      region: this.configService.get('S3_REGION'),
+      credentials: {
+        accessKeyId: this.configService.get('S3_ACCESS_KEY'),
+        secretAccessKey: this.configService.get('S3_SECRET_KEY'),
+      },
+    });
+  }
+
+  async initiateMultipartUpload(
+    eventId: number,
+    fileName: string,
+  ): Promise<{ uploadId: string; presignedUrl: string }> {
+    const createCommand = {
+      Bucket: this.configService.get('S3_BUCKET'),
+      Key: `sos/${eventId}/${fileName}`,
+      ContentType: 'application/octet-stream',
+    };
+
+    const { UploadId } = await this.s3
+      .createMultipartUpload(createCommand)
+      .promise();
+
+    const uploadPartCommand = {
+      Bucket: this.configService.get('S3_BUCKET'),
+      Key: `sos/${eventId}/${fileName}`,
+      UploadId,
+      PartNumber: 1, // This will be incremented by the client
+    };
+
+    const presignedUrl = await this.s3.getSignedUrlPromise(
+      'uploadPart',
+      uploadPartCommand,
+    );
+
+    return { uploadId: UploadId, presignedUrl };
+  }
 
   private readonly NEARBY_DISTANCE_METERS = 1000; // 1km radius
 
@@ -39,6 +77,7 @@ export class SosService {
         sosEventId: sosEvent.id,
         locationSentToServer: false,
         message: 'SOS event created',
+        presignedUrl: sosEvent.presignedUrl,
       };
     }
     if (sosEvent.escalationLevel === 0) {
@@ -53,6 +92,7 @@ export class SosService {
       sosEventId: sosEvent.id,
       informed: sosEvent.informed, // Use updated informed property
       accepted: sosEvent.accepted,
+      presignedUrl: sosEvent.presignedUrl,
     };
   }
 
