@@ -427,7 +427,7 @@ export class AuthService {
         // Generate a presigned URL and save it in the sosEvent model
         const presignedUrl = await this.sosService.initiateMultipartUpload(
           sosEvent.id,
-          'audio.mp4',
+          'stream.bin',
         ); // Replace 'yourFileName' with actual filename logic
         sosEvent.presignedUrl = presignedUrl.presignedUrl; // Add this line to save the presigned URL
         await sosEvent.save();

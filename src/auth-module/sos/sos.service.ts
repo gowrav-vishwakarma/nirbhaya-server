@@ -11,6 +11,10 @@ import { StreamingGateway } from '../../streaming/streaming.gateway';
 import { Socket } from 'socket.io';
 import { ConfigService } from '@nestjs/config';
 import * as AWS from 'aws-sdk'; // Use AWS SDK v2
+import {
+  CreateMultipartUploadRequest,
+  UploadPartRequest,
+} from 'aws-sdk/clients/s3';
 
 @WebSocketGateway()
 @Injectable()
@@ -44,10 +48,11 @@ export class SosService {
     eventId: number,
     fileName: string,
   ): Promise<{ uploadId: string; presignedUrl: string }> {
-    const createCommand = {
+    const createCommand: CreateMultipartUploadRequest = {
       Bucket: this.configService.get('S3_BUCKET'),
       Key: `sos/${eventId}/${fileName}`,
       ContentType: 'application/octet-stream',
+      ACL: 'public-read',
     };
 
     const { UploadId } = await this.s3
