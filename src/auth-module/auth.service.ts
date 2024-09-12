@@ -300,6 +300,7 @@ export class AuthService {
           contactPhone: contactData.contactPhone,
           isAppUser: true,
           contactUserId: user.id, // Add this line to save the contact's user ID
+          consentGiven: false, // Set default consent to false
         },
       });
 
@@ -714,5 +715,75 @@ export class AuthService {
       { status: 'discarded' },
       { where: { id: notificationId, recipientId: userId } },
     );
+  }
+
+  async getEmergencyContacts(userId: number): Promise<any[]> {
+    const contacts = await this.emergencyContactModel.findAll({
+      where: {
+        contactUserId: userId,
+      },
+      include: [
+        {
+          model: this.userModel,
+          as: 'user',
+          attributes: ['name', 'phoneNumber'],
+        },
+      ],
+    });
+
+    return contacts.map((contact) => ({
+      id: contact.id,
+      requesterName: contact.user.name,
+      requesterPhone: contact.user.phoneNumber,
+      consentGiven: contact.consentGiven,
+    }));
+  }
+
+  async approveEmergencyContact(
+    requestId: number,
+    userId: number,
+  ): Promise<void> {
+    const contact = await this.emergencyContactModel.findOne({
+      where: {
+        id: requestId,
+        contactUserId: userId,
+      },
+    });
+
+    if (!contact) {
+      throw new NotFoundException('Emergency contact request not found');
+    }
+
+    await contact.update({ consentGiven: true });
+  }
+
+  async removeEmergencyContact(
+    requestId: number,
+    userId: number,
+  ): Promise<void> {
+    const contact = await this.emergencyContactModel.findOne({
+      where: {
+        id: requestId,
+        contactUserId: userId,
+      },
+    });
+
+    if (!contact) {
+      throw new NotFoundException('Emergency contact request not found');
+    }
+
+    await contact.destroy();
+  }
+
+  async getEmergencyContactsStatus(userId: number): Promise<any[]> {
+    const contacts = await this.emergencyContactModel.findAll({
+      where: { userId: userId },
+      attributes: ['contactPhone', 'consentGiven'],
+    });
+
+    return contacts.map((contact) => ({
+      contactPhone: contact.contactPhone,
+      consentGiven: contact.consentGiven,
+    }));
   }
 }

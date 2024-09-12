@@ -70,4 +70,10 @@ export class EmergencyContact extends Model {
     allowNull: true,
   })
   priority: number;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+  })
+  consentGiven: boolean;
 }

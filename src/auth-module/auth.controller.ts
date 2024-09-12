@@ -134,5 +134,37 @@ export class AuthController {
     return { presignedUrl };
   }
 
+  // Add new endpoints for emergency contact management
+  @UseGuards(AuthGuard)
+  @Get('emergency-contacts')
+  async getEmergencyContacts(@GetUser() user: UserJWT) {
+    return this.authService.getEmergencyContacts(user.id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('approve-emergency-contact/:id')
+  async approveEmergencyContact(
+    @Param('id') id: string,
+    @GetUser() user: UserJWT,
+  ) {
+    return this.authService.approveEmergencyContact(parseInt(id), user.id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('remove-emergency-contact/:id')
+  async removeEmergencyContact(
+    @Param('id') id: string,
+    @GetUser() user: UserJWT,
+  ) {
+    return this.authService.removeEmergencyContact(parseInt(id), user.id);
+  }
+
+  // Add this new endpoint
+  @UseGuards(AuthGuard)
+  @Get('emergency-contacts-status')
+  async getEmergencyContactsStatus(@GetUser() user: UserJWT) {
+    return this.authService.getEmergencyContactsStatus(user.id);
+  }
+
   // Remove methods related to multipart upload
 }
