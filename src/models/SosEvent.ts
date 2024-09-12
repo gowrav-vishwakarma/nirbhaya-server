@@ -111,5 +111,11 @@ export class SosEvent extends Model<SosEvent> {
     type: DataType.STRING,
     allowNull: true,
   })
+  uploadId: string | null;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
   presignedUrl: string | null;
 }

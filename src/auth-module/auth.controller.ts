@@ -4,18 +4,22 @@ import {
   Body,
   UseGuards,
   Get,
-  Param,
   Query,
+  Param,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
 import { GetUser } from './getuser.decorator';
 import { UserJWT } from 'src/dto/user-jwt.dto';
-import { UserProfileUpdateDto } from './dto/user-profile-update.dto'; // Create this DTO
+import { SosService } from './sos/sos.service';
+import { UserProfileUpdateDto } from './dto/user-profile-update.dto';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly sosService: SosService,
+  ) {}
 
   @Post('/signup')
   signUp(@Body() SignUpDto: any): Promise<{ token: string }> {
@@ -114,4 +118,21 @@ export class AuthController {
   async discardNotification(@Param('id') id: string, @GetUser() user: UserJWT) {
     return this.authService.discardNotification(parseInt(id), user.id);
   }
+
+  @Get('get-presigned-url')
+  @UseGuards(AuthGuard)
+  async getPresignedUrl(
+    @Query('sosEventId') sosEventId: number,
+    @Query('fileName') fileName: string,
+    @Query('contentType') contentType: string,
+  ) {
+    const presignedUrl = await this.sosService.getPresignedUrlForUpload(
+      sosEventId,
+      fileName,
+      contentType,
+    );
+    return { presignedUrl };
+  }
+
+  // Remove methods related to multipart upload
 }

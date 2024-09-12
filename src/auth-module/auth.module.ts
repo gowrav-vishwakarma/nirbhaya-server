@@ -15,7 +15,6 @@ import { FirebaseService } from 'src/firebase/firebase.service';
 import { StreamingGateway } from '../streaming/streaming.gateway';
 import { SosRoomService } from 'src/streaming/sos-room.service';
 import { CommunityApplications } from 'src/models/CommunityApplications';
-import { FilesService } from './files/files.service';
 
 @Module({
   imports: [
@@ -47,7 +46,6 @@ import { FilesService } from './files/files.service';
     FirebaseService,
     StreamingGateway,
     SosRoomService,
-    FilesService,
   ],
   exports: [
     AuthService,
@@ -56,7 +54,6 @@ import { FilesService } from './files/files.service';
     SosService,
     StreamingGateway,
     SosRoomService,
-    FilesService,
   ],
 })
 export class AuthModule {}

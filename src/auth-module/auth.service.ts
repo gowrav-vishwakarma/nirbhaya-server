@@ -425,11 +425,13 @@ export class AuthService {
         Object.assign(sosEvent, formatedSosData);
         // Always notify emergency contacts regardless of location
         // Generate a presigned URL and save it in the sosEvent model
-        const presignedUrl = await this.sosService.initiateMultipartUpload(
-          sosEvent.id,
-          'stream.bin',
-        ); // Replace 'yourFileName' with actual filename logic
-        sosEvent.presignedUrl = presignedUrl.presignedUrl; // Add this line to save the presigned URL
+        // const { uploadId, presignedUrl } =
+        //   await this.sosService.initiateMultipartUpload(
+        //     sosEvent.id,
+        //     'stream.bin',
+        //   ); // Replace 'yourFileName' with actual filename logic
+        // sosEvent.presignedUrl = presignedUrl;
+        // sosEvent.uploadId = uploadId;
         await sosEvent.save();
         await this.sosService.handleSos(sosEvent);
       }

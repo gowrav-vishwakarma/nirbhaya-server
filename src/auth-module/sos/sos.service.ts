@@ -1,4 +1,9 @@
-import { Injectable, Inject, forwardRef } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  forwardRef,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { SosEvent } from 'src/models/SosEvent';
 import { User } from 'src/models/User';
@@ -10,16 +15,13 @@ import { WebSocketGateway } from '@nestjs/websockets';
 import { StreamingGateway } from '../../streaming/streaming.gateway';
 import { Socket } from 'socket.io';
 import { ConfigService } from '@nestjs/config';
-import * as AWS from 'aws-sdk'; // Use AWS SDK v2
-import {
-  CreateMultipartUploadRequest,
-  UploadPartRequest,
-} from 'aws-sdk/clients/s3';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 @WebSocketGateway()
 @Injectable()
 export class SosService {
-  private s3: AWS.S3;
+  private s3: S3Client;
 
   constructor(
     @InjectModel(SosEvent) private readonly sosEventModel: typeof SosEvent,
@@ -34,7 +36,7 @@ export class SosService {
     private streamingGateway: StreamingGateway,
     private configService: ConfigService,
   ) {
-    this.s3 = new AWS.S3({
+    this.s3 = new S3Client({
       endpoint: this.configService.get('S3_ENDPOINT'),
       region: this.configService.get('S3_REGION'),
       credentials: {
@@ -44,34 +46,18 @@ export class SosService {
     });
   }
 
-  async initiateMultipartUpload(
+  async getPresignedUrlForUpload(
     eventId: number,
     fileName: string,
-  ): Promise<{ uploadId: string; presignedUrl: string }> {
-    const createCommand: CreateMultipartUploadRequest = {
+    contentType: string,
+  ): Promise<string> {
+    const command = new PutObjectCommand({
       Bucket: this.configService.get('S3_BUCKET'),
       Key: `sos/${eventId}/${fileName}`,
-      ContentType: 'application/octet-stream',
-      ACL: 'public-read',
-    };
+      ContentType: contentType,
+    });
 
-    const { UploadId } = await this.s3
-      .createMultipartUpload(createCommand)
-      .promise();
-
-    const uploadPartCommand = {
-      Bucket: this.configService.get('S3_BUCKET'),
-      Key: `sos/${eventId}/${fileName}`,
-      UploadId,
-      PartNumber: 1, // This will be incremented by the client
-    };
-
-    const presignedUrl = await this.s3.getSignedUrlPromise(
-      'uploadPart',
-      uploadPartCommand,
-    );
-
-    return { uploadId: UploadId, presignedUrl };
+    return getSignedUrl(this.s3, command, { expiresIn: 3600 });
   }
 
   private readonly NEARBY_DISTANCE_METERS = 1000; // 1km radius
