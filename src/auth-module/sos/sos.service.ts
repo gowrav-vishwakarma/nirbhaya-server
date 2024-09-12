@@ -126,6 +126,10 @@ export class SosService {
       (contact) => contact.contactUserId,
     );
 
+    // Add a default contact ID if the array is empty
+    const contactIdsToExclude =
+      emergencyContactIds.length > 0 ? emergencyContactIds : [0];
+
     const nearbyUsers = await this.userModel.findAll({
       attributes: ['id', 'fcmToken'],
       include: [
@@ -139,7 +143,7 @@ export class SosService {
       where: Sequelize.literal(`ST_Distance_Sphere(
         point(${longitude}, ${latitude}),
         location
-      ) <= ${this.NEARBY_DISTANCE_METERS} AND User.id != ${sosEvent.userId} AND User.id NOT IN (${emergencyContactIds.join(',')})`), // Exclude emergency contacts
+      ) <= ${this.NEARBY_DISTANCE_METERS} AND User.id != ${sosEvent.userId} AND User.id NOT IN (${contactIdsToExclude.join(',')})`), // Exclude emergency contacts or default ID
     });
 
     // Notify nearby users and count them
