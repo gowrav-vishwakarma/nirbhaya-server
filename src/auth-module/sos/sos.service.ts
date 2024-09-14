@@ -76,7 +76,7 @@ export class SosService {
       sosEvent.informed += initialResult.informedCount; // Update informed count
     } else {
       const updateResult = await this.updateAcceptedCount(sosEvent);
-      sosEvent.informed += updateResult.acceptedCount; // Update informed count
+      sosEvent.accepted = updateResult.acceptedCount; // Update informed count
     }
 
     return {
@@ -113,6 +113,10 @@ export class SosService {
     if (!sosEvent.location) {
       console.log('No location data for SOS event');
       return 0; // Return 0 if no location
+    }
+
+    if (sosEvent.escalationLevel > 0) {
+      return 0;
     }
 
     const [longitude, latitude] = sosEvent.location.coordinates;

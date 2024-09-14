@@ -434,7 +434,7 @@ export class AuthService {
         // sosEvent.presignedUrl = presignedUrl;
         // sosEvent.uploadId = uploadId;
         await sosEvent.save();
-        await this.sosService.handleSos(sosEvent);
+        return await this.sosService.handleSos(sosEvent);
       }
 
       if (!sosEvent.location || sosEvent.location.coordinates[0] == 0) {
