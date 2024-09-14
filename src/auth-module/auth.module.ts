@@ -12,9 +12,9 @@ import { SosEvent } from 'src/models/SosEvent';
 import { SosService } from './sos/sos.service';
 import { Notification } from 'src/models/Notification';
 import { FirebaseService } from 'src/firebase/firebase.service';
-import { StreamingGateway } from '../streaming/streaming.gateway';
 import { SosRoomService } from 'src/streaming/sos-room.service';
 import { CommunityApplications } from 'src/models/CommunityApplications';
+import { StreamingModule } from 'src/streaming/streaming.module';
 
 @Module({
   imports: [
@@ -37,6 +37,7 @@ import { CommunityApplications } from 'src/models/CommunityApplications';
       Notification,
       CommunityApplications,
     ]),
+    forwardRef(() => StreamingModule),
   ],
   controllers: [AuthController],
   providers: [
@@ -44,7 +45,6 @@ import { CommunityApplications } from 'src/models/CommunityApplications';
     AuthGuard,
     SosService,
     FirebaseService,
-    StreamingGateway,
     SosRoomService,
   ],
   exports: [
@@ -52,8 +52,8 @@ import { CommunityApplications } from 'src/models/CommunityApplications';
     AuthGuard,
     JwtModule,
     SosService,
-    StreamingGateway,
     SosRoomService,
+    StreamingModule,
   ],
 })
 export class AuthModule {}

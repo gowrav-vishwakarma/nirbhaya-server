@@ -32,7 +32,6 @@ export class SosService {
     private readonly notificationModel: typeof Notification,
     private sequelize: Sequelize,
     private firebaseService: FirebaseService,
-    @Inject(forwardRef(() => StreamingGateway))
     private streamingGateway: StreamingGateway,
     private configService: ConfigService,
   ) {
