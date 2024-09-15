@@ -39,14 +39,15 @@ export class StreamingGateway {
     client: Socket,
     payload: { peerId: string; sosEventId: string },
   ) {
-    console.log(
-      `Client ${payload.peerId} joining SOS room: ${payload.sosEventId}`,
-    );
     await this.sosRoomService.joinSosRoom(
       client,
       payload.sosEventId,
       payload.peerId,
     );
+    const peersInRoom = await this.sosRoomService.getPeersInRoom(
+      payload.sosEventId,
+    );
+    this.server.to(payload.sosEventId).emit('peers_in_room', peersInRoom);
   }
 
   @SubscribeMessage('leave_sos_room')
@@ -59,5 +60,9 @@ export class StreamingGateway {
       payload.sosEventId,
       payload.peerId,
     );
+    const peersInRoom = await this.sosRoomService.getPeersInRoom(
+      payload.sosEventId,
+    );
+    this.server.to(payload.sosEventId).emit('peers_in_room', peersInRoom);
   }
 }

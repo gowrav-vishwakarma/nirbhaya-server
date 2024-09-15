@@ -17,11 +17,11 @@ export class SosRoomService {
       this.rooms.set(sosEventId, new Set());
     }
     this.rooms.get(sosEventId)!.add(peerId);
-    client.join(sosEventId);
+    await client.join(sosEventId);
     console.log(`Client ${peerId} joined room ${sosEventId}`);
-    client
-      .to(sosEventId)
-      .emit('peers_in_room', await this.getPeersInRoom(sosEventId));
+    const peersInRoom = await this.getPeersInRoom(sosEventId);
+    console.log('peersInRoom', peersInRoom);
+    client.to(sosEventId).emit('peers_in_room', peersInRoom);
   }
 
   async leaveSosRoom(client: Socket, sosEventId: string, peerId: string) {
@@ -31,10 +31,9 @@ export class SosRoomService {
         this.rooms.delete(sosEventId);
       }
     }
-    client.leave(sosEventId);
+    await client.leave(sosEventId);
     console.log(`Client ${peerId} left room ${sosEventId}`);
-    client
-      .to(sosEventId)
-      .emit('peers_in_room', await this.getPeersInRoom(sosEventId));
+    const peersInRoom = await this.getPeersInRoom(sosEventId);
+    client.to(sosEventId).emit('peers_in_room', peersInRoom);
   }
 }
