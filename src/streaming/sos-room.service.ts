@@ -3,20 +3,34 @@ import { Socket } from 'socket.io';
 
 @Injectable()
 export class SosRoomService {
-  private rooms: Map<string, Set<string>> = new Map();
+  private rooms: Map<string, { sos: string | null; volunteers: Set<string> }> =
+    new Map();
 
   async getPeersInRoom(sosEventId: string): Promise<string[]> {
     if (this.rooms.has(sosEventId)) {
-      return Array.from(this.rooms.get(sosEventId));
+      const room = this.rooms.get(sosEventId)!;
+      return [room.sos, ...Array.from(room.volunteers)].filter(
+        Boolean,
+      ) as string[];
     }
     return [];
   }
 
-  async joinSosRoom(client: Socket, sosEventId: string, peerId: string) {
+  async joinSosRoom(
+    client: Socket,
+    sosEventId: string,
+    peerId: string,
+    isSos: boolean,
+  ): Promise<void> {
     if (!this.rooms.has(sosEventId)) {
-      this.rooms.set(sosEventId, new Set());
+      this.rooms.set(sosEventId, { sos: null, volunteers: new Set() });
     }
-    this.rooms.get(sosEventId)!.add(peerId);
+    const room = this.rooms.get(sosEventId)!;
+    if (isSos) {
+      room.sos = peerId;
+    } else {
+      room.volunteers.add(peerId);
+    }
     await client.join(sosEventId);
     console.log(`Client ${peerId} joined room ${sosEventId}`);
     const peersInRoom = await this.getPeersInRoom(sosEventId);
@@ -26,8 +40,13 @@ export class SosRoomService {
 
   async leaveSosRoom(client: Socket, sosEventId: string, peerId: string) {
     if (this.rooms.has(sosEventId)) {
-      this.rooms.get(sosEventId)!.delete(peerId);
-      if (this.rooms.get(sosEventId)!.size === 0) {
+      const room = this.rooms.get(sosEventId)!;
+      if (room.sos === peerId) {
+        room.sos = null;
+      } else {
+        room.volunteers.delete(peerId);
+      }
+      if (!room.sos && room.volunteers.size === 0) {
         this.rooms.delete(sosEventId);
       }
     }

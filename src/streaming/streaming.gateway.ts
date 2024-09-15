@@ -37,17 +37,28 @@ export class StreamingGateway {
   @SubscribeMessage('join_sos_room')
   async handleJoinSosRoom(
     client: Socket,
-    payload: { peerId: string; sosEventId: string },
+    payload: { peerId: string; sosEventId: string; isSos: boolean },
   ) {
     await this.sosRoomService.joinSosRoom(
       client,
       payload.sosEventId,
       payload.peerId,
+      payload.isSos,
     );
     const peersInRoom = await this.sosRoomService.getPeersInRoom(
       payload.sosEventId,
     );
     this.server.to(payload.sosEventId).emit('peers_in_room', peersInRoom);
+  }
+
+  @SubscribeMessage('sos_audio_started')
+  handleSosAudioStarted(client: Socket, payload: { sosEventId: string }) {
+    this.server.to(payload.sosEventId).emit('sos_audio_started');
+  }
+
+  @SubscribeMessage('sos_audio_stopped')
+  handleSosAudioStopped(client: Socket, payload: { sosEventId: string }) {
+    this.server.to(payload.sosEventId).emit('sos_audio_stopped');
   }
 
   @SubscribeMessage('leave_sos_room')
