@@ -5,19 +5,6 @@ import { Socket } from 'socket.io';
 export class SosRoomService {
   private rooms: Map<string, Set<string>> = new Map();
 
-  async addPeerToRoom(sosEventId: string, peerId: string) {
-    if (!this.rooms.has(sosEventId)) {
-      this.rooms.set(sosEventId, new Set());
-    }
-    this.rooms.get(sosEventId).add(peerId);
-  }
-
-  async removePeerFromRoom(sosEventId: string, peerId: string) {
-    if (this.rooms.has(sosEventId)) {
-      this.rooms.get(sosEventId).delete(peerId);
-    }
-  }
-
   async getPeersInRoom(sosEventId: string): Promise<string[]> {
     if (this.rooms.has(sosEventId)) {
       return Array.from(this.rooms.get(sosEventId));
@@ -25,26 +12,29 @@ export class SosRoomService {
     return [];
   }
 
-  async joinSosRoom(client: Socket, sosEventId: string) {
+  async joinSosRoom(client: Socket, sosEventId: string, peerId: string) {
     if (!this.rooms.has(sosEventId)) {
       this.rooms.set(sosEventId, new Set());
     }
-    this.rooms.get(sosEventId)!.add(client.id);
+    this.rooms.get(sosEventId)!.add(peerId);
     client.join(sosEventId);
-    console.log(`Client ${client.id} joined room ${sosEventId}`);
+    console.log(`Client ${peerId} joined room ${sosEventId}`);
+    client
+      .to(sosEventId)
+      .emit('peers_in_room', await this.getPeersInRoom(sosEventId));
   }
 
-  async leaveSosRoom(client: Socket, sosEventId: string) {
+  async leaveSosRoom(client: Socket, sosEventId: string, peerId: string) {
     if (this.rooms.has(sosEventId)) {
-      this.rooms.get(sosEventId)!.delete(client.id);
+      this.rooms.get(sosEventId)!.delete(peerId);
       if (this.rooms.get(sosEventId)!.size === 0) {
         this.rooms.delete(sosEventId);
       }
     }
     client.leave(sosEventId);
-    console.log(`Client ${client.id} left room ${sosEventId}`);
-
-    // Emit disconnection event to all clients in the room
-    client.to(sosEventId).emit('peer_left', client.id);
+    console.log(`Client ${peerId} left room ${sosEventId}`);
+    client
+      .to(sosEventId)
+      .emit('peers_in_room', await this.getPeersInRoom(sosEventId));
   }
 }

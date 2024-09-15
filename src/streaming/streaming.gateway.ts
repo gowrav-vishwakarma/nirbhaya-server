@@ -35,30 +35,29 @@ export class StreamingGateway {
   }
 
   @SubscribeMessage('join_sos_room')
-  async handleJoinSosRoom(client: Socket, sosEventId: string | number) {
-    const sosEventIdString = sosEventId.toString();
-    console.log(`Client ${client.id} joining SOS room: ${sosEventIdString}`);
-    await this.sosRoomService.joinSosRoom(client, sosEventIdString);
-  }
-
-  @SubscribeMessage('leave_sos_room')
-  async handleLeaveSosRoom(client: Socket, sosEventId: string) {
-    await this.sosRoomService.leaveSosRoom(client, sosEventId);
-    // Notify other peers in the room to close their audio streams
-    client.to(sosEventId).emit('peer_left', client.id);
-  }
-
-  @SubscribeMessage('register_peer')
-  async handleRegisterPeer(
+  async handleJoinSosRoom(
     client: Socket,
     payload: { peerId: string; sosEventId: string },
   ) {
-    await this.sosRoomService.addPeerToRoom(payload.sosEventId, payload.peerId);
+    console.log(
+      `Client ${payload.peerId} joining SOS room: ${payload.sosEventId}`,
+    );
+    await this.sosRoomService.joinSosRoom(
+      client,
+      payload.sosEventId,
+      payload.peerId,
+    );
   }
 
-  @SubscribeMessage('get_peers_in_room')
-  async handleGetPeersInRoom(client: Socket, sosEventId: string) {
-    const peerIds = await this.sosRoomService.getPeersInRoom(sosEventId);
-    client.emit('peers_in_room', peerIds);
+  @SubscribeMessage('leave_sos_room')
+  async handleLeaveSosRoom(
+    client: Socket,
+    payload: { peerId: string; sosEventId: string },
+  ) {
+    await this.sosRoomService.leaveSosRoom(
+      client,
+      payload.sosEventId,
+      payload.peerId,
+    );
   }
 }
