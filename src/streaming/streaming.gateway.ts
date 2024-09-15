@@ -49,11 +49,24 @@ export class StreamingGateway {
       payload.sosEventId,
     );
     this.server.to(payload.sosEventId).emit('peers_in_room', peersInRoom);
+    if (payload.isSos) {
+      // Already handled in joinSosRoom
+    } else {
+      const sosPeer = peersInRoom.find((id) => id.startsWith('sos_'));
+      if (sosPeer) {
+        client.emit('sos_audio_started', sosPeer); // Send current SOS peer to new volunteer
+      }
+    }
   }
 
   @SubscribeMessage('sos_audio_started')
-  handleSosAudioStarted(client: Socket, payload: { sosEventId: string }) {
-    this.server.to(payload.sosEventId).emit('sos_audio_started');
+  handleSosAudioStarted(
+    client: Socket,
+    payload: { sosEventId: string; peerId: string },
+  ) {
+    this.server
+      .to(payload.sosEventId)
+      .emit('sos_audio_started', payload.peerId);
   }
 
   @SubscribeMessage('sos_audio_stopped')
