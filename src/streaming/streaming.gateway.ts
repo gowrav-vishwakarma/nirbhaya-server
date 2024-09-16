@@ -50,11 +50,14 @@ export class StreamingGateway {
     );
     this.server.to(payload.sosEventId).emit('peers_in_room', peersInRoom);
     if (payload.isSos) {
-      // Already handled in joinSosRoom
+      // Notify all clients in the room that SOS audio has started
+      this.server
+        .to(payload.sosEventId)
+        .emit('sos_audio_started', payload.peerId);
     } else {
       const sosPeer = peersInRoom.find((id) => id.startsWith('sos_'));
       if (sosPeer) {
-        client.emit('sos_audio_started', sosPeer); // Send current SOS peer to new volunteer
+        client.emit('sos_audio_started', sosPeer);
       }
     }
   }
