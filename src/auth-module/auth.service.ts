@@ -23,6 +23,8 @@ import { Op, Sequelize } from 'sequelize';
 
 @Injectable()
 export class AuthService {
+  private baseCounter = 100000000;
+
   constructor(
     private jwtService: JwtService,
     private readonly sosService: SosService,
@@ -71,6 +73,8 @@ export class AuthService {
       streamAudioVideoOnSos: user.streamAudioVideoOnSos,
       broadcastAudioOnSos: user.broadcastAudioOnSos,
       token, // Include the token in the response
+      referralId: user.referralId, // Include the referralId in the response
+      referredBy: user.referredBy ? user.referredBy.referralId : null,
     };
   }
 
@@ -100,6 +104,7 @@ export class AuthService {
         'streamAudioVideoOnSos',
         'broadcastAudioOnSos',
         'deviceId',
+        'referralId',
       ],
       include: [
         {
@@ -113,6 +118,12 @@ export class AuthService {
             'isAppUser',
             'priority',
           ],
+        },
+        {
+          model: User,
+          required: false,
+          as: 'referredBy',
+          attributes: ['referralId'],
         },
       ],
       where: userCond,
@@ -205,6 +216,17 @@ export class AuthService {
         user.broadcastAudioOnSos = data.broadcastAudioOnSos;
       if (data.deviceId !== undefined) user.deviceId = data.deviceId; // Update deviceId
 
+      if (data.referredBy) {
+        const referredByUser = await this.userModel.findOne({
+          where: { referralId: data.referredBy },
+        });
+        if (referredByUser) {
+          user.referUserId = referredByUser.id;
+        } else {
+          user.referUserId = null;
+        }
+      }
+
       await user.save();
 
       // Handle emergency contacts if provided
@@ -225,6 +247,12 @@ export class AuthService {
             model: EmergencyContact,
             as: 'emergencyContacts',
             required: false,
+          },
+          {
+            model: User,
+            required: false,
+            as: 'referredBy',
+            attributes: ['referralId'],
           },
         ],
       });
@@ -518,6 +546,17 @@ export class AuthService {
         otp: newOtp,
         phoneNumber: mobileNumber,
       });
+
+      // Generate and update the unique ID after user creation
+      const uniqueId = this.generateUniqueId(existingUser.id);
+      await this.userModel.update(
+        { referralId: uniqueId },
+        {
+          where: {
+            id: existingUser.id,
+          },
+        },
+      );
     }
 
     return { otpSent: true };
@@ -530,6 +569,11 @@ export class AuthService {
     return Math.floor(
       10 ** (characters - 1) + Math.random() * (9 * 10 ** (characters - 1)),
     ).toString();
+  }
+
+  private generateUniqueId(userId: number): string {
+    const uniqueNumber = this.baseCounter + userId;
+    return uniqueNumber.toString(36);
   }
 
   async updateFcmToken(userId: number, fcmToken: string): Promise<void> {

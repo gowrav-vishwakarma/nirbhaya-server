@@ -80,4 +80,8 @@ export class UserProfileUpdateDto {
   @IsOptional()
   @IsString()
   deviceId?: string; // Add deviceId here
+
+  @IsOptional()
+  @IsString()
+  referredBy: string;
 }

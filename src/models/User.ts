@@ -6,6 +6,9 @@ import {
   HasMany,
   Index,
   HasOne,
+  ForeignKey,
+  BelongsTo,
+  Unique,
 } from 'sequelize-typescript';
 import { EmergencyContact } from './EmergencyContact';
 import { UserLocation } from './UserLocation';
@@ -125,4 +128,25 @@ export class User extends Model<User> {
     allowNull: true,
   })
   fcmToken: string;
+
+  @Index
+  @Unique
+  @Column({
+    type: DataType.STRING,
+    unique: true,
+  })
+  referralId: string;
+
+  @ForeignKey(() => User)
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+  })
+  referUserId: number;
+
+  @BelongsTo(() => User, 'referUserId')
+  referredBy: User;
+
+  @HasMany(() => User, 'referUserId')
+  referrals: User[];
 }

@@ -28,7 +28,7 @@ export class SosRoomService {
     const room = this.rooms.get(sosEventId)!;
     if (isSos) {
       room.sos = peerId;
-    } else {
+    } else {``
       room.volunteers.add(peerId);
     }
     await client.join(sosEventId);

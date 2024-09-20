@@ -17,6 +17,7 @@ import { AuthModule } from './auth-module/auth.module';
 import { NirbhayaQnatkController } from './nirbhaya.controller';
 import { StreamingModule } from './streaming/streaming.module';
 import { CommunityApplications } from './models/CommunityApplications';
+import { LeaderboardModule } from './leaderboard/leaderboard.module';
 
 export const sequelizeModelArray = [
   User,
@@ -75,6 +76,7 @@ export const sequelizeModelArray = [
     SequelizeModule.forFeature(sequelizeModelArray),
     AuthModule,
     StreamingModule,
+    LeaderboardModule,
   ],
   controllers: [AppController, NirbhayaQnatkController],
   providers: [AppService],
