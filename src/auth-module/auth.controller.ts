@@ -166,5 +166,11 @@ export class AuthController {
     return this.authService.getEmergencyContactsStatus(user.id);
   }
 
+  // Add a new endpoint to validate a referral ID
+  @Get('validate-referral/:referralId')
+  async validateReferral(@Param('referralId') referralId: string) {
+    return this.authService.validateReferral(referralId);
+  }
+
   // Remove methods related to multipart upload
 }

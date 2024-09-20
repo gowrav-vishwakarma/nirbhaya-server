@@ -783,6 +783,16 @@ export class AuthService {
     }));
   }
 
+  // Add a new method to validate a referral ID
+  async validateReferral(referralId: string): Promise<{ exists: boolean }> {
+    const user = await this.userModel.findOne({
+      where: { referralId },
+      attributes: ['id'], // Only fetch the ID to check existence
+    });
+
+    return { exists: !!user };
+  }
+
   async approveEmergencyContact(
     requestId: number,
     userId: number,
