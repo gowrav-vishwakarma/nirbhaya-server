@@ -72,11 +72,6 @@ export class StreamingGateway {
       .emit('sos_audio_started', payload.peerId);
   }
 
-  @SubscribeMessage('sos_audio_stopped')
-  handleSosAudioStopped(client: Socket, payload: { sosEventId: string }) {
-    this.server.to(payload.sosEventId).emit('sos_audio_stopped');
-  }
-
   @SubscribeMessage('leave_sos_room')
   async handleLeaveSosRoom(
     client: Socket,
