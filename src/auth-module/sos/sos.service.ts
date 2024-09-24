@@ -50,9 +50,10 @@ export class SosService {
     fileName: string,
     contentType: string,
   ): Promise<string> {
+    const key = `sos/${new Date().toISOString().split('T')[0]}/${eventId}/${fileName}`;
     const command = new PutObjectCommand({
       Bucket: this.configService.get('S3_BUCKET'),
-      Key: `sos/${eventId}/${fileName}`,
+      Key: key,
       ContentType: contentType,
     });
 
