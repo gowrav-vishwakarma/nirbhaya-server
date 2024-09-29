@@ -14,6 +14,7 @@ import { EmergencyContact } from './EmergencyContact';
 import { UserLocation } from './UserLocation';
 import { SosEvent } from './SosEvent';
 import { CommunityApplications } from './CommunityApplications';
+import { Suggestion } from './Suggestion';
 
 @Table
 export class User extends Model<User> {
@@ -149,4 +150,7 @@ export class User extends Model<User> {
 
   @HasMany(() => User, 'referUserId')
   referrals: User[];
+
+  @HasMany(() => Suggestion)
+  suggestions: Suggestion[];
 }

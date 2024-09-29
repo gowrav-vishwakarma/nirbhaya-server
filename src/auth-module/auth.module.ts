@@ -15,6 +15,7 @@ import { FirebaseService } from 'src/firebase/firebase.service';
 import { SosRoomService } from 'src/streaming/sos-room.service';
 import { CommunityApplications } from 'src/models/CommunityApplications';
 import { StreamingModule } from 'src/streaming/streaming.module';
+import { Suggestion } from 'src/models/Suggestion';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { StreamingModule } from 'src/streaming/streaming.module';
       SosEvent,
       Notification,
       CommunityApplications,
+      Suggestion,
     ]),
     forwardRef(() => StreamingModule),
   ],
