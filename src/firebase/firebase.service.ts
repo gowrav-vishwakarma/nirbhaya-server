@@ -7,6 +7,7 @@ import { ServiceAccount } from 'firebase-admin';
 export class FirebaseService {
   private app: admin.app.App | null = null;
   private readonly logger = new Logger(FirebaseService.name);
+  private isInitialized = false;
 
   constructor(private configService: ConfigService) {
     this.initializeFirebase();
@@ -15,6 +16,13 @@ export class FirebaseService {
   private initializeFirebase() {
     try {
       const projectId = this.configService.get<string>('FIREBASE_PROJECT_ID');
+      if (!projectId) {
+        this.logger.warn(
+          'Firebase project ID is not set. Firebase features will be disabled.',
+        );
+        return;
+      }
+
       const privateKey = this.getPrivateKey();
       const clientEmail = this.configService.get<string>(
         'FIREBASE_CLIENT_EMAIL',
@@ -38,6 +46,7 @@ export class FirebaseService {
         databaseURL: this.configService.get<string>('FIREBASE_DATABASE_URL'),
       });
 
+      this.isInitialized = true;
       this.logger.log('Firebase initialized successfully');
     } catch (error) {
       this.logger.error('Failed to initialize Firebase', error.stack);
@@ -64,6 +73,12 @@ export class FirebaseService {
     location: string,
     additionalData?: any,
   ) {
+    if (!this.isInitialized) {
+      this.logger.warn(
+        'Firebase is not initialized. Cannot send notification.',
+      );
+      return;
+    }
     const message = {
       notification: {
         title,

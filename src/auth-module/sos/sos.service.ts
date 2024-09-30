@@ -21,7 +21,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 @WebSocketGateway()
 @Injectable()
 export class SosService {
-  private s3: S3Client;
+  private s3: S3Client | null = null;
 
   constructor(
     @InjectModel(SosEvent) private readonly sosEventModel: typeof SosEvent,
@@ -50,6 +50,9 @@ export class SosService {
     fileName: string,
     contentType: string,
   ): Promise<string> {
+    if (!this.s3) {
+      return '';
+    }
     const key = `sos/${new Date().toISOString().split('T')[0]}/${eventId}/${fileName}`;
     const command = new PutObjectCommand({
       Bucket: this.configService.get('S3_BUCKET'),

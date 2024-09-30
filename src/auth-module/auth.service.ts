@@ -14,6 +14,8 @@ import { UserLocation } from 'src/models/UserLocation';
 import { SosEvent } from 'src/models/SosEvent';
 import { Notification } from 'src/models/Notification'; // Add this import
 import { CommunityApplications } from 'src/models/CommunityApplications';
+import { Suggestion } from 'src/models/Suggestion';
+import { SuggestionDto } from './dto/suggestion.dto';
 
 import { ValidationException } from '../qnatk/src/Exceptions/ValidationException';
 import { UserJWT } from 'src/dto/user-jwt.dto';
@@ -39,6 +41,8 @@ export class AuthService {
     private readonly notificationModel: typeof Notification, // Add this line
     @InjectModel(CommunityApplications)
     private readonly communityApplicationsModel: typeof CommunityApplications,
+    @InjectModel(Suggestion)
+    private readonly suggestionModel: typeof Suggestion,
   ) {}
 
   async signUp(signUpDto: any): Promise<any> {
@@ -839,5 +843,40 @@ export class AuthService {
       contactPhone: contact.contactPhone,
       consentGiven: contact.consentGiven,
     }));
+  }
+
+  async getSuggestions(userId: number): Promise<Suggestion[]> {
+    return this.suggestionModel.findAll({
+      where: { userId },
+      order: [['createdAt', 'DESC']],
+    });
+  }
+
+  async createSuggestion(
+    userId: number,
+    suggestionDto: SuggestionDto,
+  ): Promise<Suggestion> {
+    const suggestionsCount = await this.suggestionModel.count({
+      where: { userId },
+    });
+    if (suggestionsCount >= 5) {
+      throw new BadRequestException('You can only have up to 5 suggestions');
+    }
+    return this.suggestionModel.create({ ...suggestionDto, userId });
+  }
+
+  async updateSuggestion(
+    userId: number,
+    id: number,
+    suggestionDto: SuggestionDto,
+  ): Promise<Suggestion> {
+    const suggestion = await this.suggestionModel.findOne({
+      where: { id, userId },
+    });
+    if (!suggestion) {
+      throw new NotFoundException('Suggestion not found');
+    }
+    await suggestion.update(suggestionDto);
+    return suggestion;
   }
 }

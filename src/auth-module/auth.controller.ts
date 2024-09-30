@@ -6,6 +6,7 @@ import {
   Get,
   Query,
   Param,
+  Put,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
@@ -13,6 +14,7 @@ import { GetUser } from './getuser.decorator';
 import { UserJWT } from 'src/dto/user-jwt.dto';
 import { SosService } from './sos/sos.service';
 import { UserProfileUpdateDto } from './dto/user-profile-update.dto';
+import { SuggestionDto } from './dto/suggestion.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -173,4 +175,29 @@ export class AuthController {
   }
 
   // Remove methods related to multipart upload
+
+  @UseGuards(AuthGuard)
+  @Get('suggestions')
+  async getSuggestions(@GetUser() user: UserJWT) {
+    return this.authService.getSuggestions(user.id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('suggestions')
+  async createSuggestion(
+    @GetUser() user: UserJWT,
+    @Body() suggestionDto: SuggestionDto,
+  ) {
+    return this.authService.createSuggestion(user.id, suggestionDto);
+  }
+
+  @UseGuards(AuthGuard)
+  @Put('suggestions/:id')
+  async updateSuggestion(
+    @GetUser() user: UserJWT,
+    @Param('id') id: number,
+    @Body() suggestionDto: SuggestionDto,
+  ) {
+    return this.authService.updateSuggestion(user.id, id, suggestionDto);
+  }
 }
