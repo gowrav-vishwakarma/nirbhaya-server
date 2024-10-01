@@ -13,6 +13,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { UserJWT } from 'src/dto/user-jwt.dto';
 import { StreamingGateway } from 'src/streaming/streaming.gateway';
 import { Op } from 'sequelize';
+import * as moment from 'moment';
 
 @Injectable()
 export class SosService {
@@ -374,10 +375,12 @@ export class SosService {
 
   async getSOSEvents(
     eventType: string,
-    duration: number,
+    timeRange: string,
     latitude: number,
     longitude: number,
     radius: number,
+    startDate?: string,
+    endDate?: string,
   ): Promise<any[]> {
     try {
       const whereClause: any = {};
@@ -386,11 +389,15 @@ export class SosService {
         whereClause.status = eventType;
       }
 
-      if (duration > 0) {
-        const minTime = new Date(Date.now() - duration * 60 * 1000);
-        whereClause.createdAt = {
-          [Op.gte]: minTime,
-        };
+      if (timeRange !== 'live') {
+        const timeRangeFilter = this.getTimeRangeFilter(
+          timeRange,
+          startDate,
+          endDate,
+        );
+        if (timeRangeFilter) {
+          whereClause.createdAt = timeRangeFilter;
+        }
       }
 
       whereClause[Op.and] = [
@@ -429,6 +436,33 @@ export class SosService {
         'Failed to fetch SOS events',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+  }
+
+  private getTimeRangeFilter(
+    timeRange: string,
+    startDate?: string,
+    endDate?: string,
+  ) {
+    const now = moment();
+    switch (timeRange) {
+      case 'last3Hours':
+        return { [Op.gte]: now.subtract(3, 'hours').toDate() };
+      case 'today':
+        return { [Op.gte]: now.startOf('day').toDate() };
+      case 'last2Days':
+        return { [Op.gte]: now.subtract(2, 'days').startOf('day').toDate() };
+      case 'last7Days':
+        return { [Op.gte]: now.subtract(7, 'days').startOf('day').toDate() };
+      case 'last30Days':
+        return { [Op.gte]: now.subtract(30, 'days').startOf('day').toDate() };
+      case 'custom':
+        if (startDate && endDate) {
+          return { [Op.between]: [new Date(startDate), new Date(endDate)] };
+        }
+        return null;
+      default:
+        return null;
     }
   }
 }

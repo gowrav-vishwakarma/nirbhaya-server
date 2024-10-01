@@ -33,17 +33,21 @@ export class SosController {
   @UseGuards(AuthGuard)
   async getSOSEvents(
     @Query('eventType') eventType: string,
-    @Query('duration') duration: number,
+    @Query('timeRange') timeRange: string,
     @Query('latitude') latitude: number,
     @Query('longitude') longitude: number,
     @Query('radius') radius: number,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
   ) {
     return this.sosService.getSOSEvents(
       eventType,
-      duration,
+      timeRange,
       latitude,
       longitude,
       radius,
+      startDate,
+      endDate,
     );
   }
 }
