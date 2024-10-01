@@ -34,7 +34,16 @@ export class SosController {
   async getSOSEvents(
     @Query('eventType') eventType: string,
     @Query('duration') duration: number,
+    @Query('latitude') latitude: number,
+    @Query('longitude') longitude: number,
+    @Query('radius') radius: number,
   ) {
-    return this.sosService.getSOSEvents(eventType, duration);
+    return this.sosService.getSOSEvents(
+      eventType,
+      duration,
+      latitude,
+      longitude,
+      radius,
+    );
   }
 }

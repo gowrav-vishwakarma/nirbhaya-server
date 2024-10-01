@@ -372,7 +372,13 @@ export class SosService {
     return R * c; // Distance in meters
   }
 
-  async getSOSEvents(eventType: string, duration: number): Promise<any[]> {
+  async getSOSEvents(
+    eventType: string,
+    duration: number,
+    latitude: number,
+    longitude: number,
+    radius: number,
+  ): Promise<any[]> {
     try {
       const whereClause: any = {};
 
@@ -387,11 +393,24 @@ export class SosService {
         };
       }
 
+      whereClause[Op.and] = [
+        Sequelize.where(
+          Sequelize.fn(
+            'ST_Distance_Sphere',
+            Sequelize.col('location'),
+            Sequelize.fn('ST_GeomFromText', `POINT(${longitude} ${latitude})`),
+          ),
+          {
+            [Op.lte]: radius,
+          },
+        ),
+      ];
+
       const events = await this.sosEventModel.findAll({
         where: whereClause,
         attributes: ['id', 'location', 'status', 'threat', 'createdAt'],
         order: [['createdAt', 'DESC']],
-        limit: 1000, // Limit the number of events to prevent overloading
+        limit: 1000,
       });
 
       return events.map((event) => {
