@@ -4,8 +4,6 @@ import {
   SubscribeMessage,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { SosService } from '../auth-module/sos/sos.service';
-import { Inject, forwardRef } from '@nestjs/common';
 import { SosRoomService } from './sos-room.service';
 
 @WebSocketGateway({
@@ -20,11 +18,7 @@ import { SosRoomService } from './sos-room.service';
 export class StreamingGateway {
   @WebSocketServer() server: Server;
 
-  constructor(
-    @Inject(forwardRef(() => SosService))
-    private sosService: SosService,
-    private sosRoomService: SosRoomService,
-  ) {}
+  constructor(private sosRoomService: SosRoomService) {}
 
   handleConnection(client: Socket) {
     console.log(`Client connected: ${client.id}`);

@@ -18,6 +18,11 @@ import { NirbhayaQnatkController } from './nirbhaya.controller';
 import { StreamingModule } from './streaming/streaming.module';
 import { CommunityApplications } from './models/CommunityApplications';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
+import { UserModule } from './user/user.module';
+import { SosModule } from './sos/sos.module';
+import { NotificationModule } from './notification/notification.module';
+import { CommunityModule } from './community/community.module';
+import { SuggestionModule } from './suggestion/suggestion.module';
 
 export const sequelizeModelArray = [
   User,
@@ -75,6 +80,11 @@ export const sequelizeModelArray = [
     ),
     SequelizeModule.forFeature(sequelizeModelArray),
     AuthModule,
+    UserModule,
+    SosModule,
+    NotificationModule,
+    CommunityModule,
+    SuggestionModule,
     StreamingModule,
     LeaderboardModule,
   ],

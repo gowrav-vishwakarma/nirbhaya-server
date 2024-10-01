@@ -1,24 +1,19 @@
-import {
-  Injectable,
-  Inject,
-  forwardRef,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { SosEvent } from 'src/models/SosEvent';
 import { User } from 'src/models/User';
 import { EmergencyContact } from 'src/models/EmergencyContact';
 import { Notification } from 'src/models/Notification';
 import { Sequelize } from 'sequelize-typescript';
-import { FirebaseService } from 'src/firebase/firebase.service';
-import { WebSocketGateway } from '@nestjs/websockets';
-import { StreamingGateway } from '../../streaming/streaming.gateway';
+import { FirebaseService } from 'src/sos/firebase.service';
 import { Socket } from 'socket.io';
 import { ConfigService } from '@nestjs/config';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { UserJWT } from 'src/dto/user-jwt.dto';
+import { StreamingGateway } from 'src/streaming/streaming.gateway';
+import { Op } from 'sequelize';
 
-@WebSocketGateway()
 @Injectable()
 export class SosService {
   private s3: S3Client | null = null;
@@ -43,6 +38,87 @@ export class SosService {
         secretAccessKey: this.configService.get('S3_SECRET_KEY'),
       },
     });
+  }
+
+  async sosUpdate(data: any, user: UserJWT): Promise<any> {
+    try {
+      console.log('data...........', data);
+
+      const location = data.location
+        ? {
+            type: 'Point',
+            coordinates: [data.location.longitude, data.location.latitude],
+          }
+        : {
+            type: 'Point',
+            coordinates: [0, 0],
+          };
+
+      let sosEvent;
+
+      if (data.status == 'created') {
+        // cancel existing sos events for the same user
+        await this.sosEventModel.update(
+          { status: 'cancelled' },
+          {
+            where: {
+              userId: user.id,
+              status: ['active', 'created'],
+            },
+          },
+        );
+        sosEvent = await this.sosEventModel.create({
+          location: location ? location : null,
+          userId: user.id,
+          status: 'active',
+          threat: data.threat,
+          informed: 0,
+          accepted: 0,
+          contactsOnly: data.contactsOnly || false,
+          escalationLevel: 0,
+        });
+      } else {
+        sosEvent = await this.sosEventModel.findOne({
+          where: { userId: user.id, status: 'active' },
+        });
+        const formatedSosData = {
+          location: location || sosEvent.location,
+          threat: data.threat || sosEvent.threat,
+          status: data.status || sosEvent.status,
+          contactsOnly: data.contactsOnly || sosEvent.contactsOnly,
+        };
+
+        await sosEvent.update(formatedSosData);
+        Object.assign(sosEvent, formatedSosData);
+        // Always notify emergency contacts regardless of location
+        // Generate a presigned URL and save it in the sosEvent model
+        // const { uploadId, presignedUrl } =
+        //   await this.sosService.initiateMultipartUpload(
+        //     sosEvent.id,
+        //     'stream.bin',
+        //   ); // Replace 'yourFileName' with actual filename logic
+        // sosEvent.presignedUrl = presignedUrl;
+        // sosEvent.uploadId = uploadId;
+        await sosEvent.save();
+        return await this.handleSos(sosEvent);
+      }
+
+      if (!sosEvent.location || sosEvent.location.coordinates[0] == 0) {
+        return {
+          sosEventId: sosEvent.id,
+          locationSentToServer: false,
+          informed: 0,
+          accepted: 0,
+          presignedUrl: sosEvent.presignedUrl,
+        };
+      }
+
+      // Call sosService.handleSos with the new or updated SOS event
+      return await this.handleSos(sosEvent);
+    } catch (error) {
+      console.error('Error in sosLocationCrud:', error);
+      throw new Error('Failed to process SOS location');
+    }
   }
 
   async getPresignedUrlForUpload(
@@ -294,5 +370,46 @@ export class SosService {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
     return R * c; // Distance in meters
+  }
+
+  async getSOSEvents(eventType: string, duration: number): Promise<any[]> {
+    try {
+      const whereClause: any = {};
+
+      if (eventType !== 'all') {
+        whereClause.status = eventType;
+      }
+
+      if (duration > 0) {
+        const minTime = new Date(Date.now() - duration * 60 * 1000);
+        whereClause.createdAt = {
+          [Op.gte]: minTime,
+        };
+      }
+
+      const events = await this.sosEventModel.findAll({
+        where: whereClause,
+        attributes: ['id', 'location', 'status', 'threat', 'createdAt'],
+        order: [['createdAt', 'DESC']],
+        limit: 1000, // Limit the number of events to prevent overloading
+      });
+
+      return events.map((event) => {
+        const plainEvent = event.get({ plain: true });
+        if (plainEvent.location) {
+          plainEvent.location = {
+            type: 'Point',
+            coordinates: plainEvent.location.coordinates,
+          };
+        }
+        return plainEvent;
+      });
+    } catch (error) {
+      console.error('Error fetching SOS events:', error);
+      throw new HttpException(
+        'Failed to fetch SOS events',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

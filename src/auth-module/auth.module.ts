@@ -9,10 +9,7 @@ import { User } from 'src/models/User';
 import { EmergencyContact } from 'src/models/EmergencyContact';
 import { UserLocation } from 'src/models/UserLocation';
 import { SosEvent } from 'src/models/SosEvent';
-import { SosService } from './sos/sos.service';
 import { Notification } from 'src/models/Notification';
-import { FirebaseService } from 'src/firebase/firebase.service';
-import { SosRoomService } from 'src/streaming/sos-room.service';
 import { CommunityApplications } from 'src/models/CommunityApplications';
 import { StreamingModule } from 'src/streaming/streaming.module';
 import { Suggestion } from 'src/models/Suggestion';
@@ -42,20 +39,7 @@ import { Suggestion } from 'src/models/Suggestion';
     forwardRef(() => StreamingModule),
   ],
   controllers: [AuthController],
-  providers: [
-    AuthService,
-    AuthGuard,
-    SosService,
-    FirebaseService,
-    SosRoomService,
-  ],
-  exports: [
-    AuthService,
-    AuthGuard,
-    JwtModule,
-    SosService,
-    SosRoomService,
-    StreamingModule,
-  ],
+  providers: [AuthService, AuthGuard],
+  exports: [AuthService, AuthGuard, JwtModule],
 })
 export class AuthModule {}
