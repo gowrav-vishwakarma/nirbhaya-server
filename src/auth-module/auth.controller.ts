@@ -200,4 +200,14 @@ export class AuthController {
   ) {
     return this.authService.updateSuggestion(user.id, id, suggestionDto);
   }
+
+  // Add this new endpoint
+  @UseGuards(AuthGuard)
+  @Get('sos-events')
+  async getSOSEvents(
+    @Query('eventType') eventType: string,
+    @Query('duration') duration: number,
+  ) {
+    return this.authService.getSOSEvents(eventType, duration);
+  }
 }

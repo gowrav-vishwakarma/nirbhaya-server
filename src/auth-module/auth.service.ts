@@ -879,4 +879,46 @@ export class AuthService {
     await suggestion.update(suggestionDto);
     return suggestion;
   }
+
+  // Add this new method
+  async getSOSEvents(eventType: string, duration: number): Promise<any[]> {
+    try {
+      const whereClause: any = {};
+
+      if (eventType !== 'all') {
+        whereClause.status = eventType;
+      }
+
+      if (duration > 0) {
+        const minTime = new Date(Date.now() - duration * 60 * 1000);
+        whereClause.createdAt = {
+          [Op.gte]: minTime,
+        };
+      }
+
+      const events = await this.sosEventModel.findAll({
+        where: whereClause,
+        attributes: ['id', 'location', 'status', 'threat', 'createdAt'],
+        order: [['createdAt', 'DESC']],
+        limit: 1000, // Limit the number of events to prevent overloading
+      });
+
+      return events.map((event) => {
+        const plainEvent = event.get({ plain: true });
+        if (plainEvent.location) {
+          plainEvent.location = {
+            type: 'Point',
+            coordinates: plainEvent.location.coordinates,
+          };
+        }
+        return plainEvent;
+      });
+    } catch (error) {
+      console.error('Error fetching SOS events:', error);
+      throw new HttpException(
+        'Failed to fetch SOS events',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }
