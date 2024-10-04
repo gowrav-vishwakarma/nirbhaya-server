@@ -23,6 +23,8 @@ import { SosModule } from './sos/sos.module';
 import { NotificationModule } from './notification/notification.module';
 import { CommunityModule } from './community/community.module';
 import { SuggestionModule } from './suggestion/suggestion.module';
+import { IncidentModule } from './incident/incident.module';
+import { Incident } from './models/Incident';
 
 export const sequelizeModelArray = [
   User,
@@ -32,6 +34,7 @@ export const sequelizeModelArray = [
   Notification,
   Responder,
   CommunityApplications,
+  Incident,
 ];
 @Module({
   imports: [
@@ -87,6 +90,7 @@ export const sequelizeModelArray = [
     SuggestionModule,
     StreamingModule,
     LeaderboardModule,
+    IncidentModule,
   ],
   controllers: [AppController, NirbhayaQnatkController],
   providers: [AppService],
