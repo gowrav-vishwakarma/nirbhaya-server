@@ -12,10 +12,6 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import { IncidentService } from './incident.service';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { Express } from 'express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
 import { AuthGuard } from 'src/auth-module/auth.guard';
 
 @Controller('incidents')
@@ -24,30 +20,33 @@ export class IncidentController {
   constructor(private readonly incidentService: IncidentService) {}
 
   @Post('upload')
-  @UseInterceptors(
-    FileInterceptor('video', {
-      storage: diskStorage({
-        destination: './uploads',
-        filename: (req, file, cb) => {
-          const randomName = Array(32)
-            .fill(null)
-            .map(() => Math.round(Math.random() * 16).toString(16))
-            .join('');
-          return cb(null, `${randomName}${extname(file.originalname)}`);
-        },
-      }),
-    }),
-  )
-  async uploadIncident(
-    @UploadedFile() file: Express.Multer.File,
-    @Req() req,
-    @Body() createIncidentDto: any,
+  async uploadIncident(@Req() req, @Body() createIncidentDto: any) {
+    // Ensure latitude and longitude are parsed as numbers
+    const latitude = parseFloat(createIncidentDto.latitude);
+    const longitude = parseFloat(createIncidentDto.longitude);
+
+    if (isNaN(latitude) || isNaN(longitude)) {
+      throw new Error('Invalid latitude or longitude');
+    }
+
+    return this.incidentService.create({
+      ...createIncidentDto,
+      latitude,
+      longitude,
+      userId: req.user.id,
+    });
+  }
+
+  @Get('get-presigned-url')
+  async getPresignedUrl(
+    @Query('fileName') fileName: string,
+    @Query('contentType') contentType: string,
   ) {
-    const videoUrl = `${process.env.BASE_URL}/uploads/${file.filename}`;
-    return this.incidentService.create(
-      { ...createIncidentDto, videoUrl },
-      req.user.id,
+    const presignedUrl = await this.incidentService.getPresignedUrlForUpload(
+      fileName,
+      contentType,
     );
+    return { presignedUrl };
   }
 
   @Get('reels')
