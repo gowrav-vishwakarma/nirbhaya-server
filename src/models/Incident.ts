@@ -8,6 +8,7 @@ import {
   Index,
 } from 'sequelize-typescript';
 import { User } from './User';
+import { DefaultValuePipe } from '@nestjs/common';
 
 @Table
 export class Incident extends Model<Incident> {
@@ -42,11 +43,23 @@ export class Incident extends Model<Incident> {
   })
   location: { type: string; coordinates: number[] };
 
-  @Column(DataType.INTEGER)
+  @Column({
+    type: DataType.INTEGER,
+    defaultValue: 0,
+  })
   likes: number;
 
-  @Column(DataType.INTEGER)
+  @Column({
+    type: DataType.INTEGER,
+    defaultValue: 0,
+  })
   shares: number;
+
+  @Column({
+    type: DataType.INTEGER,
+    defaultValue: 0,
+  })
+  comments: number;
 
   @Index
   @Column(DataType.DATE)

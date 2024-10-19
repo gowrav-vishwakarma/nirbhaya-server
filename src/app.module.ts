@@ -25,6 +25,9 @@ import { CommunityModule } from './community/community.module';
 import { SuggestionModule } from './suggestion/suggestion.module';
 import { IncidentModule } from './incident/incident.module';
 import { Incident } from './models/Incident';
+import { Like } from './models/Likes';
+import { Comment } from './models/Comments';
+import { Share } from './models/Shares';
 
 export const sequelizeModelArray = [
   User,
@@ -35,6 +38,9 @@ export const sequelizeModelArray = [
   Responder,
   CommunityApplications,
   Incident,
+  Like,
+  Comment,
+  Share,
 ];
 @Module({
   imports: [

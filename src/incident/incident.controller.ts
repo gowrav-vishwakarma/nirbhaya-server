@@ -28,6 +28,7 @@ export class IncidentController {
     if (isNaN(latitude) || isNaN(longitude)) {
       throw new Error('Invalid latitude or longitude');
     }
+    console.log('createIncidentDto..', createIncidentDto);
 
     return this.incidentService.create({
       ...createIncidentDto,
@@ -35,6 +36,26 @@ export class IncidentController {
       longitude,
       userId: req.user.id,
     });
+  }
+  @Post('like-incident')
+  async likeIncident(@Body() likeIncidentDto: any) {
+    console.log('likeIncidentDto..', likeIncidentDto);
+    return this.incidentService.likeIncident(likeIncidentDto);
+  }
+  @Post('add-comment')
+  async createIncidentComments(@Body() comment: any) {
+    console.log('comment..', comment);
+    return this.incidentService.createIncidentComments(comment);
+  }
+  @Get('reels-comments')
+  async getIncidentComments(@Query('incidentId') incidentId: any) {
+    console.log('IncidentId..', incidentId);
+    return this.incidentService.getIncidentComments(incidentId);
+  }
+  @Post('log-share')
+  async createlogshare(@Body() share: any) {
+    console.log('comment..', share);
+    return this.incidentService.createlogshare(share);
   }
 
   @Get('get-presigned-url')
