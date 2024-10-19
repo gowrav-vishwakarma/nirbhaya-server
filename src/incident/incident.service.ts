@@ -110,7 +110,7 @@ export class IncidentService {
   async createlogshare(share: any) {
     const createdComment = await this.sharesModel.create(share);
     if (createdComment) {
-      await this.incidentModel.increment('comments', {
+      await this.incidentModel.increment('shares', {
         where: { id: share.incidentId },
       });
     }
