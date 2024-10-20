@@ -98,6 +98,24 @@ export class IncidentService {
     }
   }
 
+  async checkLike(userId: any, incidentId: any): Promise<boolean> {
+    try {
+      console.log('Checking if liked:', userId, incidentId);
+
+      const like = await this.likeModel.findOne({
+        where: {
+          userId: userId, // Use the passed userId
+          incidentId: incidentId, // Use the passed incidentId
+        },
+      });
+
+      return !!like; // Return true if a like exists, otherwise false
+    } catch (error) {
+      console.error('Error in checkLike:', error);
+      throw new Error('Could not check like status.');
+    }
+  }
+
   async createIncidentComments(comment: any) {
     const createdComment = await this.commentsModel.create(comment);
     if (createdComment) {

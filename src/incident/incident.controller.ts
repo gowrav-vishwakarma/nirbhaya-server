@@ -10,6 +10,7 @@ import {
   Query,
   UseInterceptors,
   UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
 import { IncidentService } from './incident.service';
 import { AuthGuard } from 'src/auth-module/auth.guard';
@@ -56,6 +57,20 @@ export class IncidentController {
   async createlogshare(@Body() share: any) {
     console.log('comment..', share);
     return this.incidentService.createlogshare(share);
+  }
+  @Get('check-like')
+  async checkLike(
+    @Query('userId') userId: string,
+    @Query('incidentId') incidentId: string,
+  ) {
+    console.log('Received check-like request with:', { userId, incidentId });
+
+    if (!userId || !incidentId) {
+      console.error('Missing userId or incidentId in query parameters');
+      return;
+    }
+
+    return this.incidentService.checkLike(userId, incidentId);
   }
 
   @Get('get-presigned-url')
