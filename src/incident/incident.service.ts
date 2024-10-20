@@ -111,7 +111,7 @@ export class IncidentService {
 
       return !!like; // Return true if a like exists, otherwise false
     } catch (error) {
-      console.error('Error in checkLike:', error);
+      console.error('Error in checkLike,:', error);
       throw new Error('Could not check like status.');
     }
   }
