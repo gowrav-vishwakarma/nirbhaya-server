@@ -1,3 +1,6 @@
 [submodule "src/qnatk"]
 	path = src/qnatk
 	url = https://github.com/gowrav-vishwakarma/qnatk-n
+[submodule "src/qnatk1"]
+	path = src/qnatk1
+	url = https://github.com/gowrav-vishwakarma/qnatk-n
