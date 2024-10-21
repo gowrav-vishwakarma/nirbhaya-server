@@ -49,9 +49,14 @@ export class IncidentController {
     return this.incidentService.createIncidentComments(comment);
   }
   @Get('reels-comments')
-  async getIncidentComments(@Query('incidentId') incidentId: any) {
-    console.log('IncidentId..', incidentId);
-    return this.incidentService.getIncidentComments(incidentId);
+  async getReelComments(
+    @Query('incidentId') incidentId: string,
+    @Query('limit') limit: number,
+  ) {
+    return await this.incidentService.getIncidentComments(
+      Number(incidentId),
+      Number(limit),
+    );
   }
   @Post('log-share')
   async createlogshare(@Body() share: any) {

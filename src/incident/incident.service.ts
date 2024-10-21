@@ -135,25 +135,24 @@ export class IncidentService {
     return createdComment;
   }
 
-  async getIncidentComments(id: number) {
-    console.log('Incident ID:', id);
-
-    // Fetch comments related to the incident
+  async getIncidentComments(id: number, limit: number) {
+    console.log('Incident ID:', id, limit);
     const comments = await this.commentsModel.findAll({
       where: {
-        incidentId: Number(id), // Match the incident ID
+        incidentId: Number(id),
       },
       include: [
         {
-          model: User, // Replace User with your actual User model name
-          attributes: ['id', 'name', 'email'], // Specify which user fields to include
+          model: User,
+          attributes: ['id', 'name', 'email'],
         },
       ],
+      order: [['createdAt', 'DESC']],
+      limit: limit,
       raw: true,
       nest: true,
     });
-    console.log('comments.......', comments);
-
+    console.log('Latest comments.......', comments);
     return comments; // Return the fetched comments
   }
 
