@@ -147,7 +147,7 @@ export class IncidentService {
           attributes: ['id', 'name', 'email'],
         },
       ],
-      order: [['createdAt', 'DESC']],
+      order: [['createdAt', 'ASC']],
       limit: limit,
       raw: true,
       nest: true,
