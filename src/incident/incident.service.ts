@@ -2,6 +2,9 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Incident } from '../models/Incident';
 import { User } from '../models/User';
+import { Like } from '../models/Likes';
+import { Comment } from '../models/Comments';
+import { Share } from '../models/Shares';
 import { FindOptions } from 'sequelize';
 import { ConfigService } from '@nestjs/config';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
@@ -14,6 +17,12 @@ export class IncidentService {
   constructor(
     @InjectModel(Incident)
     private incidentModel: typeof Incident,
+    @InjectModel(Like)
+    private likeModel: typeof Like,
+    @InjectModel(Comment)
+    private commentsModel: typeof Comment,
+    @InjectModel(Share)
+    private sharesModel: typeof Share,
     private configService: ConfigService,
   ) {
     this.s3 = new S3Client({
@@ -45,6 +54,107 @@ export class IncidentService {
 
     const incident = new Incident(incidentData);
     return incident.save();
+  }
+
+  async likeIncident(likeIncidentDto: any) {
+    const { userId, incidentId, isLiked } = likeIncidentDto; // Destructure the input DTO
+    try {
+      // Using findOrCreate to ensure a user can only like an incident once
+      const [like, created] = await this.likeModel.findOrCreate({
+        where: {
+          userId,
+          incidentId,
+        },
+        defaults: {
+          userId,
+          incidentId,
+        },
+      });
+
+      if (created) {
+        console.log('New like created:', like);
+        await this.incidentModel.increment('likes', {
+          where: { id: incidentId },
+        });
+      } else {
+        console.log('Like already exists. Removing the like:', like);
+        if (!isLiked) {
+          await this.likeModel.destroy({
+            where: {
+              userId,
+              incidentId,
+            },
+          });
+          await this.incidentModel.decrement('likes', {
+            where: { id: incidentId },
+          });
+        }
+      }
+
+      return like;
+    } catch (error) {
+      console.error('Error in likeIncident:', error); // Log the entire error
+      throw new Error('Could not process like incident.');
+    }
+  }
+
+  async checkLike(userId: any, incidentId: any): Promise<boolean> {
+    try {
+      console.log('Checking if liked:', userId, incidentId);
+
+      const like = await this.likeModel.findOne({
+        where: {
+          userId: userId, // Use the passed userId
+          incidentId: incidentId, // Use the passed incidentId
+        },
+      });
+
+      return !!like; // Return true if a like exists, otherwise false
+    } catch (error) {
+      console.error('Error in checkLike,:', error);
+      throw new Error('Could not check like status.');
+    }
+  }
+
+  async createIncidentComments(comment: any) {
+    const createdComment = await this.commentsModel.create(comment);
+    if (createdComment) {
+      await this.incidentModel.increment('comments', {
+        where: { id: comment.incidentId },
+      });
+    }
+    return createdComment;
+  }
+  async createlogshare(share: any) {
+    const createdComment = await this.sharesModel.create(share);
+    if (createdComment) {
+      await this.incidentModel.increment('shares', {
+        where: { id: share.incidentId },
+      });
+    }
+    return createdComment;
+  }
+
+  async getIncidentComments(id: number) {
+    console.log('Incident ID:', id);
+
+    // Fetch comments related to the incident
+    const comments = await this.commentsModel.findAll({
+      where: {
+        incidentId: Number(id), // Match the incident ID
+      },
+      include: [
+        {
+          model: User, // Replace User with your actual User model name
+          attributes: ['id', 'name', 'email'], // Specify which user fields to include
+        },
+      ],
+      raw: true,
+      nest: true,
+    });
+    console.log('comments.......', comments);
+
+    return comments; // Return the fetched comments
   }
 
   async getPresignedUrlForUpload(

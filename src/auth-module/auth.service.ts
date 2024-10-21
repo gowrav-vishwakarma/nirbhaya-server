@@ -52,6 +52,7 @@ export class AuthService {
     userLocations: any[],
   ): any {
     return {
+      id: user.id,
       phoneNumber: user.phoneNumber,
       userType: user.userType,
       name: user.name,

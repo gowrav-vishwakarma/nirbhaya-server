@@ -10,6 +10,7 @@ import {
   Query,
   UseInterceptors,
   UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
 import { IncidentService } from './incident.service';
 import { AuthGuard } from 'src/auth-module/auth.guard';
@@ -28,6 +29,7 @@ export class IncidentController {
     if (isNaN(latitude) || isNaN(longitude)) {
       throw new Error('Invalid latitude or longitude');
     }
+    console.log('createIncidentDto..', createIncidentDto);
 
     return this.incidentService.create({
       ...createIncidentDto,
@@ -35,6 +37,40 @@ export class IncidentController {
       longitude,
       userId: req.user.id,
     });
+  }
+  @Post('like-incident')
+  async likeIncident(@Body() likeIncidentDto: any) {
+    console.log('likeIncidentDto..', likeIncidentDto);
+    return this.incidentService.likeIncident(likeIncidentDto);
+  }
+  @Post('add-comment')
+  async createIncidentComments(@Body() comment: any) {
+    console.log('comment..', comment);
+    return this.incidentService.createIncidentComments(comment);
+  }
+  @Get('reels-comments')
+  async getIncidentComments(@Query('incidentId') incidentId: any) {
+    console.log('IncidentId..', incidentId);
+    return this.incidentService.getIncidentComments(incidentId);
+  }
+  @Post('log-share')
+  async createlogshare(@Body() share: any) {
+    console.log('comment..', share);
+    return this.incidentService.createlogshare(share);
+  }
+  @Get('check-like')
+  async checkLike(
+    @Query('userId') userId: string,
+    @Query('incidentId') incidentId: string,
+  ) {
+    console.log('Received check-like request with:', { userId, incidentId });
+
+    if (!userId || !incidentId) {
+      console.error('Missing userId or incidentId in query parameters');
+      return;
+    }
+
+    return this.incidentService.checkLike(userId, incidentId);
   }
 
   @Get('get-presigned-url')

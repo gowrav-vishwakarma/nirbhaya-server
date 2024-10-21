@@ -25,7 +25,7 @@ export class User extends Model<User> {
   })
   id: number;
 
-  @Index // Add index to phoneNumber
+  @Index // Consider if this index is necessary
   @Column({
     type: DataType.STRING(15),
     unique: true,
@@ -48,14 +48,14 @@ export class User extends Model<User> {
   @Column(DataType.STRING(6))
   otp: string;
 
-  @Index
+  @Index // Consider if this index is necessary
   @Column(DataType.STRING(255))
   deviceId: string;
 
   @Column(DataType.TEXT)
   token: string;
 
-  @Index
+  @Index // Consider if this index is necessary
   @Column(DataType.STRING(100))
   profession: string;
 
@@ -80,14 +80,14 @@ export class User extends Model<User> {
   @Column(DataType.STRING(100))
   city: string;
 
-  @Index
+  @Index // Consider if this index is necessary
   @Column({
     type: DataType.BOOLEAN,
     defaultValue: true,
   })
   availableForCommunity: boolean; // Changed from liveSosEventChecking
 
-  @Index
+  @Index // Consider if this index is necessary
   @Column({
     type: DataType.BOOLEAN,
     defaultValue: false,
@@ -130,7 +130,7 @@ export class User extends Model<User> {
   })
   fcmToken: string;
 
-  @Index
+  @Index // Consider if this index is necessary
   @Unique
   @Column({
     type: DataType.STRING,
