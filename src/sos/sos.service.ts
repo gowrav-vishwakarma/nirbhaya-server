@@ -14,6 +14,7 @@ import { UserJWT } from 'src/dto/user-jwt.dto';
 import { StreamingGateway } from 'src/streaming/streaming.gateway';
 import { Op } from 'sequelize';
 import * as moment from 'moment';
+import { Feedback } from 'src/models/Feedback';
 
 @Injectable()
 export class SosService {
@@ -26,6 +27,8 @@ export class SosService {
     private readonly emergencyContactModel: typeof EmergencyContact,
     @InjectModel(Notification)
     private readonly notificationModel: typeof Notification,
+    @InjectModel(Feedback)
+    private readonly feedbackModel: typeof Feedback,
     private sequelize: Sequelize,
     private firebaseService: FirebaseService,
     private streamingGateway: StreamingGateway,
@@ -463,6 +466,73 @@ export class SosService {
         return null;
       default:
         return null;
+    }
+  }
+
+  async getNotificationsByUserId(data: any): Promise<any> {
+    const sosAccepted = await this.sosEventModel.findAll({
+      attributes: ['id'],
+      include: [
+        {
+          model: this.notificationModel,
+          as: 'notifications',
+          required: true,
+          where: {
+            status: 'accepted',
+            feedbackAdded: false,
+          },
+          include: [
+            {
+              model: this.userModel,
+              as: 'recipient',
+              attributes: ['id', 'referralId'],
+            },
+          ],
+        },
+      ],
+      where: {
+        userId: data.userId,
+        ...(data.eventId ? { id: data.eventId } : {}),
+      },
+    });
+    return sosAccepted;
+  }
+
+  async createAndUpdateFeedback(feedbackData: any) {
+    try {
+      const { feedbackGiverId, feedbackReceiverId, eventId } = feedbackData;
+      const existingFeedback = await this.feedbackModel.findOne({
+        where: {
+          feedbackGiverId: feedbackGiverId, // This is undefined
+          feedbackReceiverId: feedbackReceiverId,
+          eventId: eventId,
+        },
+      });
+
+      if (existingFeedback) {
+        await existingFeedback.update(feedbackData);
+        return existingFeedback; // Return the updated feedback
+      } else {
+        const feedback = await this.feedbackModel.create({
+          ...feedbackData,
+        });
+
+        await this.notificationModel.update(
+          {
+            feedbackAdded: true,
+          },
+          {
+            where: {
+              recipientId: feedbackReceiverId,
+              eventId: eventId,
+            },
+          },
+        );
+        return feedback;
+      }
+    } catch (error) {
+      console.error('Error creating or updating feedback:', error);
+      // throw new HttpException('Failed to create or update feedback');
     }
   }
 }

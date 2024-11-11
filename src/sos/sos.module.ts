@@ -9,6 +9,8 @@ import { EmergencyContact } from 'src/models/EmergencyContact';
 import { Notification } from 'src/models/Notification';
 import { FirebaseService } from './firebase.service';
 import { StreamingModule } from 'src/streaming/streaming.module';
+import { Responder } from '../models/Responder';
+import { Feedback } from '../models/Feedback';
 
 @Module({
   imports: [
@@ -17,6 +19,8 @@ import { StreamingModule } from 'src/streaming/streaming.module';
       User,
       EmergencyContact,
       Notification,
+      Responder,
+      Feedback,
     ]),
     forwardRef(() => AuthModule),
     forwardRef(() => StreamingModule),
