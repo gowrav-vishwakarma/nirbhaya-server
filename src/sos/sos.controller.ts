@@ -1,4 +1,12 @@
-import { Controller, Post, Body, UseGuards, Get, Query } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Get,
+  Query,
+  Param,
+} from '@nestjs/common';
 import { SosService } from './sos.service';
 import { AuthGuard } from '../auth-module/auth.guard';
 import { GetUser } from '../auth-module/getuser.decorator';
@@ -49,5 +57,24 @@ export class SosController {
       startDate,
       endDate,
     );
+  }
+
+  // @UseGuards(AuthGuard)
+  @Get('sos-accepted-users')
+  @UseGuards(AuthGuard)
+  async getSosAcceptedUsers(
+    @Query('userId') userId: number,
+    @Query('eventId') eventId: number,
+  ) {
+    console.log('userId...........', userId);
+    const data = { userId, eventId };
+    return this.sosService.getNotificationsByUserId(data);
+  }
+
+  @Post('feedback')
+  @UseGuards(AuthGuard)
+  async createAndUpdateFeedback(@Body('feedBackData') feedbackData: any) {
+    console.log('feedbackData..........', feedbackData);
+    return this.sosService.createAndUpdateFeedback(feedbackData);
   }
 }

@@ -49,6 +49,12 @@ export class Notification extends Model<Notification> {
   })
   status: 'sent' | 'received' | 'accepted' | 'ignored' | 'discarded';
 
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+  })
+  feedbackAdded: boolean;
+
   @Column(DataType.STRING)
   userLocationName: string;
 

@@ -46,6 +46,8 @@ export class FileService {
     filename: string,
     file: Express.Multer.File,
   ) {
+    console.log('file............');
+
     if (this.configService.get('USE_LOCAL_FILE_SYSTEM') === 'true') {
       return this.uploadFileLocal(uploadPath, filename, file);
     } else {
@@ -59,6 +61,8 @@ export class FileService {
     file: Express.Multer.File,
   ): Promise<string> {
     const publicUploadPath = uploadPath;
+    console.log('eeeeeeeeeeeeeeeeeeeeee', file);
+
     const fileExtension = path.extname(file.originalname);
 
     // Construct the full file path
