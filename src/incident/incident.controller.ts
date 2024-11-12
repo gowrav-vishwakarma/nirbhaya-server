@@ -11,9 +11,12 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  Put,
+  UploadedFiles,
 } from '@nestjs/common';
 import { IncidentService } from './incident.service';
 import { AuthGuard } from 'src/auth-module/auth.guard';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('incidents')
 @UseGuards(AuthGuard)
@@ -99,13 +102,46 @@ export class IncidentController {
     return this.incidentService.findAll({ limit: Number(pageSize), offset });
   }
 
-  @Get(':id')
+  @Get('reels/:id')
   async findOne(@Param('id') id: string) {
     return this.incidentService.findOne(+id);
   }
 
-  @Delete(':id')
+  @Delete('reels/:id')
   async remove(@Param('id') id: string) {
     return this.incidentService.remove(+id);
+  }
+
+  @Get('news')
+  async getAllNews(
+    @Query('page') page: number = 1,
+    @Query('pageSize') pageSize: number = 10,
+  ) {
+    console.log('limit..........', page, pageSize);
+
+    const offset = (Number(page) - 1) * Number(pageSize);
+    return this.incidentService.findAllNews({
+      limit: Number(pageSize),
+      offset,
+    });
+  }
+
+  @Post('create-news')
+  async createNews(@Body() createCommunityFeedDto: any) {
+    return this.incidentService.createNews(createCommunityFeedDto);
+  }
+  @Post('image-upload')
+  @UseInterceptors(AnyFilesInterceptor())
+  async imageUpload(@UploadedFiles() files: Array<Express.Multer.File>) {
+    console.log('imageBlob..........', files);
+    return this.incidentService.imageUpload(files);
+  }
+
+  @Put('update-news/:id')
+  async updateNews(
+    @Param('id') id: string,
+    @Body() updateCommunityFeedDto: any,
+  ) {
+    return this.incidentService.updateNews(+id, updateCommunityFeedDto);
   }
 }

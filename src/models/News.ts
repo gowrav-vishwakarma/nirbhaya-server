@@ -8,11 +8,8 @@ import {
 } from 'sequelize-typescript';
 import { User } from './User';
 
-@Table({
-  tableName: 'community_feeds',
-  timestamps: true,
-})
-export class CommunityFeed extends Model {
+@Table
+export class News extends Model {
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,
@@ -40,18 +37,29 @@ export class CommunityFeed extends Model {
   content: string;
 
   @Column({
-    type: DataType.ARRAY(DataType.STRING),
-    allowNull: true,
+    type: DataType.TEXT,
+    get() {
+      const rawValue = this.getDataValue('mediaUrls');
+      return rawValue ? JSON.parse(rawValue) : [];
+    },
+    set(value: string[]) {
+      this.setDataValue('mediaUrls', JSON.stringify(value));
+    },
   })
   mediaUrls: string[];
 
   @Column({
-    type: DataType.ARRAY(DataType.STRING),
-    allowNull: true,
+    type: DataType.TEXT,
+    get() {
+      const rawValue = this.getDataValue('locations');
+      return rawValue ? JSON.parse(rawValue) : [];
+    },
+    set(value: string[]) {
+      this.setDataValue('locations', JSON.stringify(value));
+    },
   })
   locations: string[];
 
-  @Index
   @Column({
     type: DataType.GEOMETRY('POINT', 4326),
     allowNull: false,
@@ -98,8 +106,14 @@ export class CommunityFeed extends Model {
   category: string;
 
   @Column({
-    type: DataType.ARRAY(DataType.STRING),
-    allowNull: true,
+    type: DataType.TEXT,
+    get() {
+      const rawValue = this.getDataValue('tags');
+      return rawValue ? JSON.parse(rawValue) : [];
+    },
+    set(value: string[]) {
+      this.setDataValue('tags', JSON.stringify(value));
+    },
   })
   tags: string[];
 
@@ -139,7 +153,4 @@ export class CommunityFeed extends Model {
 
   @BelongsTo(() => User)
   user: User;
-}
-function Index(target: CommunityFeed, propertyKey: 'location'): void {
-  throw new Error('Function not implemented.');
 }

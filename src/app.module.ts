@@ -29,6 +29,7 @@ import { Like } from './models/Likes';
 import { Comment } from './models/Comments';
 import { Share } from './models/Shares';
 import { Feedback } from './models/Feedback';
+import { News } from './models/News';
 
 export const sequelizeModelArray = [
   User,
@@ -43,6 +44,7 @@ export const sequelizeModelArray = [
   Comment,
   Share,
   Feedback,
+  News,
 ];
 @Module({
   imports: [

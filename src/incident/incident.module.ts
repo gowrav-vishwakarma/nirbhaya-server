@@ -1,6 +1,7 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { Incident } from '../models/Incident';
+import { News } from '../models/News';
 import { IncidentController } from './incident.controller';
 import { IncidentService } from './incident.service';
 import { AuthModule } from 'src/auth-module/auth.module';
@@ -11,7 +12,7 @@ import { Share } from 'src/models/Shares';
 
 @Module({
   imports: [
-    SequelizeModule.forFeature([Incident, User, Like, Comment, Share]),
+    SequelizeModule.forFeature([Incident, News, User, Like, Comment, Share]),
     forwardRef(() => AuthModule),
   ],
   controllers: [IncidentController],

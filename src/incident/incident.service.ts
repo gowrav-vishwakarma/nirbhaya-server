@@ -9,6 +9,7 @@ import { FindOptions } from 'sequelize';
 import { ConfigService } from '@nestjs/config';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { News } from '../models/News'; // Import the model
 
 @Injectable()
 export class IncidentService {
@@ -21,6 +22,8 @@ export class IncidentService {
     private likeModel: typeof Like,
     @InjectModel(Comment)
     private commentsModel: typeof Comment,
+    @InjectModel(News)
+    private newsModel: typeof News,
     @InjectModel(Share)
     private sharesModel: typeof Share,
     private configService: ConfigService,
@@ -198,5 +201,68 @@ export class IncidentService {
 
   async remove(id: number): Promise<number> {
     return this.incidentModel.destroy({ where: { id } });
+  }
+
+  async createNews(createCommunityFeedDto: any) {
+    return this.newsModel.create(createCommunityFeedDto);
+  }
+
+  async updateNews(id: number, updateCommunityFeedDto) {
+    return this.newsModel.update(updateCommunityFeedDto, {
+      where: { id },
+      returning: true,
+    });
+  }
+
+  async findAllNews({ limit, offset }: { limit: number; offset: number }) {
+    console.log('limit..........', limit, offset);
+
+    return this.newsModel.findAll({
+      limit,
+      offset,
+      order: [['createdAt', 'DESC']], // Order by creation date, descending
+    });
+  }
+
+  async imageUpload(imageData: any): Promise<string[]> {
+    console.log('imageData..........', imageData);
+
+    // Ensure imageData is always an array
+    const images = Array.isArray(imageData) ? imageData : [imageData];
+    console.log('images..........', images);
+
+    const uploadPromises = images.map(async (image) => {
+      console.log('image...........', image);
+
+      // Generate a unique filename using timestamp
+      const timestamp = new Date().getTime();
+      const fileName = `${timestamp}-${image.originalname}`;
+
+      // Construct the key with proper path
+      const key = `incidents/${new Date().toISOString().split('T')[0]}/${fileName}`;
+
+      const command = new PutObjectCommand({
+        Bucket: this.configService.get('S3_BUCKET'),
+        Key: key,
+        Body: image.data,
+        ContentType: image.contentType,
+        ACL: 'public-read',
+      });
+
+      try {
+        await this.s3.send(command);
+        // Use the full key path in the URL
+        const bucketUrl = `https://${this.configService.get('S3_BUCKET')}.s3.amazonaws.com`;
+        return `${bucketUrl}/${key}`;
+      } catch (error) {
+        console.error('Error uploading image to S3:', error);
+        throw new Error(`Could not upload image: ${error.message}`);
+      }
+    });
+
+    // Add logging to debug the URLs
+    const urls = await Promise.all(uploadPromises);
+    console.log('Generated URLs:', urls);
+    return urls;
   }
 }
