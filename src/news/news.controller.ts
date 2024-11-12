@@ -33,11 +33,17 @@ export class NewsController {
   }
 
   @Post('create-news')
-  async createNews(@Body() createCommunityFeedDto: any) {
-    return this.newsService.createNews(createCommunityFeedDto);
+  @UseInterceptors(AnyFilesInterceptor())
+  async createNews(
+    @Body() createCommunityFeedDto: any,
+    @UploadedFiles() files: Array<Express.Multer.File>,
+  ) {
+    console.log('files.........', files);
+
+    return this.newsService.createNews(createCommunityFeedDto, files);
   }
 
-  @Post('image-upload')
+  @Post('upload-media')
   @UseInterceptors(AnyFilesInterceptor())
   async imageUpload(@UploadedFiles() files: Array<Express.Multer.File>) {
     console.log('Received files:', files);

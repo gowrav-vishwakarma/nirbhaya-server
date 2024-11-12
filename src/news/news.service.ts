@@ -10,8 +10,26 @@ export class NewsService {
     private newsModel: typeof News,
     private fileService: FileService,
   ) {}
-  async createNews(createCommunityFeedDto: any) {
-    return this.newsModel.create(createCommunityFeedDto);
+  async createNews(createCommunityFeedDto: any, files: any) {
+    try {
+      if (typeof createCommunityFeedDto.location === 'string') {
+        createCommunityFeedDto.location = JSON.parse(
+          createCommunityFeedDto.location,
+        );
+      }
+      let imageUrl = [];
+      if (files) {
+        try {
+          imageUrl = await this.imageUpload(files);
+        } catch (error) {
+          console.error('Image upload failed:', error);
+        }
+      }
+      createCommunityFeedDto.mediaUrls = imageUrl;
+      return await this.newsModel.create(createCommunityFeedDto);
+    } catch (error) {
+      throw error;
+    }
   }
 
   async updateNews(id: number, updateCommunityFeedDto) {
@@ -41,7 +59,7 @@ export class NewsService {
         `${imageName}_${uniqueValue}`,
         image, // Assuming `image` has a `file` property for the file data
       );
-      return 'filePath';
+      return filePath;
     });
     const uploadedFilePaths = await Promise.all(uploadPromises);
     return uploadedFilePaths;
