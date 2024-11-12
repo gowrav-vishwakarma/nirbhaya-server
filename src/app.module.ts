@@ -29,6 +29,7 @@ import { Like } from './models/Likes';
 import { Comment } from './models/Comments';
 import { Share } from './models/Shares';
 import { Feedback } from './models/Feedback';
+import { AdminAuthModule } from './admin-auth/admin-auth.module';
 
 export const sequelizeModelArray = [
   User,
@@ -99,6 +100,7 @@ export const sequelizeModelArray = [
     StreamingModule,
     LeaderboardModule,
     IncidentModule,
+    AdminAuthModule,
   ],
   controllers: [AppController, NirbhayaQnatkController],
   providers: [AppService],
