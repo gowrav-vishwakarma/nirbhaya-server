@@ -7,8 +7,10 @@ import { Comment } from '../models/Comments';
 import { Share } from '../models/Shares';
 import { FindOptions } from 'sequelize';
 import { ConfigService } from '@nestjs/config';
+import { FileService } from '../files/file.service';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { News } from '../models/News'; // Import the model
 
 @Injectable()
 export class IncidentService {
@@ -21,9 +23,12 @@ export class IncidentService {
     private likeModel: typeof Like,
     @InjectModel(Comment)
     private commentsModel: typeof Comment,
+    @InjectModel(News)
+    private newsModel: typeof News,
     @InjectModel(Share)
     private sharesModel: typeof Share,
     private configService: ConfigService,
+    private fileService: FileService,
   ) {
     this.s3 = new S3Client({
       endpoint: this.configService.get('S3_ENDPOINT'),
@@ -198,5 +203,46 @@ export class IncidentService {
 
   async remove(id: number): Promise<number> {
     return this.incidentModel.destroy({ where: { id } });
+  }
+
+  async createNews(createCommunityFeedDto: any) {
+    return this.newsModel.create(createCommunityFeedDto);
+  }
+
+  async updateNews(id: number, updateCommunityFeedDto) {
+    return this.newsModel.update(updateCommunityFeedDto, {
+      where: { id },
+      returning: true,
+    });
+  }
+
+  async findAllNews({ limit, offset }: { limit: number; offset: number }) {
+    console.log('limit..........', limit, offset);
+
+    return this.newsModel.findAll({
+      limit,
+      offset,
+      order: [['createdAt', 'DESC']], // Order by creation date, descending
+    });
+  }
+
+  async imageUpload(imageData: any): Promise<string[]> {
+    console.log('imageData..........', imageData);
+    const images = Array.isArray(imageData) ? imageData : [imageData];
+    console.log('images..........', images);
+
+    const uploadPromises = images.map(async (image) => {
+      const uniqueValue = new Date().toISOString().replace(/[:.-]/g, '');
+      const filePath = await this.fileService.uploadFile(
+        `uploads/ProductImage/`,
+        `${image.productName}_${uniqueValue}`, // Assuming `image` has a `productName` property
+        image.file, // Assuming `image` has a `file` property for the file data
+      );
+      return filePath;
+    });
+
+    // Await all upload promises and return the resulting file paths
+    const uploadedFilePaths = await Promise.all(uploadPromises);
+    return uploadedFilePaths;
   }
 }

@@ -28,6 +28,8 @@ import { Incident } from './models/Incident';
 import { Like } from './models/Likes';
 import { Comment } from './models/Comments';
 import { Share } from './models/Shares';
+import { FileModule } from './files/file.module';
+import { NewsModule } from './news/news.module';
 
 export const sequelizeModelArray = [
   User,
@@ -97,6 +99,8 @@ export const sequelizeModelArray = [
     StreamingModule,
     LeaderboardModule,
     IncidentModule,
+    FileModule,
+    NewsModule,
   ],
   controllers: [AppController, NirbhayaQnatkController],
   providers: [AppService],
