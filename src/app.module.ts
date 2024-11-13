@@ -28,7 +28,12 @@ import { Incident } from './models/Incident';
 import { Like } from './models/Likes';
 import { Comment } from './models/Comments';
 import { Share } from './models/Shares';
+import { FileModule } from './files/file.module';
+import { NewsModule } from './news/news.module';
 import { Feedback } from './models/Feedback';
+import { News } from './models/News';
+import { SmsService } from './sms/sms.service';
+import { HttpModule } from '@nestjs/axios';
 
 export const sequelizeModelArray = [
   User,
@@ -43,12 +48,14 @@ export const sequelizeModelArray = [
   Comment,
   Share,
   Feedback,
+  News,
 ];
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true, // Makes the ConfigService available throughout the application
     }),
+    HttpModule,
     SequelizeModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -99,8 +106,10 @@ export const sequelizeModelArray = [
     StreamingModule,
     LeaderboardModule,
     IncidentModule,
+    FileModule,
+    NewsModule,
   ],
   controllers: [AppController, NirbhayaQnatkController],
-  providers: [AppService],
+  providers: [AppService, SmsService, ConfigService],
 })
 export class AppModule {}

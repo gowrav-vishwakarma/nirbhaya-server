@@ -7,6 +7,7 @@ import { Comment } from '../models/Comments';
 import { Share } from '../models/Shares';
 import { FindOptions } from 'sequelize';
 import { ConfigService } from '@nestjs/config';
+import { FileService } from '../files/file.service';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
@@ -24,6 +25,7 @@ export class IncidentService {
     @InjectModel(Share)
     private sharesModel: typeof Share,
     private configService: ConfigService,
+    private fileService: FileService,
   ) {
     this.s3 = new S3Client({
       endpoint: this.configService.get('S3_ENDPOINT'),
@@ -198,5 +200,21 @@ export class IncidentService {
 
   async remove(id: number): Promise<number> {
     return this.incidentModel.destroy({ where: { id } });
+  }
+
+  async imageUpload(imageData: any): Promise<string[]> {
+    const images = Array.isArray(imageData) ? imageData : [imageData];
+    const uploadPromises = images.map(async (image) => {
+      const imageName = image?.originalname;
+      const uniqueValue = new Date().toISOString().replace(/[:.-]/g, '');
+      const filePath = await this.fileService.uploadFile(
+        `uploads/news/`,
+        `${imageName}_${uniqueValue}`,
+        image, // Assuming `image` has a `file` property for the file data
+      );
+      return filePath;
+    });
+    const uploadedFilePaths = await Promise.all(uploadPromises);
+    return uploadedFilePaths;
   }
 }

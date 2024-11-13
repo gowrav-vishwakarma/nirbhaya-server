@@ -3,6 +3,7 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { Incident } from '../models/Incident';
 import { IncidentController } from './incident.controller';
 import { IncidentService } from './incident.service';
+import { FileService } from '../files/file.service';
 import { AuthModule } from 'src/auth-module/auth.module';
 import { User } from 'src/models/User';
 import { Like } from 'src/models/Likes';
@@ -15,6 +16,6 @@ import { Share } from 'src/models/Shares';
     forwardRef(() => AuthModule),
   ],
   controllers: [IncidentController],
-  providers: [IncidentService],
+  providers: [IncidentService, FileService],
 })
 export class IncidentModule {}

@@ -28,7 +28,7 @@ export class User extends Model<User> {
   @Index // Consider if this index is necessary
   @Column({
     type: DataType.STRING(15),
-    unique: true,
+    // unique: true,
     allowNull: false,
   })
   phoneNumber: string;
@@ -131,10 +131,9 @@ export class User extends Model<User> {
   fcmToken: string;
 
   @Index // Consider if this index is necessary
-  @Unique
   @Column({
     type: DataType.STRING,
-    unique: true,
+    // unique: true,
   })
   referralId: string;
 
