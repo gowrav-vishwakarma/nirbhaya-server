@@ -165,6 +165,12 @@ export class News extends Model {
   })
   defaultLanguage: string;
 
+  @Column({
+    type: DataType.STRING(500),
+    allowNull: true,
+  })
+  source: string;
+
   @HasMany(() => NewsTranslation)
   translations: NewsTranslation[];
 

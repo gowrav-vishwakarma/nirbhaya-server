@@ -131,14 +131,18 @@ export class NewsController {
     @Query('page') page: number = 1,
     @Query('pageSize') pageSize: number = 10,
     @Query('language') language?: string,
-    @Query('categories') categories?: string,
+    @Query('categories') categories?: string | string[],
   ) {
     const offset = (Number(page) - 1) * Number(pageSize);
     let categoryArray: string[] | undefined;
 
     if (categories) {
       try {
-        categoryArray = Array.isArray(categories) ? categories : [categories];
+        categoryArray = Array.isArray(categories)
+          ? categories
+          : typeof categories === 'string'
+            ? [categories]
+            : undefined;
       } catch (error) {
         console.error('Error parsing categories:', error);
       }

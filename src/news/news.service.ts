@@ -4,7 +4,7 @@ import { News } from '../models/News';
 import { FileService } from '../files/file.service';
 import { NewsTranslation } from '../models/NewsTranslation';
 import { ConfigService } from '@nestjs/config';
-import { Op } from 'sequelize';
+import { Op, Sequelize } from 'sequelize';
 
 @Injectable()
 export class NewsService {
@@ -234,13 +234,15 @@ export class NewsService {
     categories?: string[];
   }) {
     const whereClause: any = {
-      status: 'active', // Only show active news to users
+      status: 'active',
     };
 
-    if (categories && categories.length > 0) {
-      whereClause.categories = {
-        [Op.overlap]: categories,
-      };
+    if (categories && Array.isArray(categories) && categories.length > 0) {
+      whereClause[Op.or] = categories.map((category) => ({
+        categories: {
+          [Op.like]: `%${category}%`,
+        },
+      }));
     }
 
     const { count, rows } = await this.newsModel.findAndCountAll({
