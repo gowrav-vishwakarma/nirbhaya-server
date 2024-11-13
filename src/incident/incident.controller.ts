@@ -11,9 +11,12 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  Put,
+  UploadedFiles,
 } from '@nestjs/common';
 import { IncidentService } from './incident.service';
 import { AuthGuard } from 'src/auth-module/auth.guard';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('incidents')
 @UseGuards(AuthGuard)
@@ -97,6 +100,17 @@ export class IncidentController {
   ) {
     const offset = (Number(page) - 1) * Number(pageSize);
     return this.incidentService.findAll({ limit: Number(pageSize), offset });
+  }
+
+  @Post('image-upload')
+  @UseInterceptors(AnyFilesInterceptor())
+  async imageUpload(@UploadedFiles() files: Array<Express.Multer.File>) {
+    console.log('Received files:', files);
+    if (!files || files.length === 0) {
+      throw new BadRequestException('No files uploaded');
+    }
+
+    return this.incidentService.imageUpload(files);
   }
 
   @Get(':id')
