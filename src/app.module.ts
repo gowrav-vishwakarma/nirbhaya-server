@@ -32,6 +32,7 @@ import { FileModule } from './files/file.module';
 import { NewsModule } from './news/news.module';
 import { Feedback } from './models/Feedback';
 import { News } from './models/News';
+import { SmsService } from './sms/sms.service';
 
 export const sequelizeModelArray = [
   User,
@@ -107,6 +108,6 @@ export const sequelizeModelArray = [
     NewsModule,
   ],
   controllers: [AppController, NirbhayaQnatkController],
-  providers: [AppService],
+  providers: [AppService, SmsService],
 })
 export class AppModule {}
