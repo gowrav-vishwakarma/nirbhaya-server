@@ -26,13 +26,25 @@ export class NewsController {
   async getAllNews(
     @Query('page') page: number = 1,
     @Query('pageSize') pageSize: number = 10,
+    @Query('language') language?: string,
+    @Query('categories') categories?: string,
   ) {
-    console.log('limit..........', page, pageSize);
-
     const offset = (Number(page) - 1) * Number(pageSize);
+    let categoryArray: string[] | undefined;
+
+    if (categories) {
+      try {
+        categoryArray = Array.isArray(categories) ? categories : [categories];
+      } catch (error) {
+        console.error('Error parsing categories:', error);
+      }
+    }
+
     return this.newsService.findAllNews({
       limit: Number(pageSize),
       offset,
+      language,
+      categories: categoryArray,
     });
   }
 
@@ -112,6 +124,32 @@ export class NewsController {
     @Body() translationDto: any,
   ) {
     return this.newsService.updateTranslation(+id, translationDto);
+  }
+
+  @Get('user-news')
+  async getUserNews(
+    @Query('page') page: number = 1,
+    @Query('pageSize') pageSize: number = 10,
+    @Query('language') language?: string,
+    @Query('categories') categories?: string,
+  ) {
+    const offset = (Number(page) - 1) * Number(pageSize);
+    let categoryArray: string[] | undefined;
+
+    if (categories) {
+      try {
+        categoryArray = Array.isArray(categories) ? categories : [categories];
+      } catch (error) {
+        console.error('Error parsing categories:', error);
+      }
+    }
+
+    return this.newsService.findUserNews({
+      limit: Number(pageSize),
+      offset,
+      language,
+      categories: categoryArray,
+    });
   }
 
   // Define your endpoints here

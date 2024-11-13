@@ -4,6 +4,7 @@ import { News } from '../models/News';
 import { FileService } from '../files/file.service';
 import { NewsTranslation } from '../models/NewsTranslation';
 import { ConfigService } from '@nestjs/config';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class NewsService {
@@ -18,11 +19,6 @@ export class NewsService {
 
   async createNews(createCommunityFeedDto: any, files: any, user: any) {
     try {
-      // if (typeof createCommunityFeedDto.location === 'string') {
-      //   createCommunityFeedDto.location = JSON.parse(
-      //     createCommunityFeedDto.location,
-      //   );
-      // }
       let imageUrl = [];
       if (files) {
         try {
@@ -33,8 +29,37 @@ export class NewsService {
       }
       createCommunityFeedDto.mediaUrls = imageUrl;
       createCommunityFeedDto.userId = user.id;
-      return await this.newsModel.create(createCommunityFeedDto);
+
+      // Use transaction to ensure data consistency
+      const result = await this.newsModel.sequelize?.transaction(async (t) => {
+        // Create the news entry
+        const news = await this.newsModel.create(createCommunityFeedDto, {
+          transaction: t,
+        });
+
+        // Create default translation in the same language
+        await this.newsTranslationModel.create(
+          {
+            newsId: news.id,
+            languageCode: createCommunityFeedDto.defaultLanguage,
+            title: createCommunityFeedDto.title,
+            content: createCommunityFeedDto.content,
+          },
+          {
+            transaction: t,
+          },
+        );
+
+        // Return news with the created translation
+        return this.newsModel.findByPk(news.id, {
+          include: [{ model: NewsTranslation }],
+          transaction: t,
+        });
+      });
+
+      return result;
     } catch (error) {
+      console.error('Create news error:', error);
       throw error;
     }
   }
@@ -51,7 +76,6 @@ export class NewsService {
 
     // Handle file uploads if new files are provided
     if (files && files.length > 0) {
-      // Delete old files from storage
       const oldMediaUrls = news.mediaUrls || [];
       for (const url of oldMediaUrls) {
         try {
@@ -61,24 +85,73 @@ export class NewsService {
         }
       }
 
-      // Upload new files
       const uploadedUrls = await this.imageUpload(files);
-
-      // Update DTO with new media URLs
       updateNewsDto.mediaUrls = uploadedUrls;
     }
 
     // Update the news
     await news.update(updateNewsDto);
-    return news;
+
+    // Update the default language translation if it exists
+    const defaultTranslation = await this.newsTranslationModel.findOne({
+      where: {
+        newsId: id,
+        languageCode: updateNewsDto.defaultLanguage,
+      },
+    });
+
+    if (defaultTranslation) {
+      await defaultTranslation.update({
+        title: updateNewsDto.title,
+        content: updateNewsDto.content,
+      });
+    } else {
+      // Create default translation if it doesn't exist
+      await this.newsTranslationModel.create({
+        newsId: id,
+        languageCode: updateNewsDto.defaultLanguage,
+        title: updateNewsDto.title,
+        content: updateNewsDto.content,
+      });
+    }
+
+    // Return updated news with translations
+    return this.newsModel.findByPk(id, {
+      include: [{ model: NewsTranslation }],
+    });
   }
 
-  async findAllNews({ limit, offset }: { limit: number; offset: number }) {
+  async findAllNews({
+    limit,
+    offset,
+    language,
+    categories,
+  }: {
+    limit: number;
+    offset: number;
+    language?: string;
+    categories?: string[];
+  }) {
+    const whereClause: any = {};
+
+    if (categories && categories.length > 0) {
+      whereClause.categories = {
+        [Op.overlap]: categories,
+      };
+    }
+
     const { count, rows } = await this.newsModel.findAndCountAll({
       limit,
       offset,
+      where: whereClause,
       order: [['createdAt', 'DESC']],
-      include: [{ model: NewsTranslation }],
+      include: [
+        {
+          model: NewsTranslation,
+          where: language ? { languageCode: language } : undefined,
+          required: false,
+        },
+      ],
     });
 
     return {
@@ -148,5 +221,47 @@ export class NewsService {
       where: { id },
     });
   }
+
+  async findUserNews({
+    limit,
+    offset,
+    language,
+    categories,
+  }: {
+    limit: number;
+    offset: number;
+    language?: string;
+    categories?: string[];
+  }) {
+    const whereClause: any = {
+      status: 'active', // Only show active news to users
+    };
+
+    if (categories && categories.length > 0) {
+      whereClause.categories = {
+        [Op.overlap]: categories,
+      };
+    }
+
+    const { count, rows } = await this.newsModel.findAndCountAll({
+      limit,
+      offset,
+      where: whereClause,
+      order: [['createdAt', 'DESC']],
+      include: [
+        {
+          model: NewsTranslation,
+          where: language ? { languageCode: language } : undefined,
+          required: false,
+        },
+      ],
+    });
+
+    return {
+      items: rows,
+      total: count,
+    };
+  }
+
   // Add your business logic here
 }
