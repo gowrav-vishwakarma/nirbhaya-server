@@ -60,43 +60,43 @@ export class News extends Model {
   })
   locations: string[];
 
-  @Column({
-    type: DataType.GEOMETRY('POINT', 4326),
-    allowNull: false,
-    get() {
-      const point = this.getDataValue('location');
-      if (!point) return null;
+  // @Column({
+  //   type: DataType.GEOMETRY('POINT', 4326),
+  //   allowNull: false,
+  //   get() {
+  //     const point = this.getDataValue('location');
+  //     if (!point) return null;
 
-      if (point.x !== undefined && point.y !== undefined) {
-        return {
-          type: 'Point',
-          coordinates: [point.x, point.y],
-        };
-      } else if (
-        Array.isArray(point.coordinates) &&
-        point.coordinates.length === 2
-      ) {
-        return {
-          type: 'Point',
-          coordinates: point.coordinates,
-        };
-      } else {
-        console.error('Invalid point data:', point);
-        return null;
-      }
-    },
-    set(value: { type: string; coordinates: number[] } | null) {
-      if (value && value.type === 'Point' && Array.isArray(value.coordinates)) {
-        this.setDataValue('location', {
-          type: 'Point',
-          coordinates: value.coordinates,
-        });
-      } else {
-        this.setDataValue('location', null);
-      }
-    },
-  })
-  location: { type: string; coordinates: number[] } | null;
+  //     if (point.x !== undefined && point.y !== undefined) {
+  //       return {
+  //         type: 'Point',
+  //         coordinates: [point.x, point.y],
+  //       };
+  //     } else if (
+  //       Array.isArray(point.coordinates) &&
+  //       point.coordinates.length === 2
+  //     ) {
+  //       return {
+  //         type: 'Point',
+  //         coordinates: point.coordinates,
+  //       };
+  //     } else {
+  //       console.error('Invalid point data:', point);
+  //       return null;
+  //     }
+  //   },
+  //   set(value: { type: string; coordinates: number[] } | null) {
+  //     if (value && value.type === 'Point' && Array.isArray(value.coordinates)) {
+  //       this.setDataValue('location', {
+  //         type: 'Point',
+  //         coordinates: value.coordinates,
+  //       });
+  //     } else {
+  //       this.setDataValue('location', null);
+  //     }
+  //   },
+  // })
+  // location: { type: string; coordinates: number[] } | null;
 
   @Column({
     type: DataType.STRING,

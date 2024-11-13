@@ -19,24 +19,33 @@ export class FileService {
   constructor(private configService: ConfigService) {
     this.publicFolder = this.configService.get('S3_PUBLIC_FOLDER') + '/';
 
+    const accessKeyId = this.configService.get('S3_ACCESS_KEY');
+    const secretAccessKey = this.configService.get('S3_SECRET_KEY');
+    const endpoint = this.configService.get('S3_ENDPOINT');
+    const region = this.configService.get('S3_REGION');
+
+    if (!accessKeyId || !secretAccessKey) {
+      throw new Error('S3 credentials are not properly configured');
+    }
+
     // AWS S3
     this.awsS3 = new AWS.S3({
-      endpoint: this.configService.get('S3_ENDPOINT'),
-      region: this.configService.get('S3_REGION'),
+      endpoint,
+      region,
       credentials: {
-        accessKeyId: this.configService.get('S3_ACCESS_KEY'),
-        secretAccessKey: this.configService.get('S3_SECRET_KEY'),
+        accessKeyId,
+        secretAccessKey,
       },
     });
 
-    //DigitaloceanS3
+    // DigitaloceanS3
     this.DigitaloceanS3 = new S3Client({
-      forcePathStyle: true, // Configures to use subdomain/virtual calling format.
-      endpoint: this.configService.get('S3_ENDPOINT'),
-      region: this.configService.get('S3_REGION'),
+      forcePathStyle: true,
+      endpoint,
+      region,
       credentials: {
-        accessKeyId: this.configService.get('S3_ACCESSS_KEY'),
-        secretAccessKey: this.configService.get('S3_SECRET_KEY'),
+        accessKeyId,
+        secretAccessKey,
       },
     });
   }
@@ -60,29 +69,23 @@ export class FileService {
     filename: string,
     file: Express.Multer.File,
   ): Promise<string> {
-    const publicUploadPath = uploadPath;
-    console.log('eeeeeeeeeeeeeeeeeeeeee', file);
-
     const fileExtension = path.extname(file.originalname);
-
-    // Construct the full file path
-    const filePath = path.join(publicUploadPath, `${filename}${fileExtension}`);
+    const filePath = path.join(uploadPath, `${filename}${fileExtension}`);
 
     const command = new PutObjectCommand({
-      Bucket: this.configService.get('BUCKET_SPACE_NAME'),
+      Bucket: this.configService.get('S3_BUCKET'),
       Key: filePath,
       Body: file.buffer,
       ACL: 'public-read',
     });
+
     try {
-      const res = await this.DigitaloceanS3.send(command);
-      console.log('res:', res);
+      await this.DigitaloceanS3.send(command);
+      return filePath;
     } catch (err) {
       console.error('Error uploading file:', err);
+      throw new Error(`Failed to upload file to S3: ${err.message}`);
     }
-    // Construct the URL of the uploaded object
-    const objectUrl = `${filePath}`;
-    return objectUrl;
   }
 
   async uploadFileAwsS3(

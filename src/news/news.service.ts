@@ -7,16 +7,16 @@ import { FileService } from '../files/file.service';
 export class NewsService {
   constructor(
     @InjectModel(News)
-    private newsModel: typeof News,
-    private fileService: FileService,
+    private readonly newsModel: typeof News,
+    private readonly fileService: FileService,
   ) {}
   async createNews(createCommunityFeedDto: any, files: any) {
     try {
-      if (typeof createCommunityFeedDto.location === 'string') {
-        createCommunityFeedDto.location = JSON.parse(
-          createCommunityFeedDto.location,
-        );
-      }
+      // if (typeof createCommunityFeedDto.location === 'string') {
+      //   createCommunityFeedDto.location = JSON.parse(
+      //     createCommunityFeedDto.location,
+      //   );
+      // }
       let imageUrl = [];
       if (files) {
         try {
