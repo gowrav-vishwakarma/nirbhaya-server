@@ -35,7 +35,7 @@ import { AdminAuthModule } from './admin-auth/admin-auth.module';
 import { News } from './models/News';
 import { SmsService } from './sms/sms.service';
 import { HttpModule } from '@nestjs/axios';
-
+import { Admin } from './models/Admin';
 export const sequelizeModelArray = [
   User,
   EmergencyContact,
@@ -50,6 +50,7 @@ export const sequelizeModelArray = [
   Share,
   Feedback,
   News,
+  Admin,
 ];
 @Module({
   imports: [
