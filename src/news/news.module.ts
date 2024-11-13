@@ -5,10 +5,14 @@ import { NewsController } from './news.controller';
 import { News } from '../models/News';
 import { AuthModule } from 'src/auth-module/auth.module';
 import { SequelizeModule } from '@nestjs/sequelize';
-// import { FileModule } from '../files/file.module';
+import { NewsTranslation } from '../models/NewsTranslation';
+import { User } from '../models/User';
 
 @Module({
-  imports: [SequelizeModule.forFeature([News]), forwardRef(() => AuthModule)],
+  imports: [
+    SequelizeModule.forFeature([News, NewsTranslation, User]),
+    forwardRef(() => AuthModule),
+  ],
   controllers: [NewsController],
   providers: [NewsService, FileService],
 })

@@ -5,8 +5,10 @@ import {
   ForeignKey,
   BelongsTo,
   DataType,
+  HasMany,
 } from 'sequelize-typescript';
 import { User } from './User';
+import { NewsTranslation } from './NewsTranslation';
 
 @Table
 export class News extends Model {
@@ -99,11 +101,16 @@ export class News extends Model {
   // location: { type: string; coordinates: number[] } | null;
 
   @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    defaultValue: 'general',
+    type: DataType.TEXT,
+    get() {
+      const rawValue = this.getDataValue('categories');
+      return rawValue ? JSON.parse(rawValue) : [];
+    },
+    set(value: string[]) {
+      this.setDataValue('categories', JSON.stringify(value));
+    },
   })
-  category: string;
+  categories: string[];
 
   @Column({
     type: DataType.TEXT,
@@ -150,6 +157,16 @@ export class News extends Model {
     defaultValue: 'active',
   })
   status: 'active' | 'archived' | 'reported';
+
+  @Column({
+    type: DataType.STRING(5),
+    allowNull: false,
+    defaultValue: 'en',
+  })
+  defaultLanguage: string;
+
+  @HasMany(() => NewsTranslation)
+  translations: NewsTranslation[];
 
   @BelongsTo(() => User)
   user: User;

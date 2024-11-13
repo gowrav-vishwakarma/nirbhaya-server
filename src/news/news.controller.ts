@@ -9,10 +9,14 @@ import {
   Query,
   UploadedFiles,
   UseInterceptors,
+  Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { News } from '../models/News'; // Import the model
 import { NewsService } from './news.service';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { GetUser } from 'src/auth-module/getuser.decorator';
+import { AuthGuard } from 'src/auth-module/auth.guard';
 
 @Controller('news')
 export class NewsController {
@@ -34,13 +38,22 @@ export class NewsController {
 
   @Post('create-news')
   @UseInterceptors(AnyFilesInterceptor())
+  @UseGuards(AuthGuard)
   async createNews(
-    @Body() createCommunityFeedDto: any,
+    @Body() createNewsDto: any,
     @UploadedFiles() files: Array<Express.Multer.File>,
+    @GetUser() user: any,
   ) {
-    console.log('files.........', files);
-
-    return this.newsService.createNews(createCommunityFeedDto, files);
+    try {
+      // Parse categories if it exists and is a string
+      if (createNewsDto.categories) {
+        createNewsDto.categories = JSON.parse(createNewsDto.categories);
+      }
+      return this.newsService.createNews(createNewsDto, files, user);
+    } catch (error) {
+      console.error('Create news error:', error);
+      throw new BadRequestException('Invalid data format');
+    }
   }
 
   @Post('upload-media')
@@ -55,11 +68,46 @@ export class NewsController {
   }
 
   @Put('update-news/:id')
-  async updateNews(
-    @Param('id') id: string,
-    @Body() updateCommunityFeedDto: any,
-  ) {
-    return this.newsService.updateNews(+id, updateCommunityFeedDto);
+  async updateNews(@Param('id') id: string, @Body() updateNewsDto: any) {
+    try {
+      // Parse categories if it exists and is a string
+      if (updateNewsDto.categories) {
+        updateNewsDto.categories = JSON.parse(updateNewsDto.categories);
+      }
+      return this.newsService.updateNews(+id, updateNewsDto);
+    } catch (error) {
+      console.error('Update news error:', error);
+      throw new BadRequestException('Invalid data format');
+    }
   }
+
+  @Post('translations')
+  async createTranslation(@Body() translationDto: any) {
+    return this.newsService.createTranslation(translationDto);
+  }
+
+  @Get('translations/:newsId')
+  async getTranslations(@Param('newsId') newsId: string) {
+    return this.newsService.getTranslations(+newsId);
+  }
+
+  @Delete(':id')
+  async deleteNews(@Param('id') id: string) {
+    return this.newsService.deleteNews(+id);
+  }
+
+  @Delete('translations/:id')
+  async deleteTranslation(@Param('id') id: string) {
+    return this.newsService.deleteTranslation(+id);
+  }
+
+  @Put('translations/:id')
+  async updateTranslation(
+    @Param('id') id: string,
+    @Body() translationDto: any,
+  ) {
+    return this.newsService.updateTranslation(+id, translationDto);
+  }
+
   // Define your endpoints here
 }
