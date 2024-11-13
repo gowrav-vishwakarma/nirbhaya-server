@@ -33,6 +33,7 @@ import { NewsModule } from './news/news.module';
 import { Feedback } from './models/Feedback';
 import { News } from './models/News';
 import { SmsService } from './sms/sms.service';
+import { HttpModule } from '@nestjs/axios';
 
 export const sequelizeModelArray = [
   User,
@@ -54,6 +55,7 @@ export const sequelizeModelArray = [
     ConfigModule.forRoot({
       isGlobal: true, // Makes the ConfigService available throughout the application
     }),
+    HttpModule,
     SequelizeModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -108,6 +110,6 @@ export const sequelizeModelArray = [
     NewsModule,
   ],
   controllers: [AppController, NirbhayaQnatkController],
-  providers: [AppService, SmsService],
+  providers: [AppService, SmsService, ConfigService],
 })
 export class AppModule {}
