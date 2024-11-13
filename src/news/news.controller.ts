@@ -68,13 +68,18 @@ export class NewsController {
   }
 
   @Put('update-news/:id')
-  async updateNews(@Param('id') id: string, @Body() updateNewsDto: any) {
+  @UseInterceptors(AnyFilesInterceptor())
+  async updateNews(
+    @Param('id') id: string,
+    @Body() updateNewsDto: any,
+    @UploadedFiles() files: Array<Express.Multer.File>,
+  ) {
     try {
       // Parse categories if it exists and is a string
       if (updateNewsDto.categories) {
         updateNewsDto.categories = JSON.parse(updateNewsDto.categories);
       }
-      return this.newsService.updateNews(+id, updateNewsDto);
+      return this.newsService.updateNews(+id, updateNewsDto, files);
     } catch (error) {
       console.error('Update news error:', error);
       throw new BadRequestException('Invalid data format');

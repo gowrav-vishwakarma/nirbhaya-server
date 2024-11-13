@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { News } from '../models/News'; // Import the model
+import { News } from '../models/News';
 import { FileService } from '../files/file.service';
 import { NewsTranslation } from '../models/NewsTranslation';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class NewsService {
@@ -12,7 +13,9 @@ export class NewsService {
     private readonly fileService: FileService,
     @InjectModel(NewsTranslation)
     private readonly newsTranslationModel: typeof NewsTranslation,
+    private readonly configService: ConfigService,
   ) {}
+
   async createNews(createCommunityFeedDto: any, files: any, user: any) {
     try {
       // if (typeof createCommunityFeedDto.location === 'string') {
@@ -36,11 +39,38 @@ export class NewsService {
     }
   }
 
-  async updateNews(id: number, updateCommunityFeedDto) {
-    return this.newsModel.update(updateCommunityFeedDto, {
-      where: { id },
-      returning: true,
-    });
+  async updateNews(
+    id: number,
+    updateNewsDto: any,
+    files?: Array<Express.Multer.File>,
+  ) {
+    const news = await this.newsModel.findByPk(id);
+    if (!news) {
+      throw new NotFoundException('News not found');
+    }
+
+    // Handle file uploads if new files are provided
+    if (files && files.length > 0) {
+      // Delete old files from storage
+      const oldMediaUrls = news.mediaUrls || [];
+      for (const url of oldMediaUrls) {
+        try {
+          await this.fileService.deleteFile(url);
+        } catch (error) {
+          console.error('Error deleting old file:', error);
+        }
+      }
+
+      // Upload new files
+      const uploadedUrls = await this.imageUpload(files);
+
+      // Update DTO with new media URLs
+      updateNewsDto.mediaUrls = uploadedUrls;
+    }
+
+    // Update the news
+    await news.update(updateNewsDto);
+    return news;
   }
 
   async findAllNews({ limit, offset }: { limit: number; offset: number }) {
@@ -57,20 +87,18 @@ export class NewsService {
     };
   }
 
-  async imageUpload(imageData: any): Promise<string[]> {
-    const images = Array.isArray(imageData) ? imageData : [imageData];
-    const uploadPromises = images.map(async (image) => {
-      const imageName = image?.originalname;
-      const uniqueValue = new Date().toISOString().replace(/[:.-]/g, '');
+  async imageUpload(files: Array<Express.Multer.File>): Promise<string[]> {
+    const uploadPromises = files.map(async (file) => {
+      const uniqueFileName = `${Date.now()}-${file.originalname}`;
       const filePath = await this.fileService.uploadFile(
-        `uploads/news/`,
-        `${imageName}_${uniqueValue}`,
-        image, // Assuming `image` has a `file` property for the file data
+        'uploads/news/',
+        uniqueFileName,
+        file,
       );
       return filePath;
     });
-    const uploadedFilePaths = await Promise.all(uploadPromises);
-    return uploadedFilePaths;
+
+    return Promise.all(uploadPromises);
   }
 
   async createTranslation(translationDto: any) {
