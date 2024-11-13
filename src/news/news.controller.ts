@@ -17,10 +17,14 @@ import { NewsService } from './news.service';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { GetUser } from 'src/auth-module/getuser.decorator';
 import { AuthGuard } from 'src/auth-module/auth.guard';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('news')
 export class NewsController {
-  constructor(private readonly newsService: NewsService) {}
+  constructor(
+    private readonly newsService: NewsService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @Get('news')
   async getAllNews(
@@ -154,6 +158,15 @@ export class NewsController {
       language,
       categories: categoryArray,
     });
+  }
+
+  @Post('fetch-external')
+  @UseGuards(AuthGuard)
+  async fetchExternalNews(
+    @Body() params: { categories?: string[]; languages?: string[] },
+    @GetUser() user: any,
+  ) {
+    return this.newsService.fetchAndSaveExternalNews(params, user);
   }
 
   // Define your endpoints here
