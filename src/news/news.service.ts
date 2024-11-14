@@ -433,7 +433,7 @@ export class NewsService {
     }
   }
 
-  @Cron('*/5 * * * *') // Runs every 5 minutes
+  @Cron('0 * * * *') // Runs every hour
   async fetchIndianNews() {
     try {
       const TOI_RSS_URL =
