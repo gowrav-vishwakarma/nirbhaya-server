@@ -12,15 +12,18 @@ import {
   Delete,
   UseGuards,
 } from '@nestjs/common';
-import { News } from '../models/News'; // Import the model
 import { NewsService } from './news.service';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { GetUser } from 'src/auth-module/getuser.decorator';
 import { AuthGuard } from 'src/auth-module/auth.guard';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('news')
 export class NewsController {
-  constructor(private readonly newsService: NewsService) {}
+  constructor(
+    private readonly newsService: NewsService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @Get('news')
   async getAllNews(
@@ -91,6 +94,18 @@ export class NewsController {
       if (updateNewsDto.categories) {
         updateNewsDto.categories = JSON.parse(updateNewsDto.categories);
       }
+
+      // Convert isIndianNews string to boolean
+      if (updateNewsDto.isIndianNews !== undefined) {
+        updateNewsDto.isIndianNews = updateNewsDto.isIndianNews === 'true';
+      }
+
+      // Handle imageSource
+      if (updateNewsDto.imageSource) {
+        updateNewsDto.mediaUrls = [updateNewsDto.imageSource];
+        delete updateNewsDto.imageSource; // Remove it from DTO since we've processed it
+      }
+
       return this.newsService.updateNews(+id, updateNewsDto, files);
     } catch (error) {
       console.error('Update news error:', error);
@@ -132,6 +147,7 @@ export class NewsController {
     @Query('pageSize') pageSize: number = 10,
     @Query('language') language?: string,
     @Query('categories') categories?: string | string[],
+    @Query('newsType') newsType?: 'indian' | 'international' | 'all',
   ) {
     const offset = (Number(page) - 1) * Number(pageSize);
     let categoryArray: string[] | undefined;
@@ -153,7 +169,17 @@ export class NewsController {
       offset,
       language,
       categories: categoryArray,
+      newsType,
     });
+  }
+
+  @Post('fetch-external')
+  @UseGuards(AuthGuard)
+  async fetchExternalNews(
+    @Body() params: { categories?: string[]; languages?: string[] },
+    @GetUser() user: any,
+  ) {
+    return this.newsService.fetchAndSaveExternalNews(params, user);
   }
 
   // Define your endpoints here
