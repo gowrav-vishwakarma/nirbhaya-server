@@ -176,4 +176,11 @@ export class News extends Model {
 
   @BelongsTo(() => User)
   user: User;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: true,
+  })
+  isIndianNews: boolean;
 }

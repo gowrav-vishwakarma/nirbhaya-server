@@ -136,6 +136,7 @@ export class NewsController {
     @Query('pageSize') pageSize: number = 10,
     @Query('language') language?: string,
     @Query('categories') categories?: string | string[],
+    @Query('newsType') newsType?: 'indian' | 'international' | 'all',
   ) {
     const offset = (Number(page) - 1) * Number(pageSize);
     let categoryArray: string[] | undefined;
@@ -157,6 +158,7 @@ export class NewsController {
       offset,
       language,
       categories: categoryArray,
+      newsType,
     });
   }
 

@@ -228,22 +228,34 @@ export class NewsService {
     offset,
     language,
     categories,
+    newsType,
   }: {
     limit: number;
     offset: number;
     language?: string;
     categories?: string[];
+    newsType?: 'indian' | 'international' | 'all';
   }) {
     const whereClause: any = {
       status: 'active',
     };
 
+    // Handle news type filter
+    if (newsType === 'indian') {
+      whereClause.isIndianNews = true;
+    } else if (newsType === 'international') {
+      whereClause.isIndianNews = false;
+    }
+
+    // Handle categories filter with OR condition for MySQL
     if (categories && Array.isArray(categories) && categories.length > 0) {
-      whereClause[Op.or] = categories.map((category) => ({
-        categories: {
-          [Op.like]: `%${category}%`,
+      whereClause[Op.and] = [
+        {
+          [Op.or]: categories.map((category) =>
+            Sequelize.literal(`JSON_CONTAINS(categories, '"${category}"')`),
+          ),
         },
-      }));
+      ];
     }
 
     const { count, rows } = await this.newsModel.findAndCountAll({
@@ -334,12 +346,19 @@ export class NewsService {
           self.findIndex((t) => t.title === item.title || t.url === item.url),
       );
 
+      // Sort uniqueNews by published_at date in descending order
+      const sortedNews = uniqueNews.sort((a, b) => {
+        const dateA = new Date(a.published_at || 0).getTime();
+        const dateB = new Date(b.published_at || 0).getTime();
+        return dateB - dateA; // Descending order (newest first)
+      });
+
       const savedNews = [];
       const errors = [];
 
       // Use transaction for bulk operations
       await this.newsModel.sequelize?.transaction(async (t) => {
-        for (const item of uniqueNews) {
+        for (const item of sortedNews) {
           try {
             // Check for duplicate news in database
             const existingNews = await this.newsModel.findOne({
@@ -350,16 +369,10 @@ export class NewsService {
             });
 
             if (!existingNews) {
-              // Determine category based on whether it's Indian news or global news
-              let category = item.category;
-              if (category === 'general') {
-                category = item.isIndianNews ? 'general' : 'world_news';
-              }
-
-              // For non-Indian news, always set category to world_news
-              if (!item.isIndianNews) {
-                category = 'world_news';
-              }
+              // Always use the original category, or 'general' if not specified
+              const category = mediastackCategories.has(item.category)
+                ? item.category
+                : 'general';
 
               const news = await this.newsModel.create(
                 {
@@ -371,6 +384,7 @@ export class NewsService {
                   defaultLanguage: item.language,
                   source: item.url,
                   status: 'active',
+                  isIndianNews: item.isIndianNews,
                   createdAt: item.published_at || new Date(),
                 },
                 { transaction: t },
@@ -400,16 +414,10 @@ export class NewsService {
       return {
         success: true,
         saved: savedNews.length,
-        total: uniqueNews.length,
+        total: sortedNews.length,
         errors: errors.length > 0 ? errors : undefined,
-        indianNews: savedNews.filter(
-          (news) =>
-            news.categories.includes('general') ||
-            !news.categories.includes('world_news'),
-        ).length,
-        globalNews: savedNews.filter((news) =>
-          news.categories.includes('world_news'),
-        ).length,
+        indianNews: savedNews.filter((news) => news.isIndianNews).length,
+        globalNews: savedNews.filter((news) => !news.isIndianNews).length,
       };
     } catch (error) {
       console.error('Error fetching external news:', error);
