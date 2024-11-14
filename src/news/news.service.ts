@@ -80,25 +80,38 @@ export class NewsService {
       throw new NotFoundException('News not found');
     }
 
+    let mediaUrls = news.mediaUrls || [];
+
     // Handle file uploads if new files are provided
     if (files && files.length > 0) {
-      const oldMediaUrls = news.mediaUrls || [];
-      for (const url of oldMediaUrls) {
+      // Delete old files only if new files are being uploaded
+      for (const url of mediaUrls) {
         try {
-          await this.fileService.deleteFile(url);
+          // Only delete if it's a local file (not an external URL)
+          if (!url.startsWith('http')) {
+            await this.fileService.deleteFile(url);
+          }
         } catch (error) {
           console.error('Error deleting old file:', error);
         }
       }
 
       const uploadedUrls = await this.imageUpload(files);
-      updateNewsDto.mediaUrls = uploadedUrls;
+      mediaUrls = uploadedUrls;
     }
 
-    // Update the news
-    await news.update(updateNewsDto);
+    // If mediaUrls is provided in the DTO (from imageSource), use those
+    if (updateNewsDto.mediaUrls) {
+      mediaUrls = updateNewsDto.mediaUrls;
+    }
 
-    // Update the default language translation if it exists
+    // Update the news with all fields including mediaUrls
+    const updatedNews = await news.update({
+      ...updateNewsDto,
+      mediaUrls,
+    });
+
+    // Update the default language translation
     const defaultTranslation = await this.newsTranslationModel.findOne({
       where: {
         newsId: id,
@@ -112,7 +125,6 @@ export class NewsService {
         content: updateNewsDto.content,
       });
     } else {
-      // Create default translation if it doesn't exist
       await this.newsTranslationModel.create({
         newsId: id,
         languageCode: updateNewsDto.defaultLanguage,

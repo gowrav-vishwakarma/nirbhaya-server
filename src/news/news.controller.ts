@@ -12,7 +12,6 @@ import {
   Delete,
   UseGuards,
 } from '@nestjs/common';
-import { News } from '../models/News'; // Import the model
 import { NewsService } from './news.service';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { GetUser } from 'src/auth-module/getuser.decorator';
@@ -95,6 +94,18 @@ export class NewsController {
       if (updateNewsDto.categories) {
         updateNewsDto.categories = JSON.parse(updateNewsDto.categories);
       }
+
+      // Convert isIndianNews string to boolean
+      if (updateNewsDto.isIndianNews !== undefined) {
+        updateNewsDto.isIndianNews = updateNewsDto.isIndianNews === 'true';
+      }
+
+      // Handle imageSource
+      if (updateNewsDto.imageSource) {
+        updateNewsDto.mediaUrls = [updateNewsDto.imageSource];
+        delete updateNewsDto.imageSource; // Remove it from DTO since we've processed it
+      }
+
       return this.newsService.updateNews(+id, updateNewsDto, files);
     } catch (error) {
       console.error('Update news error:', error);
