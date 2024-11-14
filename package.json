@@ -30,6 +30,7 @@
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/platform-socket.io": "^10.4.1",
+    "@nestjs/schedule": "^4.1.1",
     "@nestjs/sequelize": "^10.0.1",
     "@nestjs/swagger": "^7.4.0",
     "@nestjs/websockets": "^10.4.1",
@@ -46,7 +47,8 @@
     "randomstring": "^1.3.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
-    "socket.io": "^4.7.5"
+    "socket.io": "^4.7.5",
+    "xml2js": "^0.6.2"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

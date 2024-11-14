@@ -6,6 +6,10 @@ import { NewsTranslation } from '../models/NewsTranslation';
 import { ConfigService } from '@nestjs/config';
 import { Op, Sequelize } from 'sequelize';
 import axios from 'axios';
+import { Cron } from '@nestjs/schedule';
+import * as xml2js from 'xml2js';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class NewsService {
@@ -16,6 +20,7 @@ export class NewsService {
     @InjectModel(NewsTranslation)
     private readonly newsTranslationModel: typeof NewsTranslation,
     private readonly configService: ConfigService,
+    private readonly httpService: HttpService,
   ) {}
 
   async createNews(createCommunityFeedDto: any, files: any, user: any) {
@@ -320,17 +325,8 @@ export class NewsService {
         return response.data.data || [];
       };
 
-      // Fetch Indian news first
-      const indianNews = await fetchNews('in', params.date);
-
       // Fetch global news (explicitly excluding India) for the same date
       const globalNews = await fetchNews('-in', params.date);
-
-      // Process Indian news
-      const processedIndianNews = indianNews.map((item) => ({
-        ...item,
-        isIndianNews: true,
-      }));
 
       // Process global news
       const processedGlobalNews = globalNews.map((item) => ({
@@ -339,7 +335,7 @@ export class NewsService {
       }));
 
       // Combine and remove duplicates based on title and URL
-      const allNews = [...processedIndianNews, ...processedGlobalNews];
+      const allNews = [...processedGlobalNews];
       const uniqueNews = allNews.filter(
         (item, index, self) =>
           index ===
@@ -422,6 +418,86 @@ export class NewsService {
     } catch (error) {
       console.error('Error fetching external news:', error);
       throw new Error('Failed to fetch external news: ' + error.message);
+    }
+  }
+
+  @Cron('*/5 * * * *') // Runs every 5 minutes
+  async fetchIndianNews() {
+    try {
+      const TOI_RSS_URL =
+        'https://timesofindia.indiatimes.com/rssfeeds/-2128936835.cms';
+      const response = await firstValueFrom(
+        this.httpService.get(TOI_RSS_URL, {
+          responseType: 'text',
+        }),
+      );
+
+      // Parse XML to JSON
+      const parser = new xml2js.Parser({ explicitArray: false });
+      const result = await parser.parseStringPromise(response.data);
+      const newsItems = result.rss.channel.item;
+
+      // Use transaction for bulk operations
+      await this.newsModel.sequelize?.transaction(async (t) => {
+        for (const item of newsItems) {
+          try {
+            // Check for duplicate news
+            const existingNews = await this.newsModel.findOne({
+              where: {
+                [Op.or]: [{ title: item.title }, { source: item.link }],
+              },
+              transaction: t,
+            });
+
+            if (!existingNews) {
+              // Extract image URL from enclosure or description
+              let imageUrl = item.enclosure?.url;
+              if (!imageUrl && item.description) {
+                const imgMatch = item.description.match(/src="([^"]+)"/);
+                imageUrl = imgMatch ? imgMatch[1] : null;
+              }
+
+              // Clean description text (remove HTML tags and links)
+              const cleanDescription = item.description
+                .replace(/<[^>]+>/g, '')
+                .replace(/https?:\/\/[^\s]+/g, '')
+                .trim();
+
+              const news = await this.newsModel.create(
+                {
+                  title: item.title,
+                  content: cleanDescription,
+                  mediaUrls: imageUrl ? [imageUrl] : [],
+                  categories: ['general'], // You can add more specific categories if needed
+                  defaultLanguage: 'en',
+                  source: item.link,
+                  status: 'active',
+                  isIndianNews: true,
+                  createdAt: new Date(item['pubDate']),
+                  userId: 1, // Set appropriate default user ID for system-generated content
+                },
+                { transaction: t },
+              );
+
+              await this.newsTranslationModel.create(
+                {
+                  newsId: news.id,
+                  languageCode: 'en',
+                  title: item.title,
+                  content: cleanDescription,
+                },
+                { transaction: t },
+              );
+            }
+          } catch (error) {
+            console.error('Error processing news item:', error);
+          }
+        }
+      });
+
+      console.log('Indian news fetch completed successfully');
+    } catch (error) {
+      console.error('Error fetching Indian news:', error);
     }
   }
 
