@@ -9,6 +9,7 @@ import { Request } from 'express';
 import { UserJWT } from 'src/dto/user-jwt.dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from 'src/models/User';
+import { ValidationException } from 'src/qnatk/src/Exceptions/ValidationException';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -42,7 +43,9 @@ export class AuthGuard implements CanActivate {
       request['user'] = decoded;
     } catch (error) {
       console.log('error', error);
-      throw new UnauthorizedException(error.message || 'Unauthorized access.');
+      throw new ValidationException({
+        Error: [error.message || 'Something went wrong.'],
+      });
     }
     return true;
   }
