@@ -35,7 +35,7 @@ export class Incident extends Model<Incident> {
   @Column(DataType.STRING)
   videoUrl: string;
 
-  // @Index
+  @Index
   @Column({
     type: DataType.GEOMETRY('POINT', 4326),
     allowNull: false,
@@ -73,4 +73,11 @@ export class Incident extends Model<Incident> {
     defaultValue: 'normal',
   })
   videoSource: 'normal' | 'youtube';
+
+  @Column({
+    type: DataType.ENUM('Active', 'InActive'),
+    allowNull: false,
+    defaultValue: 'Active',
+  })
+  status: 'Active' | 'InActive';
 }
