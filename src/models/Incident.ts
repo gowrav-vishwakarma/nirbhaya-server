@@ -35,10 +35,10 @@ export class Incident extends Model<Incident> {
   @Column(DataType.STRING)
   videoUrl: string;
 
-  @Index
+  // @Index
   @Column({
     type: DataType.GEOMETRY('POINT', 4326),
-    allowNull: false,
+    allowNull: true,
   })
   location: { type: string; coordinates: number[] };
 
