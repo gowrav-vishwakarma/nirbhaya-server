@@ -177,6 +177,9 @@ export class IncidentService {
     console.log(options);
     return this.incidentModel.findAll({
       ...options,
+      where: {
+        status: 'Active',
+      },
       include: [{ model: User, attributes: ['id', 'name'] }],
       order: [['createdAt', 'DESC']],
     });
