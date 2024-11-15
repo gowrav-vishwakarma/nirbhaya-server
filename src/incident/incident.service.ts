@@ -221,10 +221,22 @@ export class IncidentService {
   async createShort(createShortDto: any): Promise<Incident> {
     const shortData = { ...createShortDto };
 
-    // Always set location to null for shorts
-    shortData.location = null;
+    // Check if location data exists in the DTO
+    if (shortData.location && shortData.location.coordinates) {
+      // Keep the location data as is
+      shortData.location = {
+        type: 'Point',
+        coordinates: shortData.location.coordinates,
+      };
+    } else if (shortData.latitude && shortData.longitude) {
+      // If separate latitude and longitude are provided, format them
+      shortData.location = {
+        type: 'Point',
+        coordinates: [shortData.longitude, shortData.latitude],
+      };
+    }
 
-    // Remove latitude and longitude if they exist
+    // Remove latitude and longitude if they exist as separate fields
     delete shortData.latitude;
     delete shortData.longitude;
 
@@ -255,17 +267,27 @@ export class IncidentService {
   ): Promise<[number, Incident[]]> {
     const updateData = { ...updateShortDto };
 
-    // Always set location to null for shorts
-    updateData.location = null;
+    // Check if location data exists in the DTO
+    if (updateData.location && updateData.location.coordinates) {
+      // Keep the location data as is
+      updateData.location = {
+        type: 'Point',
+        coordinates: updateData.location.coordinates,
+      };
+    } else if (updateData.latitude && updateData.longitude) {
+      // If separate latitude and longitude are provided, format them
+      updateData.location = {
+        type: 'Point',
+        coordinates: [updateData.longitude, updateData.latitude],
+      };
+    }
 
     // Remove latitude and longitude from the update data if they exist
     delete updateData.latitude;
     delete updateData.longitude;
 
     return this.incidentModel.update(updateData, {
-      where: {
-        id,
-      },
+      where: { id },
       returning: true,
     });
   }
