@@ -111,5 +111,6 @@ export const sequelizeModelArray = [
   ],
   controllers: [AppController, NirbhayaQnatkController],
   providers: [AppService, SmsService, ConfigService],
+  exports: [SmsService],
 })
 export class AppModule {}
