@@ -247,9 +247,6 @@ export class IncidentService {
   async findAllShorts(options: FindOptions<Incident>): Promise<Incident[]> {
     return this.incidentModel.findAll({
       ...options,
-      where: {
-        status: 'Active',
-      },
       include: [{ model: User, attributes: ['id', 'name'] }],
       order: [['createdAt', 'DESC']],
     });
