@@ -217,4 +217,64 @@ export class IncidentService {
     const uploadedFilePaths = await Promise.all(uploadPromises);
     return uploadedFilePaths;
   }
+
+  async createShort(createShortDto: any): Promise<Incident> {
+    const shortData = { ...createShortDto };
+
+    // Always set location to null for shorts
+    shortData.location = null;
+
+    // Remove latitude and longitude if they exist
+    delete shortData.latitude;
+    delete shortData.longitude;
+
+    const short = await this.incidentModel.create(shortData);
+    return short;
+  }
+
+  async findAllShorts(options: FindOptions<Incident>): Promise<Incident[]> {
+    return this.incidentModel.findAll({
+      ...options,
+      include: [{ model: User, attributes: ['id', 'name'] }],
+      order: [['createdAt', 'DESC']],
+    });
+  }
+
+  async findOneShort(id: number): Promise<Incident> {
+    return this.incidentModel.findOne({
+      where: {
+        id,
+      },
+      include: [{ model: User, attributes: ['id', 'name'] }],
+    });
+  }
+
+  async updateShort(
+    id: number,
+    updateShortDto: any,
+  ): Promise<[number, Incident[]]> {
+    const updateData = { ...updateShortDto };
+
+    // Always set location to null for shorts
+    updateData.location = null;
+
+    // Remove latitude and longitude from the update data if they exist
+    delete updateData.latitude;
+    delete updateData.longitude;
+
+    return this.incidentModel.update(updateData, {
+      where: {
+        id,
+      },
+      returning: true,
+    });
+  }
+
+  async deleteShort(id: number): Promise<number> {
+    return this.incidentModel.destroy({
+      where: {
+        id,
+      },
+    });
+  }
 }

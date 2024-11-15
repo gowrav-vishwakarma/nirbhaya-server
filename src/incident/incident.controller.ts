@@ -9,7 +9,6 @@ import {
   Req,
   Query,
   UseInterceptors,
-  UploadedFile,
   BadRequestException,
   Put,
   UploadedFiles,
@@ -113,13 +112,44 @@ export class IncidentController {
     return this.incidentService.imageUpload(files);
   }
 
-  @Get(':id')
+  @Get('reel:id')
   async findOne(@Param('id') id: string) {
     return this.incidentService.findOne(+id);
   }
 
-  @Delete(':id')
+  @Delete('reel:id')
   async remove(@Param('id') id: string) {
     return this.incidentService.remove(+id);
+  }
+  @Post('shorts')
+  async createShort(@Body() createShortDto: any) {
+    return this.incidentService.createShort(createShortDto);
+  }
+
+  @Get('shorts')
+  async getAllShorts(
+    @Query('page') page: number = 1,
+    @Query('pageSize') pageSize: number = 10,
+  ) {
+    const offset = (Number(page) - 1) * Number(pageSize);
+    return this.incidentService.findAllShorts({
+      limit: Number(pageSize),
+      offset,
+    });
+  }
+
+  @Get('shorts/:id')
+  async getShort(@Param('id') id: string) {
+    return this.incidentService.findOneShort(+id);
+  }
+
+  @Put('shorts/:id')
+  async updateShort(@Param('id') id: string, @Body() updateShortDto: any) {
+    return this.incidentService.updateShort(+id, updateShortDto);
+  }
+
+  @Delete('shorts/:id')
+  async deleteShort(@Param('id') id: string) {
+    return this.incidentService.deleteShort(+id);
   }
 }

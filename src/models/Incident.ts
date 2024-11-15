@@ -8,7 +8,6 @@ import {
   Index,
 } from 'sequelize-typescript';
 import { User } from './User';
-import { DefaultValuePipe } from '@nestjs/common';
 
 @Table
 export class Incident extends Model<Incident> {
@@ -36,10 +35,10 @@ export class Incident extends Model<Incident> {
   @Column(DataType.STRING)
   videoUrl: string;
 
-  @Index
+  // @Index
   @Column({
     type: DataType.GEOMETRY('POINT', 4326),
-    allowNull: false,
+    allowNull: true,
   })
   location: { type: string; coordinates: number[] };
 
@@ -67,4 +66,11 @@ export class Incident extends Model<Incident> {
 
   @Column(DataType.DATE)
   updatedAt: Date;
+
+  @Column({
+    type: DataType.ENUM('normal', 'youtube'),
+    allowNull: false,
+    defaultValue: 'normal',
+  })
+  videoSource: 'normal' | 'youtube';
 }
