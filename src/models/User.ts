@@ -15,8 +15,11 @@ import { UserLocation } from './UserLocation';
 import { SosEvent } from './SosEvent';
 import { CommunityApplications } from './CommunityApplications';
 import { Suggestion } from './Suggestion';
+import { Feedback } from './Feedback';
 
-@Table
+@Table({
+  tableName: 'Users', // explicitly define table name
+})
 export class User extends Model<User> {
   @Column({
     type: DataType.INTEGER,
@@ -118,7 +121,7 @@ export class User extends Model<User> {
   @HasMany(() => UserLocation)
   locations: UserLocation[];
 
-  @HasMany(() => SosEvent)
+  @HasMany(() => SosEvent, { as: 'sosEvents', foreignKey: 'userId' })
   sosEvents: SosEvent[];
 
   @HasOne(() => CommunityApplications)
@@ -152,4 +155,16 @@ export class User extends Model<User> {
 
   @HasMany(() => Suggestion)
   suggestions: Suggestion[];
+
+  @HasMany(() => Feedback, {
+    foreignKey: 'feedbackGiverId',
+    as: 'givenFeedbacks',
+  })
+  givenFeedbacks: Feedback[];
+
+  @HasMany(() => Feedback, {
+    foreignKey: 'feedbackReceiverId',
+    as: 'receivedFeedbacks',
+  })
+  receivedFeedbacks: Feedback[];
 }

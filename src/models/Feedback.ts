@@ -11,7 +11,9 @@ import {
 import { User } from './User'; // Assuming you have a User model
 import { SosEvent } from './SosEvent'; // Assuming you have an Event model
 
-@Table
+@Table({
+  tableName: 'Feedbacks', // explicitly define table name
+})
 export class Feedback extends Model<Feedback> {
   @Column({
     type: DataType.INTEGER,
@@ -83,9 +85,26 @@ export class Feedback extends Model<Feedback> {
   status: 'Pending' | 'Reviewed' | 'Resolved';
 
   // Associations
-  @BelongsTo(() => User)
-  user: User;
+  @BelongsTo(() => User, {
+    foreignKey: 'feedbackGiverId',
+    as: 'giver',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
+  giver: User;
 
-  @BelongsTo(() => SosEvent)
+  @BelongsTo(() => User, {
+    foreignKey: 'feedbackReceiverId',
+    as: 'receiver',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
+  receiver: User;
+
+  @BelongsTo(() => SosEvent, {
+    foreignKey: 'eventId',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
   sosEvent: SosEvent;
 }
