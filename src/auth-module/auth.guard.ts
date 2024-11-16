@@ -4,7 +4,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { UserJWT } from 'src/dto/user-jwt.dto';
 import { InjectModel } from '@nestjs/sequelize';
@@ -25,28 +25,30 @@ export class AuthGuard implements CanActivate {
       console.log('Could not find token');
       throw new UnauthorizedException();
     }
-    try {
-      const decoded: UserJWT = await this.jwtService
-        .verifyAsync(token, {
-          secret: process.env.JWT_SECRET,
-        })
-        .catch(() => {
-          throw new UnauthorizedException('Unauthorized access.');
-        });
-
-      // Check if the user exists in the database
-      const user = await this.userModel.findByPk(decoded.id);
-      if (!user) {
-        throw new UnauthorizedException('User not found in the database.');
-      }
-
-      request['user'] = decoded;
-    } catch (error) {
-      console.log('error', error);
-      throw new ValidationException({
-        Error: [error.message || 'Something went wrong.'],
+    // try {
+    const decoded: UserJWT = await this.jwtService
+      .verifyAsync(token, {
+        secret: process.env.JWT_SECRET,
+      })
+      .catch(() => {
+        throw new UnauthorizedException('Unauthorized access.');
       });
+
+    // Check if the user exists in the database
+    const user = await this.userModel.findByPk(decoded.id);
+    if (!user) {
+      throw new UnauthorizedException('User not found in the database.');
     }
+
+    request['user'] = decoded;
+    // } catch (error) {
+    //   if (error instanceof JsonWebTokenError) {
+    //     throw new UnauthorizedException('Unauthorized access.');
+    //   }
+    //   throw new ValidationException({
+    //     Error: [error.message || 'Something went wrong.'],
+    //   });
+    // }
     return true;
   }
 
