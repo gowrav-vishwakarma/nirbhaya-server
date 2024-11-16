@@ -6,6 +6,7 @@ import {
   HasMany,
   ForeignKey,
   Index,
+  BelongsTo,
 } from 'sequelize-typescript';
 
 import { User } from './User';
@@ -14,10 +15,15 @@ import { Responder } from './Responder';
 
 @Table
 export class SosEvent extends Model<SosEvent> {
-  @Index // Add index to userId
   @ForeignKey(() => User)
-  @Column(DataType.INTEGER)
+  @Column
   userId: number;
+
+  @BelongsTo(() => User, { as: 'user', foreignKey: 'userId' })
+  user: User;
+
+  @HasMany(() => Notification, { as: 'notifications', foreignKey: 'eventId' })
+  notifications: Notification[];
 
   @Index
   @Column({
@@ -75,9 +81,6 @@ export class SosEvent extends Model<SosEvent> {
   @Index
   @Column(DataType.DATE)
   resolvedAt: Date;
-
-  @HasMany(() => Notification)
-  notifications: Notification[];
 
   @HasMany(() => Responder)
   responders: Responder[];
