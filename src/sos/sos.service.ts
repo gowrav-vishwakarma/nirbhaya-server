@@ -609,4 +609,17 @@ export class SosService {
       );
     }
   }
+  async getTrustStats() {
+    try {
+      // Get total number of users
+      const totalVolunteers = await this.userModel.count();
+
+      return {
+        totalVolunteers,
+      };
+    } catch (error) {
+      console.error('Error getting trust stats:', error);
+      throw new error(error);
+    }
+  }
 }

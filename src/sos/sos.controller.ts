@@ -94,4 +94,9 @@ export class SosController {
     console.log('UserId:', userId);
     return this.sosService.FeedBackList({ userId });
   }
+  @Get('trust-stats-count')
+  @UseGuards(AuthGuard)
+  async getTrustStats() {
+    return this.sosService.getTrustStats();
+  }
 }
