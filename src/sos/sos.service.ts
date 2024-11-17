@@ -484,12 +484,12 @@ export class SosService {
   async sosHstory(data: any): Promise<any> {
     const sosAccepted = await this.sosEventModel.findAll({
       attributes: ['id', 'threat', 'status', 'createdAt', 'location'],
-
       where: {
         userId: data.userId,
         // status: 'resolved',
         ...(data.eventId ? { id: data.eventId } : {}),
       },
+      order: [['createdAt', 'DESC']], // Added order to get latest first
     });
     return sosAccepted;
   }
