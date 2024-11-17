@@ -1,4 +1,5 @@
 import {
+  AllowNull,
   Column,
   CreatedAt,
   DataType,
@@ -19,6 +20,16 @@ export class Admin extends Model<Admin> {
     allowNull: false,
   })
   password: string;
+
+  @Column({
+    allowNull: false,
+  })
+  firstName: string;
+
+  @Column({
+    allowNull: false,
+  })
+  lastName: string;
 
   @Column({
     type: DataType.STRING(15),
