@@ -177,6 +177,9 @@ export class IncidentService {
     console.log(options);
     return this.incidentModel.findAll({
       ...options,
+      where: {
+        status: 'Active',
+      },
       include: [{ model: User, attributes: ['id', 'name'] }],
       order: [['createdAt', 'DESC']],
     });
@@ -216,5 +219,87 @@ export class IncidentService {
     });
     const uploadedFilePaths = await Promise.all(uploadPromises);
     return uploadedFilePaths;
+  }
+
+  async createShort(createShortDto: any): Promise<Incident> {
+    const shortData = { ...createShortDto };
+
+    // Check if location data exists in the DTO
+    if (shortData.location && shortData.location.coordinates) {
+      // Keep the location data as is
+      shortData.location = {
+        type: 'Point',
+        coordinates: shortData.location.coordinates,
+      };
+    } else if (shortData.latitude && shortData.longitude) {
+      // If separate latitude and longitude are provided, format them
+      shortData.location = {
+        type: 'Point',
+        coordinates: [shortData.longitude, shortData.latitude],
+      };
+    }
+
+    // Remove latitude and longitude if they exist as separate fields
+    delete shortData.latitude;
+    delete shortData.longitude;
+
+    const short = await this.incidentModel.create(shortData);
+    return short;
+  }
+
+  async findAllShorts(options: FindOptions<Incident>): Promise<Incident[]> {
+    return this.incidentModel.findAll({
+      ...options,
+      include: [{ model: User, attributes: ['id', 'name'] }],
+      order: [['createdAt', 'DESC']],
+    });
+  }
+
+  async findOneShort(id: number): Promise<Incident> {
+    return this.incidentModel.findOne({
+      where: {
+        id,
+      },
+      include: [{ model: User, attributes: ['id', 'name'] }],
+    });
+  }
+
+  async updateShort(
+    id: number,
+    updateShortDto: any,
+  ): Promise<[number, Incident[]]> {
+    const updateData = { ...updateShortDto };
+
+    // Check if location data exists in the DTO
+    if (updateData.location && updateData.location.coordinates) {
+      // Keep the location data as is
+      updateData.location = {
+        type: 'Point',
+        coordinates: updateData.location.coordinates,
+      };
+    } else if (updateData.latitude && updateData.longitude) {
+      // If separate latitude and longitude are provided, format them
+      updateData.location = {
+        type: 'Point',
+        coordinates: [updateData.longitude, updateData.latitude],
+      };
+    }
+
+    // Remove latitude and longitude from the update data if they exist
+    delete updateData.latitude;
+    delete updateData.longitude;
+
+    return this.incidentModel.update(updateData, {
+      where: { id },
+      returning: true,
+    });
+  }
+
+  async deleteShort(id: number): Promise<number> {
+    return this.incidentModel.destroy({
+      where: {
+        id,
+      },
+    });
   }
 }

@@ -93,6 +93,18 @@ export class SosService {
         };
 
         await sosEvent.update(formatedSosData);
+        if (data.status == 'cancelled') {
+          await this.notificationModel.update(
+            {
+              status: 'discarded',
+            },
+            {
+              where: {
+                eventId: data.sosEventId,
+              },
+            },
+          );
+        }
         Object.assign(sosEvent, formatedSosData);
         // Always notify emergency contacts regardless of location
         // Generate a presigned URL and save it in the sosEvent model
@@ -469,9 +481,21 @@ export class SosService {
     }
   }
 
+  async sosHstory(data: any): Promise<any> {
+    const sosAccepted = await this.sosEventModel.findAll({
+      attributes: ['id', 'threat', 'status', 'createdAt', 'location'],
+      where: {
+        userId: data.userId,
+        // status: 'resolved',
+        ...(data.eventId ? { id: data.eventId } : {}),
+      },
+      order: [['createdAt', 'DESC']], // Added order to get latest first
+    });
+    return sosAccepted;
+  }
   async getNotificationsByUserId(data: any): Promise<any> {
     const sosAccepted = await this.sosEventModel.findAll({
-      attributes: ['id'],
+      attributes: ['id', 'threat', 'status', 'createdAt', 'location'],
       include: [
         {
           model: this.notificationModel,
@@ -479,19 +503,31 @@ export class SosService {
           required: true,
           where: {
             status: 'accepted',
-            feedbackAdded: false,
           },
           include: [
             {
               model: this.userModel,
               as: 'recipient',
               attributes: ['id', 'referralId'],
+              include: [
+                {
+                  model: this.feedbackModel,
+                  as: 'receivedFeedbacks',
+                  attributes: [
+                    'rating',
+                    'feedbackText',
+                    'responseTime',
+                    'status',
+                  ],
+                },
+              ],
             },
           ],
         },
       ],
       where: {
         userId: data.userId,
+        status: 'resolved',
         ...(data.eventId ? { id: data.eventId } : {}),
       },
     });
@@ -533,6 +569,57 @@ export class SosService {
     } catch (error) {
       console.error('Error creating or updating feedback:', error);
       // throw new HttpException('Failed to create or update feedback');
+    }
+  }
+
+  async FeedBackList(feedbackData: any) {
+    try {
+      const { userId } = feedbackData;
+      const userFeedBack = await this.feedbackModel.findAll({
+        where: {
+          feedbackGiverId: userId,
+        },
+        include: [
+          {
+            model: User,
+            as: 'feedbackReceiver',
+            attributes: ['id', 'referralId'],
+          },
+          {
+            model: SosEvent,
+            as: 'sosEvent',
+            attributes: ['id', 'threat', 'status', 'createdAt', 'location'],
+            include: [
+              {
+                model: User,
+                as: 'user',
+                attributes: ['id', 'name', 'referralId'],
+              },
+            ],
+          },
+        ],
+        order: [['createdAt', 'DESC']],
+      });
+      return userFeedBack;
+    } catch (error) {
+      console.error('Error fetching feedback list:', error);
+      throw new HttpException(
+        'Failed to fetch feedback list',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+  async getTrustStats() {
+    try {
+      // Get total number of users
+      const totalVolunteers = await this.userModel.count();
+
+      return {
+        totalVolunteers,
+      };
+    } catch (error) {
+      console.error('Error getting trust stats:', error);
+      throw new error(error);
     }
   }
 }

@@ -8,7 +8,6 @@ import {
   Index,
 } from 'sequelize-typescript';
 import { User } from './User';
-import { DefaultValuePipe } from '@nestjs/common';
 
 @Table
 export class Incident extends Model<Incident> {
@@ -67,4 +66,18 @@ export class Incident extends Model<Incident> {
 
   @Column(DataType.DATE)
   updatedAt: Date;
+
+  @Column({
+    type: DataType.ENUM('normal', 'youtube'),
+    allowNull: false,
+    defaultValue: 'normal',
+  })
+  videoSource: 'normal' | 'youtube';
+
+  @Column({
+    type: DataType.ENUM('Active', 'InActive'),
+    allowNull: false,
+    defaultValue: 'Active',
+  })
+  status: 'Active' | 'InActive';
 }

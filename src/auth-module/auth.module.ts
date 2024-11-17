@@ -13,6 +13,7 @@ import { Notification } from 'src/models/Notification';
 import { CommunityApplications } from 'src/models/CommunityApplications';
 import { StreamingModule } from 'src/streaming/streaming.module';
 import { Suggestion } from 'src/models/Suggestion';
+import { AppModule } from 'src/app.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { Suggestion } from 'src/models/Suggestion';
       Suggestion,
     ]),
     forwardRef(() => StreamingModule),
+    forwardRef(() => AppModule),
   ],
   controllers: [AuthController],
   providers: [AuthService, AuthGuard],

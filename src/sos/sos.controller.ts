@@ -70,11 +70,33 @@ export class SosController {
     const data = { userId, eventId };
     return this.sosService.getNotificationsByUserId(data);
   }
+  @Get('sos-history')
+  @UseGuards(AuthGuard)
+  async sosHstory(
+    @Query('userId') userId: number,
+    @Query('eventId') eventId: number,
+  ) {
+    console.log('userId...........', userId);
+    const data = { userId, eventId };
+    return this.sosService.sosHstory(data);
+  }
 
   @Post('feedback')
   @UseGuards(AuthGuard)
   async createAndUpdateFeedback(@Body('feedBackData') feedbackData: any) {
     console.log('feedbackData..........', feedbackData);
     return this.sosService.createAndUpdateFeedback(feedbackData);
+  }
+
+  @Get('feedback-list')
+  @UseGuards(AuthGuard)
+  async FeedBackList(@Query('userId') userId: string) {
+    console.log('UserId:', userId);
+    return this.sosService.FeedBackList({ userId });
+  }
+  @Get('trust-stats-count')
+  @UseGuards(AuthGuard)
+  async getTrustStats() {
+    return this.sosService.getTrustStats();
   }
 }

@@ -10,6 +10,7 @@ import {
 
 import { SosEvent } from './SosEvent';
 import { User } from './User';
+import { Feedback } from './Feedback';
 
 @Table
 export class Notification extends Model<Notification> {
@@ -63,4 +64,11 @@ export class Notification extends Model<Notification> {
 
   @Column(DataType.FLOAT)
   distanceToEvent: number;
+
+  @BelongsTo(() => Feedback, {
+    foreignKey: 'eventId',
+    targetKey: 'eventId',
+    as: 'feedback',
+  })
+  feedback: Feedback;
 }

@@ -19,6 +19,8 @@ import { SuggestionDto } from '../suggestion/suggestion.dto';
 
 import { ValidationException } from '../qnatk/src/Exceptions/ValidationException';
 import { UserJWT } from 'src/dto/user-jwt.dto';
+import { SmsService } from 'src/sms/sms.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -39,6 +41,8 @@ export class AuthService {
     private readonly communityApplicationsModel: typeof CommunityApplications,
     @InjectModel(Suggestion)
     private readonly suggestionModel: typeof Suggestion,
+    private readonly smsService: SmsService,
+    private readonly configService: ConfigService,
   ) {}
 
   async signUp(signUpDto: any): Promise<any> {
@@ -251,13 +255,25 @@ export class AuthService {
       );
     }
 
+    await this.smsService.sendMessage(
+      mobileNumber,
+      `Welcome to SOSBharat! ${newOtp} is your OTP to join our safety-first community. Together we're stronger! By- Xavoc Technocrats Pvt. Ltd.`,
+      '1407173149479902847',
+    );
+
     return { otpSent: true };
   }
 
   generateOtp(characters: number): string {
-    if (process.env.NODE_ENVIRONMENT == 'staging') {
+    const sendSms = this.configService.get<'true' | 'false'>(
+      'SEND_SMS',
+      'false',
+    );
+
+    if (sendSms !== 'true') {
       return '1234';
     }
+
     return Math.floor(
       10 ** (characters - 1) + Math.random() * (9 * 10 ** (characters - 1)),
     ).toString();

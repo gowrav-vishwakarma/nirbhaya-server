@@ -173,14 +173,14 @@ export class NewsController {
     });
   }
 
-  @Post('fetch-external')
-  @UseGuards(AuthGuard)
-  async fetchExternalNews(
-    @Body() params: { categories?: string[]; languages?: string[] },
-    @GetUser() user: any,
-  ) {
-    return this.newsService.fetchAndSaveExternalNews(params, user);
-  }
+  // @Post('fetch-external')
+  // @UseGuards(AuthGuard)
+  // async fetchExternalNews(
+  //   @Body() params: { categories?: string[]; languages?: string[] },
+  //   @GetUser() user: any,
+  // ) {
+  //   return this.newsService.fetchAndSaveExternalNews(params, user);
+  // }
 
   // Define your endpoints here
 }
