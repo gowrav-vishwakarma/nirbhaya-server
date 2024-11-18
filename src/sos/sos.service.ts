@@ -494,6 +494,8 @@ export class SosService {
     return sosAccepted;
   }
   async getNotificationsByUserId(data: any): Promise<any> {
+    console.log('data..........', data);
+
     const sosAccepted = await this.sosEventModel.findAll({
       attributes: ['id', 'threat', 'status', 'createdAt', 'location'],
       include: [
@@ -503,6 +505,7 @@ export class SosService {
           required: true,
           where: {
             status: 'accepted',
+            eventId: data.eventId,
           },
           include: [
             {
@@ -519,6 +522,10 @@ export class SosService {
                     'responseTime',
                     'status',
                   ],
+                  where: {
+                    eventId: data.eventId,
+                  },
+                  required: false,
                 },
               ],
             },
