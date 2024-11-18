@@ -48,6 +48,9 @@ export class UserService {
       // Update only the fields that are provided in the data object
       if (data.name !== undefined) user.name = data.name;
       if (data.city !== undefined) user.city = data.city;
+      if (data.state !== undefined) user.state = data.state;
+      if (data.pincode !== undefined) user.pincode = data.pincode;
+      if (data.dob !== undefined) user.dob = data.dob;
       if (data.availableForCommunity !== undefined)
         user.availableForCommunity = data.availableForCommunity;
       if (data.availableForPaidProfessionalService !== undefined)

@@ -31,9 +31,11 @@ import { Share } from './models/Shares';
 import { FileModule } from './files/file.module';
 import { NewsModule } from './news/news.module';
 import { Feedback } from './models/Feedback';
+import { GovPincodeData } from './models/GovPincodeData';
 import { News } from './models/News';
 import { SmsService } from './sms/sms.service';
 import { HttpModule } from '@nestjs/axios';
+import { SearchModule } from './search/search.module';
 
 export const sequelizeModelArray = [
   User,
@@ -49,6 +51,7 @@ export const sequelizeModelArray = [
   Share,
   Feedback,
   News,
+  GovPincodeData,
 ];
 @Module({
   imports: [
@@ -108,6 +111,7 @@ export const sequelizeModelArray = [
     IncidentModule,
     FileModule,
     NewsModule,
+    SearchModule,
   ],
   controllers: [AppController, NirbhayaQnatkController],
   providers: [AppService, SmsService, ConfigService],
