@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { GovPincodeData } from '../models/GovPincodeData';
-import { Sequelize } from 'sequelize';
+import { Sequelize, Op, WhereOptions } from 'sequelize';
 
 @Injectable()
 export class SearchService {
@@ -10,15 +10,15 @@ export class SearchService {
     private govPincodeDataModel: typeof GovPincodeData,
   ) {}
 
-  async searchCities(query: string, limit: number = 10) {
+  async searchCities(query: string, state: string) {
     try {
       const count = await this.govPincodeDataModel.count();
       console.log('Total records in database:', count);
 
       const cleanQuery = query.toLowerCase().trim();
 
-      const cities = await this.govPincodeDataModel.findAll({
-        where: Sequelize.or(
+      const baseCondition = {
+        [Op.or]: [
           Sequelize.where(
             Sequelize.fn('LOWER', Sequelize.col('officename')),
             'LIKE',
@@ -29,8 +29,17 @@ export class SearchService {
             'LIKE',
             `%${cleanQuery}%`,
           ),
-        ),
-        limit,
+        ],
+      };
+
+      const whereCondition: WhereOptions = {
+        ...baseCondition,
+        ...(state !== undefined && { statename: state }),
+      };
+
+      const cities = await this.govPincodeDataModel.findAll({
+        where: whereCondition,
+        limit: 10,
         attributes: ['id', 'officename', 'pincode', 'statename'],
         raw: true,
       });

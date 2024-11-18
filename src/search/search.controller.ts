@@ -6,12 +6,7 @@ export class SearchController {
   constructor(private readonly searchService: SearchService) {}
 
   @Get('cities')
-  async searchCities(
-    @Query('q') query: string, // Changed from 'query' to 'q'
-    @Query('limit') limit?: number,
-  ) {
-    console.log('q..........', query);
-
-    return this.searchService.searchCities(query, limit);
+  async searchCities(@Query('q') query: string, @Query('state') state: string) {
+    return this.searchService.searchCities(query, state);
   }
 }
