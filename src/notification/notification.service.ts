@@ -22,7 +22,14 @@ export class NotificationService {
         include: [
           {
             model: SosEvent,
-            attributes: ['id', 'location', 'status', 'threat', 'contactsOnly'],
+            attributes: [
+              'id',
+              'location',
+              'status',
+              'threat',
+              'contactsOnly',
+              'createdAt',
+            ],
             where: { status: 'active' },
           },
         ],

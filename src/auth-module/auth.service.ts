@@ -63,6 +63,9 @@ export class AuthService {
       email: user.email,
       isVerified: user.isVerified,
       city: user.city,
+      state: user.state,
+      dob: user.dob,
+      pincode: user.pincode,
       availableForCommunity: user.availableForCommunity,
       availableForPaidProfessionalService:
         user.availableForPaidProfessionalService,
@@ -110,6 +113,10 @@ export class AuthService {
         'broadcastAudioOnSos',
         'deviceId',
         'referralId',
+        'city',
+        'state',
+        'pincode',
+        'dob',
       ],
       include: [
         {

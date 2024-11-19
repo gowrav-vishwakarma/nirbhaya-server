@@ -45,11 +45,26 @@ export class User extends Model<User> {
   @Column(DataType.STRING(100))
   email: string;
 
+  @Column({
+    type: DataType.DATEONLY,
+    allowNull: true,
+  })
+  dob: Date;
+
+  @Column(DataType.STRING(100))
+  city: string;
+
+  @Column(DataType.STRING(100))
+  state: string;
+
   @Column(DataType.DATE)
   lastLogin: Date;
 
   @Column(DataType.STRING(6))
   otp: string;
+
+  @Column(DataType.STRING(6))
+  pincode: string;
 
   @Index // Consider if this index is necessary
   @Column(DataType.STRING(255))
@@ -79,9 +94,6 @@ export class User extends Model<User> {
 
   @Column(DataType.BOOLEAN)
   hasJoinedCommunity: boolean;
-
-  @Column(DataType.STRING(100))
-  city: string;
 
   @Index // Consider if this index is necessary
   @Column({

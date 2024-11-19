@@ -36,6 +36,12 @@ import { News } from './models/News';
 import { SmsService } from './sms/sms.service';
 import { HttpModule } from '@nestjs/axios';
 import { Admin } from './models/Admin';
+import { GovPincodeData } from './models/GovPincodeData';
+import { News } from './models/News';
+import { SmsService } from './sms/sms.service';
+import { HttpModule } from '@nestjs/axios';
+import { SearchModule } from './search/search.module';
+
 export const sequelizeModelArray = [
   User,
   EmergencyContact,
@@ -51,6 +57,7 @@ export const sequelizeModelArray = [
   Feedback,
   News,
   Admin,
+  GovPincodeData,
 ];
 @Module({
   imports: [
@@ -111,6 +118,7 @@ export const sequelizeModelArray = [
     AdminAuthModule,
     FileModule,
     NewsModule,
+    SearchModule,
   ],
   controllers: [AppController, NirbhayaQnatkController],
   providers: [AppService, SmsService, ConfigService],

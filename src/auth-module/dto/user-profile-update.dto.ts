@@ -84,4 +84,16 @@ export class UserProfileUpdateDto {
   @IsOptional()
   @IsString()
   referredBy: string;
+
+  @IsOptional()
+  @IsString()
+  state: string;
+
+  @IsOptional()
+  @IsString()
+  pincode: string;
+
+  @IsOptional()
+  @IsString()
+  dob: Date;
 }
