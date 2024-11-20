@@ -10,11 +10,8 @@ export class SearchService {
     private govPincodeDataModel: typeof GovPincodeData,
   ) {}
 
-  async searchCities(query: string, state: string) {
+  async searchCities(query: string, state?: string) {
     try {
-      const count = await this.govPincodeDataModel.count();
-      console.log('Total records in database:', count);
-
       const cleanQuery = query.toLowerCase().trim();
 
       const baseCondition = {
@@ -29,30 +26,26 @@ export class SearchService {
             'LIKE',
             `%${cleanQuery}%`,
           ),
+          Sequelize.literal(`CAST(pincode AS CHAR) LIKE '%${cleanQuery}%'`),
         ],
       };
 
-      const whereCondition: WhereOptions = {
+      const whereCondition = {
         ...baseCondition,
-        ...(state !== undefined && { statename: state }),
+        ...(state && { statename: state }),
       };
 
       const cities = await this.govPincodeDataModel.findAll({
         where: whereCondition,
-        limit: 10,
+        limit: 100,
         attributes: ['id', 'officename', 'pincode', 'statename'],
-        raw: true,
       });
-
-      console.log('Search query:', cleanQuery);
-      console.log('Number of results:', cities.length);
 
       return cities;
     } catch (err) {
       console.error('Error searching cities:', {
         error: err,
         message: err.message,
-        stack: err.stack,
         query: query,
       });
       throw new Error(`Failed to search cities: ${err.message}`);
