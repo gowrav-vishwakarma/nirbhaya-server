@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Post } from '@nestjs/common';
 import { GlobalService } from './global.service';
 
 @Controller('global')
@@ -8,5 +8,10 @@ export class GlobalController {
   @Get()
   getHello(): string {
     return this.globalService.getHello();
+  }
+
+  @Post()
+  async getDashboardData () {
+    return this.globalService.getDashboardData();
   }
 }

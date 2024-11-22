@@ -6,4 +6,8 @@ export class GlobalService {
   getHello(): string {
     return 'Hello from Global Service!';
   }
+
+  async getDashboardData () {
+    const userCountData = 3
+  }
 }
