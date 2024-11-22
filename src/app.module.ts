@@ -28,6 +28,7 @@ import { Incident } from './models/Incident';
 import { Like } from './models/Likes';
 import { Comment } from './models/Comments';
 import { Share } from './models/Shares';
+import { EventLog } from './models/eventLog';
 import { FileModule } from './files/file.module';
 import { NewsModule } from './news/news.module';
 import { Feedback } from './models/Feedback';
@@ -38,6 +39,7 @@ import { News } from './models/News';
 import { SmsService } from './sms/sms.service';
 import { HttpModule } from '@nestjs/axios';
 import { SearchModule } from './search/search.module';
+import { GlobalModule } from './global/global.module';
 
 export const sequelizeModelArray = [
   User,
@@ -55,6 +57,7 @@ export const sequelizeModelArray = [
   News,
   Admin,
   GovPincodeData,
+  EventLog,
 ];
 @Module({
   imports: [
@@ -116,6 +119,7 @@ export const sequelizeModelArray = [
     FileModule,
     NewsModule,
     SearchModule,
+    GlobalModule,
   ],
   controllers: [AppController, NirbhayaQnatkController],
   providers: [AppService, SmsService, ConfigService],
