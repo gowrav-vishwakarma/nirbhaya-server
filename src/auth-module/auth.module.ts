@@ -14,6 +14,7 @@ import { CommunityApplications } from 'src/models/CommunityApplications';
 import { StreamingModule } from 'src/streaming/streaming.module';
 import { Suggestion } from 'src/models/Suggestion';
 import { AppModule } from 'src/app.module';
+import { GlobalService } from 'src/global/global.service';
 
 @Module({
   imports: [
@@ -41,7 +42,7 @@ import { AppModule } from 'src/app.module';
     forwardRef(() => AppModule),
   ],
   controllers: [AuthController],
-  providers: [AuthService, AuthGuard],
-  exports: [AuthService, AuthGuard, JwtModule],
+  providers: [AuthService, AuthGuard, GlobalService],
+  exports: [AuthService, AuthGuard, JwtModule, GlobalService],
 })
 export class AuthModule {}

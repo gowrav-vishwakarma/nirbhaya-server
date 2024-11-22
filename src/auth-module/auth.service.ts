@@ -2,7 +2,6 @@ import { JwtService } from '@nestjs/jwt';
 import { Transaction } from 'sequelize';
 import { InjectModel } from '@nestjs/sequelize';
 import {
-  BadRequestException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -21,6 +20,7 @@ import { ValidationException } from '../qnatk/src/Exceptions/ValidationException
 import { UserJWT } from 'src/dto/user-jwt.dto';
 import { SmsService } from 'src/sms/sms.service';
 import { ConfigService } from '@nestjs/config';
+import { GlobalService } from 'src/global/global.service';
 
 @Injectable()
 export class AuthService {
@@ -43,6 +43,7 @@ export class AuthService {
     private readonly suggestionModel: typeof Suggestion,
     private readonly smsService: SmsService,
     private readonly configService: ConfigService,
+    private readonly gobalService: GlobalService,
   ) {}
 
   async signUp(signUpDto: any): Promise<any> {
@@ -244,6 +245,7 @@ export class AuthService {
           },
         },
       );
+      this.gobalService.updateEventCount({}, 'login');
     } else {
       existingUser = await this.userModel.create({
         otp: newOtp,
@@ -260,6 +262,7 @@ export class AuthService {
           },
         },
       );
+      this.gobalService.updateEventCount({}, 'register');
     }
 
     await this.smsService.sendMessage(

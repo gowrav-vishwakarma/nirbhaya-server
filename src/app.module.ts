@@ -28,7 +28,7 @@ import { Incident } from './models/Incident';
 import { Like } from './models/Likes';
 import { Comment } from './models/Comments';
 import { Share } from './models/Shares';
-import { EventLog } from './models/eventLog';
+import { EventLog } from './models/EventLog';
 import { FileModule } from './files/file.module';
 import { NewsModule } from './news/news.module';
 import { Feedback } from './models/Feedback';

@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class GlobalService {
-  // Add your service methods here
-  getHello(): string {
-    return 'Hello from Global Service!';
+  updateEventCount(data, type) {
+    console.log(data, type);
+    return 'true';
   }
 }
