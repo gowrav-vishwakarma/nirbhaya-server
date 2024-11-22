@@ -40,6 +40,7 @@ import { SmsService } from './sms/sms.service';
 import { HttpModule } from '@nestjs/axios';
 import { SearchModule } from './search/search.module';
 import { GlobalModule } from './global/global.module';
+import { EventCount } from './models/EventCount';
 
 export const sequelizeModelArray = [
   User,
@@ -58,6 +59,7 @@ export const sequelizeModelArray = [
   Admin,
   GovPincodeData,
   EventLog,
+  EventCount,
 ];
 @Module({
   imports: [
