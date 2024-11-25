@@ -7,12 +7,14 @@ import {
 import { InjectModel } from '@nestjs/sequelize';
 import { Notification } from '../models/Notification';
 import { SosEvent } from '../models/SosEvent';
+import { GlobalService } from 'src/global/global.service';
 
 @Injectable()
 export class NotificationService {
   constructor(
     @InjectModel(Notification)
     private readonly notificationModel: typeof Notification,
+    private globalService: GlobalService,
   ) {}
 
   async getNotifications(userId: number): Promise<any[]> {
@@ -79,6 +81,7 @@ export class NotificationService {
       notification.sosEvent.accepted += 1;
       await notification.sosEvent.save();
     }
+    await this.globalService.updateEventCount('sosAccepted');
 
     return notification;
   }
