@@ -2,6 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as admin from 'firebase-admin';
 import { ServiceAccount } from 'firebase-admin';
+import { Message } from 'firebase-admin/messaging';
+
+type NotificationPriority = 'max' | 'high' | 'default' | 'low' | 'min';
 
 @Injectable()
 export class FirebaseService {
@@ -79,7 +82,8 @@ export class FirebaseService {
       );
       return;
     }
-    const message = {
+
+    const message: Message = {
       notification: {
         title,
         body,
@@ -87,16 +91,64 @@ export class FirebaseService {
       data: {
         sosEventId,
         location,
-        ...additionalData,
+        click_action: 'FLUTTER_NOTIFICATION_CLICK',
+        screen: '/notifications',
+        ...Object.entries(additionalData || {}).reduce(
+          (acc, [key, value]) => ({
+            ...acc,
+            [key]: String(value),
+          }),
+          {},
+        ),
+      },
+      android: {
+        priority: 'high' as const,
+        notification: {
+          clickAction: 'FLUTTER_NOTIFICATION_CLICK',
+          priority: 'high' as NotificationPriority,
+          defaultSound: true,
+          channelId: 'high_importance_channel',
+          sound: 'default',
+          visibility: 'public',
+          vibrateTimingsMillis: [200, 500, 200, 500],
+        },
+      },
+      apns: {
+        headers: {
+          'apns-priority': '10',
+          'apns-push-type': 'alert',
+          'apns-expiration': '0',
+        },
+        payload: {
+          aps: {
+            alert: {
+              title,
+              body,
+            },
+            sound: 'default',
+            badge: 1,
+            category: 'SOS_CATEGORY',
+            'content-available': 1,
+            'mutable-content': 1,
+            priority: 10,
+            'thread-id': sosEventId,
+          },
+          sosEventId,
+          location,
+          screen: '/notifications',
+          ...additionalData,
+        },
       },
       token,
     };
 
     try {
       const response = await this.app.messaging().send(message);
-      console.log('Successfully sent message:', message, response);
+      this.logger.log('Successfully sent message:', response);
+      return response;
     } catch (error) {
-      console.log('Error sending message:', error);
+      this.logger.error('Error sending message:', error);
+      throw error;
     }
   }
 }
