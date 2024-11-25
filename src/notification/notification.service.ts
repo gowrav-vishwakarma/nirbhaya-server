@@ -81,7 +81,7 @@ export class NotificationService {
       notification.sosEvent.accepted += 1;
       await notification.sosEvent.save();
     }
-    await this.globalService.updateEventCount('sosAccepted');
+    this.globalService.updateEventCount('sosAccepted');
 
     return notification;
   }
