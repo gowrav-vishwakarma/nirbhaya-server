@@ -6,6 +6,16 @@ import { Message } from 'firebase-admin/messaging';
 
 type NotificationPriority = 'max' | 'high' | 'default' | 'low' | 'min';
 
+export interface NotificationResult {
+  success: boolean;
+  messageId?: string;
+  error?: {
+    code: string;
+    message: string;
+  };
+  invalidToken?: boolean;
+}
+
 @Injectable()
 export class FirebaseService {
   private app: admin.app.App | null = null;
@@ -75,12 +85,18 @@ export class FirebaseService {
     sosEventId: string,
     location: string,
     additionalData?: any,
-  ) {
+  ): Promise<NotificationResult> {
     if (!this.isInitialized) {
       this.logger.warn(
         'Firebase is not initialized. Cannot send notification.',
       );
-      return;
+      return {
+        success: false,
+        error: {
+          code: 'firebase/not-initialized',
+          message: 'Firebase is not initialized',
+        },
+      };
     }
 
     const message: Message = {
@@ -145,10 +161,27 @@ export class FirebaseService {
     try {
       const response = await this.app.messaging().send(message);
       this.logger.log('Successfully sent message:', response);
-      return response;
+      return {
+        success: true,
+        messageId: response,
+      };
     } catch (error) {
       this.logger.error('Error sending message:', error);
-      throw error;
+
+      // Check if the error is due to an invalid token
+      const isInvalidToken =
+        error?.errorInfo?.code ===
+          'messaging/registration-token-not-registered' ||
+        error?.errorInfo?.code === 'messaging/invalid-registration-token';
+
+      return {
+        success: false,
+        error: {
+          code: error?.errorInfo?.code || 'unknown',
+          message: error?.errorInfo?.message || error.message,
+        },
+        invalidToken: isInvalidToken,
+      };
     }
   }
 }
