@@ -108,7 +108,7 @@ export class FirebaseService {
         sosEventId,
         location,
         click_action: 'FLUTTER_NOTIFICATION_CLICK',
-        screen: '/notifications',
+        screen: '/#/notifications',
         ...Object.entries(additionalData || {}).reduce(
           (acc, [key, value]) => ({
             ...acc,
@@ -116,6 +116,35 @@ export class FirebaseService {
           }),
           {},
         ),
+      },
+      webpush: {
+        headers: {
+          Urgency: 'high',
+        },
+        notification: {
+          title,
+          body,
+          icon: '/icon-192x192.png',
+          badge: '/badge-72x72.png',
+          actions: [
+            {
+              action: 'open_app',
+              title: 'Open App',
+            },
+          ],
+          requireInteraction: true,
+          tag: sosEventId,
+          vibrate: [200, 500, 200, 500],
+          data: {
+            url: 'https://sosbharat.com/#/notifications',
+            sosEventId,
+            location,
+            ...additionalData,
+          },
+        },
+        fcmOptions: {
+          link: 'https://sosbharat.com/#/notifications',
+        },
       },
       android: {
         priority: 'high' as const,
