@@ -247,6 +247,8 @@ export class UserService {
       where: { userId: userId },
     });
 
+    console.log('existingContacts..........', contacts);
+
     const existingPhones = existingContacts.map(
       (contact) => contact.contactPhone,
     );
@@ -361,5 +363,13 @@ export class UserService {
     }
 
     return { message: 'User locations updated successfully' };
+  }
+
+  async mediaBroadcastPermissionUpdate(data) {
+    return await this.userModel.update(data, {
+      where: {
+        id: data.userId,
+      },
+    });
   }
 }

@@ -31,6 +31,16 @@ export class UserController {
   async getEmergencyContacts(@GetUser() user: UserJWT) {
     return this.userService.getEmergencyContacts(user.id);
   }
+  @UseGuards(AuthGuard)
+  @Post('emergency-contacts-add')
+  async userEmergencyContactAdd(
+    @GetUser() user: UserJWT,
+    @Body('emergencyContacts') emergencyContacts: any[],
+  ) {
+    console.log('user..........', user, emergencyContacts);
+
+    return this.userService.userEmergencyContactAdd(user.id, emergencyContacts);
+  }
 
   @UseGuards(AuthGuard)
   @Post('approve-emergency-contact/:id')
@@ -59,5 +69,11 @@ export class UserController {
   @Get('validate-referral/:referralId')
   async validateReferral(@Param('referralId') referralId: string) {
     return this.userService.validateReferral(referralId);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('media-broadcast-permission')
+  async mediaBroadcastPermissionUpdate(@Body() data: any) {
+    return this.userService.mediaBroadcastPermissionUpdate(data);
   }
 }
