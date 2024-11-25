@@ -7,6 +7,6 @@ export class GlobalController {
 
   @Put('event-count-update')
   updateEventCount() {
-    return this.globalService.updateEventCount({}, 'type');
+    return this.globalService.updateEventCount('type');
   }
 }

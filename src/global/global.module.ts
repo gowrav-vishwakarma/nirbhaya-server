@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
+import { SequelizeModule } from '@nestjs/sequelize';
 import { GlobalService } from './global.service';
-import { GlobalController } from './global.controller';
+import { EventCount } from '../models/EventCount';
 
 @Module({
-  controllers: [GlobalController],
+  imports: [SequelizeModule.forFeature([EventCount])],
   providers: [GlobalService],
-  exports: [GlobalService],
+  exports: [GlobalService, SequelizeModule],
 })
 export class GlobalModule {}

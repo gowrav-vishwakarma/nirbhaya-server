@@ -245,7 +245,7 @@ export class AuthService {
           },
         },
       );
-      this.gobalService.updateEventCount({}, 'login');
+      this.gobalService.updateEventCount('loginUsers');
     } else {
       existingUser = await this.userModel.create({
         otp: newOtp,
@@ -262,7 +262,7 @@ export class AuthService {
           },
         },
       );
-      this.gobalService.updateEventCount({}, 'register');
+      this.gobalService.updateEventCount('registerUsers');
     }
 
     await this.smsService.sendMessage(
