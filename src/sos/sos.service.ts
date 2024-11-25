@@ -15,6 +15,7 @@ import { StreamingGateway } from 'src/streaming/streaming.gateway';
 import { Op } from 'sequelize';
 import * as moment from 'moment';
 import { Feedback } from 'src/models/Feedback';
+import { GlobalService } from 'src/global/global.service';
 
 @Injectable()
 export class SosService {
@@ -33,6 +34,7 @@ export class SosService {
     private firebaseService: FirebaseService,
     private streamingGateway: StreamingGateway,
     private configService: ConfigService,
+    private globalService: GlobalService,
   ) {
     this.s3 = new S3Client({
       endpoint: this.configService.get('S3_ENDPOINT'),
@@ -81,6 +83,7 @@ export class SosService {
           contactsOnly: data.contactsOnly || false,
           escalationLevel: 0,
         });
+        this.globalService.updateEventCount('sosHelp');
       } else {
         sosEvent = await this.sosEventModel.findOne({
           where: { userId: user.id, status: 'active' },

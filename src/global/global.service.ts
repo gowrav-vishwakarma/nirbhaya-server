@@ -23,7 +23,7 @@ export class GlobalService {
         },
       });
 
-      await record.increment({ [type]: 1 });
+      return await record.increment({ [type]: 1 });
     } catch (error) {
       console.error('Error updating event count:', error);
       return null;
