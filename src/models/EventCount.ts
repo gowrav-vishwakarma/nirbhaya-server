@@ -39,24 +39,24 @@ export class EventCount extends Model<EventCount> {
   news: number;
 
   @Column({
-    type: DataType.DATE,
+    type: DataType.INTEGER,
   })
-  registerVolunteers: Date;
+  registerVolunteers: number;
 
   @Column({
-    type: DataType.DATE,
+    type: DataType.INTEGER,
   })
-  sosAccepted: Date;
+  sosAccepted: number;
 
   @Column({
-    type: DataType.DATE,
+    type: DataType.INTEGER,
   })
-  sosMovement: Date;
+  sosMovement: number;
 
   @Column({
-    type: DataType.DATE,
+    type: DataType.INTEGER,
   })
-  sosHelp: Date;
+  sosHelp: number;
 
   @AllowNull(false)
   @Column(DataType.DATE)
