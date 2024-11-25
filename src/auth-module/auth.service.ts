@@ -66,6 +66,7 @@ export class AuthService {
       city: user.city,
       state: user.state,
       dob: user.dob,
+      profession: user.profession,
       pincode: user.pincode,
       availableForCommunity: user.availableForCommunity,
       availableForPaidProfessionalService:
@@ -118,6 +119,7 @@ export class AuthService {
         'state',
         'pincode',
         'dob',
+        'profession',
       ],
       include: [
         {
