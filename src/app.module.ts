@@ -41,7 +41,9 @@ import { HttpModule } from '@nestjs/axios';
 import { SearchModule } from './search/search.module';
 import { GlobalModule } from './global/global.module';
 import { EventCount } from './models/EventCount';
-
+import { GlobalService } from './global/global.service';
+import { FileService } from './files/file.service';
+import { NewsTranslation } from './models/NewsTranslation';
 export const sequelizeModelArray = [
   User,
   EmergencyContact,
@@ -60,6 +62,7 @@ export const sequelizeModelArray = [
   GovPincodeData,
   EventLog,
   EventCount,
+  NewsTranslation,
 ];
 @Module({
   imports: [
@@ -124,7 +127,13 @@ export const sequelizeModelArray = [
     GlobalModule,
   ],
   controllers: [AppController, NirbhayaQnatkController],
-  providers: [AppService, SmsService, ConfigService],
-  exports: [SmsService],
+  providers: [
+    AppService,
+    SmsService,
+    ConfigService,
+    GlobalService,
+    FileService,
+  ],
+  exports: [SmsService, GlobalService, FileService],
 })
 export class AppModule {}
