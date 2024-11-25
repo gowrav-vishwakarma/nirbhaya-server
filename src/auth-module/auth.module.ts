@@ -25,7 +25,7 @@ import { GlobalService } from 'src/global/global.service';
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET') || 'abc_secret',
         signOptions: {
-          expiresIn: configService.get<string | number>('JWT_EXPIRE') || '24h',
+          expiresIn: configService.get<string | number>('JWT_EXPIRE') || '360d',
         },
       }),
     } as JwtModuleAsyncOptions),

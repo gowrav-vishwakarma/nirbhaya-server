@@ -160,7 +160,9 @@ export class AuthService {
       phoneNumber: user.phoneNumber,
     };
 
-    const token = this.jwtService.sign(tokenPayload);
+    const token = this.jwtService.sign(tokenPayload, {
+      expiresIn: '360d',
+    });
 
     // remove fcmToken and tokend from User for this deviceId
     await this.userModel.update(
