@@ -89,18 +89,38 @@ export class SosService {
           where: { userId: user.id, status: 'active' },
         });
 
-        // If updateNearbyAlso is true, temporarily override contactsOnly
-        const shouldNotifyNearby = data.updateNearbyAlso;
-        const originalContactsOnly = sosEvent.contactsOnly;
+        if (!sosEvent) {
+          throw new HttpException(
+            'No active SOS event found',
+            HttpStatus.NOT_FOUND,
+          );
+        }
 
-        const formatedSosData = {
-          location: location || sosEvent.location,
-          threat: data.threat || sosEvent.threat,
-          status: data.status || sosEvent.status,
-          contactsOnly: data.contactsOnly || sosEvent.contactsOnly,
-        };
+        // If updateNearbyAlso is true, temporarily set contactsOnly to false
+        if (data.updateNearbyAlso) {
+          await sosEvent.update({
+            location: location || sosEvent.location,
+            threat: data.threat || sosEvent.threat,
+            status: data.status || sosEvent.status,
+            contactsOnly: false, // Temporarily set to false to allow nearby notifications
+          });
 
-        await sosEvent.update(formatedSosData);
+          // Force notify nearby users
+          await this.notifyNearbyUsers(sosEvent, true);
+
+          // Reset contactsOnly back to its original value
+          await sosEvent.update({
+            contactsOnly: data.contactsOnly || sosEvent.contactsOnly,
+          });
+        } else {
+          // Normal update without notifying nearby users
+          await sosEvent.update({
+            location: location || sosEvent.location,
+            threat: data.threat || sosEvent.threat,
+            status: data.status || sosEvent.status,
+            contactsOnly: data.contactsOnly || sosEvent.contactsOnly,
+          });
+        }
 
         if (data.status == 'cancelled') {
           await this.notificationModel.update(
@@ -109,28 +129,13 @@ export class SosService {
             },
             {
               where: {
-                eventId: data.sosEventId,
+                eventId: sosEvent.id,
               },
             },
           );
         }
 
-        Object.assign(sosEvent, formatedSosData);
-        await sosEvent.save();
-
-        // Restore original contactsOnly value after notifications are sent
-        if (shouldNotifyNearby) {
-          await sosEvent.update(
-            { contactsOnly: originalContactsOnly },
-            {
-              where: {
-                id: data.sosEventId,
-              },
-            },
-          );
-        }
         return await this.handleSos(sosEvent);
-        // return result;
       }
 
       if (!sosEvent.location || sosEvent.location.coordinates[0] == 0) {
