@@ -119,6 +119,17 @@ export class SosService {
         // sosEvent.presignedUrl = presignedUrl;
         // sosEvent.uploadId = uploadId;
         await sosEvent.save();
+
+        if (
+          data.updateNearbyAlso &&
+          sosEvent.location &&
+          sosEvent.location.coordinates[0] !== 0
+        ) {
+          const notifiedCount = await this.notifyNearbyUsers(sosEvent, true);
+          sosEvent.informed += notifiedCount;
+          await sosEvent.save();
+        }
+
         return await this.handleSos(sosEvent);
       }
 
@@ -132,7 +143,6 @@ export class SosService {
         };
       }
 
-      // Call sosService.handleSos with the new or updated SOS event
       return await this.handleSos(sosEvent);
     } catch (error) {
       console.error('Error in sosLocationCrud:', error);
@@ -207,13 +217,16 @@ export class SosService {
     return { informedCount }; // Return the informed count
   }
 
-  private async notifyNearbyUsers(sosEvent: SosEvent): Promise<number> {
+  private async notifyNearbyUsers(
+    sosEvent: SosEvent,
+    force: boolean = false,
+  ): Promise<number> {
     if (!sosEvent.location) {
       console.log('No location data for SOS event');
-      return 0; // Return 0 if no location
+      return 0;
     }
 
-    if (sosEvent.escalationLevel > 0) {
+    if (!force && sosEvent.escalationLevel > 0) {
       return 0;
     }
 
