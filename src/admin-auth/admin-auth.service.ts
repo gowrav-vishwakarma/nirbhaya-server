@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/sequelize';
 import { Admin } from 'src/models/Admin';
@@ -10,6 +11,7 @@ export class AdminAuthService {
     @InjectModel(Admin)
     private adminModel: typeof Admin,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
   async logIn(params: { email: string; password: string }) {
     const { email, password } = params;
@@ -51,7 +53,7 @@ export class AdminAuthService {
     };
     // const token = this.jwtService.sign(tokenData);
     const token = this.jwtService.sign(tokenData, {
-      secret: 'secret',
+      secret: this.configService.get<string>('JWT_SECRET') || 'abc_secret',
     });
     // newSession.token = token;
     // await newSession.save();

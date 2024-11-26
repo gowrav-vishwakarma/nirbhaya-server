@@ -5,7 +5,7 @@ import { GlobalService } from 'src/global/global.service';
 import { FileService } from 'src/files/file.service';
 import { NewsTranslation } from 'src/models/NewsTranslation';
 import { InjectModel } from '@nestjs/sequelize';
-import { Transaction } from 'aws-sdk/clients/managedblockchainquery';
+import { ValidationException } from 'src/qnatk/src/Exceptions/ValidationException';
 @Injectable()
 export class NewsCreateHook extends BaseHook {
   constructor(
@@ -23,7 +23,24 @@ export class NewsCreateHook extends BaseHook {
     if (previousData.data.categories) {
       previousData.data.categories = JSON.parse(previousData.data.categories);
     }
-
+    if (
+      previousData.data?.imageSourceUrl === 'null' ||
+      previousData.data?.imageSourceUrl === 'undefined'
+    ) {
+      previousData.data.imageSourceUrl = null;
+    }
+    if (previousData?.files?.length && previousData.data.imageSourceUrl) {
+      throw new ValidationException({
+        message: ['Either upload image or provide image source url'],
+      });
+    }
+    if (previousData?.data?.imageSourceUrl) {
+      console.log(
+        'previousData.data.imageSourceUrl',
+        previousData.data.imageSourceUrl,
+      );
+      previousData.data.mediaUrls = [previousData.data.imageSourceUrl];
+    }
     if (previousData.files && previousData.files.length > 0) {
       const filePathArray = [];
       for (let index = 0; index < previousData.files.length; index++) {
@@ -40,13 +57,7 @@ export class NewsCreateHook extends BaseHook {
       }
       previousData.data.mediaUrls = filePathArray;
     }
-
-    await this.newsTranslationModel.create({
-      newsId: previousData.data.id,
-      languageCode: previousData.data.defaultLanguage,
-      title: previousData.data.title,
-      content: previousData.data.content,
-    });
+    delete previousData.data.imageSourceUrl;
     return previousData;
   }
 }

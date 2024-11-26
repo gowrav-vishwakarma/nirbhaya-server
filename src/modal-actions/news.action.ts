@@ -7,7 +7,8 @@ export const NewsAction: ActionListDTO = {
     label: 'Add New',
     icon: 'add',
     iconColor: 'red',
-    returnModel: false,
+    returnModel: true,
+    loadBy: 'id',
   } as ActionDTO,
   edit: {
     name: 'edit',
