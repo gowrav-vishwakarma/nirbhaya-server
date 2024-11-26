@@ -90,16 +90,14 @@ export class SosService {
         });
 
         // If updateNearbyAlso is true, temporarily override contactsOnly
-        const shouldNotifyNearby = data.updateNearbyAlso === true;
+        const shouldNotifyNearby = data.updateNearbyAlso;
         const originalContactsOnly = sosEvent.contactsOnly;
 
         const formatedSosData = {
           location: location || sosEvent.location,
           threat: data.threat || sosEvent.threat,
           status: data.status || sosEvent.status,
-          contactsOnly: shouldNotifyNearby
-            ? false
-            : data.contactsOnly || sosEvent.contactsOnly,
+          contactsOnly: data.contactsOnly || sosEvent.contactsOnly,
         };
 
         await sosEvent.update(formatedSosData);
@@ -122,7 +120,14 @@ export class SosService {
 
         // Restore original contactsOnly value after notifications are sent
         if (shouldNotifyNearby) {
-          await sosEvent.update({ contactsOnly: originalContactsOnly });
+          await sosEvent.update(
+            { contactsOnly: originalContactsOnly },
+            {
+              where: {
+                id: data.sosEventId,
+              },
+            },
+          );
         }
         return await this.handleSos(sosEvent);
         // return result;
