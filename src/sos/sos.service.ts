@@ -88,14 +88,22 @@ export class SosService {
         sosEvent = await this.sosEventModel.findOne({
           where: { userId: user.id, status: 'active' },
         });
+
+        // If updateNearbyAlso is true, temporarily override contactsOnly
+        const shouldNotifyNearby = data.updateNearbyAlso === true;
+        const originalContactsOnly = sosEvent.contactsOnly;
+
         const formatedSosData = {
           location: location || sosEvent.location,
           threat: data.threat || sosEvent.threat,
           status: data.status || sosEvent.status,
-          contactsOnly: data.contactsOnly || sosEvent.contactsOnly,
+          contactsOnly: shouldNotifyNearby
+            ? false
+            : data.contactsOnly || sosEvent.contactsOnly,
         };
 
         await sosEvent.update(formatedSosData);
+
         if (data.status == 'cancelled') {
           await this.notificationModel.update(
             {
@@ -108,29 +116,16 @@ export class SosService {
             },
           );
         }
+
         Object.assign(sosEvent, formatedSosData);
         await sosEvent.save();
 
-        if (
-          data.updateNearbyAlso &&
-          sosEvent.location &&
-          sosEvent.location.coordinates[0] !== 0
-        ) {
-          const existingNotifications = await this.notificationModel.count({
-            where: {
-              eventId: sosEvent.id,
-              recipientType: 'volunteer',
-            },
-          });
-
-          if (existingNotifications === 0) {
-            const notifiedCount = await this.notifyNearbyUsers(sosEvent, true);
-            sosEvent.informed += notifiedCount;
-            await sosEvent.save();
-          }
+        // Restore original contactsOnly value after notifications are sent
+        if (shouldNotifyNearby) {
+          await sosEvent.update({ contactsOnly: originalContactsOnly });
         }
-
         return await this.handleSos(sosEvent);
+        // return result;
       }
 
       if (!sosEvent.location || sosEvent.location.coordinates[0] == 0) {
@@ -143,6 +138,7 @@ export class SosService {
         };
       }
 
+      // Call sosService.handleSos with the new or updated SOS event
       return await this.handleSos(sosEvent);
     } catch (error) {
       console.error('Error in sosLocationCrud:', error);
