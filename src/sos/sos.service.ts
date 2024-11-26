@@ -88,11 +88,6 @@ export class SosService {
         sosEvent = await this.sosEventModel.findOne({
           where: { userId: user.id, status: 'active' },
         });
-
-        // If updateNearbyAlso is true, temporarily override contactsOnly
-        const shouldNotifyNearby = data.updateNearbyAlso;
-        const originalContactsOnly = sosEvent.contactsOnly;
-
         const formatedSosData = {
           location: location || sosEvent.location,
           threat: data.threat || sosEvent.threat,
@@ -101,7 +96,6 @@ export class SosService {
         };
 
         await sosEvent.update(formatedSosData);
-
         if (data.status == 'cancelled') {
           await this.notificationModel.update(
             {
@@ -114,23 +108,18 @@ export class SosService {
             },
           );
         }
-
         Object.assign(sosEvent, formatedSosData);
+        // Always notify emergency contacts regardless of location
+        // Generate a presigned URL and save it in the sosEvent model
+        // const { uploadId, presignedUrl } =
+        //   await this.sosService.initiateMultipartUpload(
+        //     sosEvent.id,
+        //     'stream.bin',
+        //   ); // Replace 'yourFileName' with actual filename logic
+        // sosEvent.presignedUrl = presignedUrl;
+        // sosEvent.uploadId = uploadId;
         await sosEvent.save();
-
-        // Restore original contactsOnly value after notifications are sent
-        if (shouldNotifyNearby) {
-          await sosEvent.update(
-            { contactsOnly: originalContactsOnly },
-            {
-              where: {
-                id: data.sosEventId,
-              },
-            },
-          );
-        }
         return await this.handleSos(sosEvent);
-        // return result;
       }
 
       if (!sosEvent.location || sosEvent.location.coordinates[0] == 0) {
