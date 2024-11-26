@@ -96,29 +96,28 @@ export class SosService {
           );
         }
 
-        // If updateNearbyAlso is true, temporarily set contactsOnly to false
+        // Update the SOS event first
+        await sosEvent.update({
+          location: location || sosEvent.location,
+          threat: data.threat || sosEvent.threat,
+          status: data.status || sosEvent.status,
+          contactsOnly: data.contactsOnly ?? sosEvent.contactsOnly,
+        });
+
+        // If updateNearbyAlso is true, force notify nearby users
         if (data.updateNearbyAlso) {
-          await sosEvent.update({
-            location: location || sosEvent.location,
-            threat: data.threat || sosEvent.threat,
-            status: data.status || sosEvent.status,
-            contactsOnly: false, // Temporarily set to false to allow nearby notifications
-          });
+          // Temporarily store original contactsOnly value
+          const originalContactsOnly = sosEvent.contactsOnly;
+
+          // Set contactsOnly to false to allow nearby notifications
+          sosEvent.contactsOnly = false;
 
           // Force notify nearby users
           await this.notifyNearbyUsers(sosEvent, true);
 
           // Reset contactsOnly back to its original value
           await sosEvent.update({
-            contactsOnly: data.contactsOnly || sosEvent.contactsOnly,
-          });
-        } else {
-          // Normal update without notifying nearby users
-          await sosEvent.update({
-            location: location || sosEvent.location,
-            threat: data.threat || sosEvent.threat,
-            status: data.status || sosEvent.status,
-            contactsOnly: data.contactsOnly || sosEvent.contactsOnly,
+            contactsOnly: originalContactsOnly,
           });
         }
 
@@ -232,10 +231,6 @@ export class SosService {
       return 0;
     }
 
-    if (!force && sosEvent.escalationLevel > 0) {
-      return 0;
-    }
-
     const [longitude, latitude] = sosEvent.location.coordinates;
 
     // Fetch emergency contacts to exclude them from notifications
@@ -283,6 +278,13 @@ export class SosService {
       ) <= ${this.NEARBY_DISTANCE_METERS} AND User.id != ${sosEvent.userId} AND User.id NOT IN (${contactIdsToExclude.join(',')})`),
     });
 
+    // Add logging for debugging
+    console.log('Sending notifications to nearby users:', {
+      eventId: sosEvent.id,
+      nearbyUsersCount: nearbyUsers.length,
+      force,
+    });
+
     // Notify nearby users and count them
     let notifiedCount = 0;
     if (nearbyUsers.length > 0) {
@@ -319,6 +321,12 @@ export class SosService {
         const user = nearbyUsers.find((u) => u.id === notification.recipientId);
         if (user && user.fcmToken) {
           const distanceMessage = `${Math.round(notification.distanceToEvent)} meters away from your ${notification.userLocationName}`;
+          console.log('Sending push notification to user:', {
+            userId: user.id,
+            fcmToken: user.fcmToken,
+            distanceMessage,
+          });
+
           await this.firebaseService.sendPushNotification(
             user.fcmToken,
             `SOS Alert #${sosEvent.id}`,
