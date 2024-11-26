@@ -251,6 +251,22 @@ export class SosService {
     const contactIdsToExclude =
       emergencyContactIds.length > 0 ? emergencyContactIds : [0];
 
+    // First check which users have already been notified
+    const existingNotifications = await this.notificationModel.findAll({
+      where: {
+        eventId: sosEvent.id,
+        recipientType: 'volunteer',
+      },
+      attributes: ['recipientId'],
+    });
+
+    const alreadyNotifiedUserIds = existingNotifications.map(
+      (n) => n.recipientId,
+    );
+
+    // Add already notified users to the exclusion list
+    contactIdsToExclude.push(...alreadyNotifiedUserIds);
+
     const nearbyUsers = await this.userModel.findAll({
       attributes: ['id', 'fcmToken'],
       include: [
@@ -264,7 +280,7 @@ export class SosService {
       where: Sequelize.literal(`ST_Distance_Sphere(
         point(${longitude}, ${latitude}),
         location
-      ) <= ${this.NEARBY_DISTANCE_METERS} AND User.id != ${sosEvent.userId} AND User.id NOT IN (${contactIdsToExclude.join(',')})`), // Exclude emergency contacts or default ID
+      ) <= ${this.NEARBY_DISTANCE_METERS} AND User.id != ${sosEvent.userId} AND User.id NOT IN (${contactIdsToExclude.join(',')})`),
     });
 
     // Notify nearby users and count them
@@ -290,12 +306,15 @@ export class SosService {
         };
       });
 
+      // Only create notifications for new users
       await this.notificationModel.bulkCreate(notifications as any);
 
-      sosEvent.informed += notifiedCount; // Update informed count
+      // Update SOS event counts
+      sosEvent.informed += notifiedCount;
       sosEvent.escalationLevel = 1;
       await sosEvent.save();
 
+      // Send push notifications
       for (const notification of notifications) {
         const user = nearbyUsers.find((u) => u.id === notification.recipientId);
         if (user && user.fcmToken) {
@@ -316,8 +335,24 @@ export class SosService {
   }
 
   private async notifyEmergencyContacts(sosEvent: SosEvent): Promise<boolean> {
+    // First check which emergency contacts have already been notified
+    const existingNotifications = await this.notificationModel.findAll({
+      where: {
+        eventId: sosEvent.id,
+        recipientType: 'emergency_contact',
+      },
+      attributes: ['recipientId'],
+    });
+
+    const alreadyNotifiedIds = existingNotifications.map((n) => n.recipientId);
+
     const emergencyContacts = await this.emergencyContactModel.findAll({
-      where: { userId: sosEvent.userId },
+      where: {
+        userId: sosEvent.userId,
+        contactUserId: {
+          [Op.notIn]: alreadyNotifiedIds,
+        },
+      },
       include: [
         {
           model: User,
