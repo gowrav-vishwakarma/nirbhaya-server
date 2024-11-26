@@ -645,4 +645,16 @@ export class SosService {
       throw new error(error);
     }
   }
+  async getCurrentEventList(data: any): Promise<any> {
+    console.log('call getCurrentEventList', data);
+    const CurrentSOSEventList = await this.sosEventModel.findAll({
+      attributes: ['id', 'status', 'createdAt'],
+      where: {
+        ...(data.userId ? { userId: data.userId } : {}),
+        ...(data.eventId ? { id: data.eventId } : {}),
+        status: ['cancelled', 'resolved'],
+      },
+    });
+    return CurrentSOSEventList;
+  }
 }

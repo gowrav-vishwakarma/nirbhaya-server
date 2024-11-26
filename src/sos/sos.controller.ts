@@ -99,4 +99,10 @@ export class SosController {
   async getTrustStats() {
     return this.sosService.getTrustStats();
   }
+  @Post('current-event-list')
+  @UseGuards(AuthGuard)
+  async getCurrentEventList(@Body('data') data: any) {
+    console.log('current-event-list data..........', data);
+    return this.sosService.getCurrentEventList(data);
+  }
 }
