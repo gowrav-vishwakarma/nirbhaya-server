@@ -109,15 +109,6 @@ export class SosService {
           );
         }
         Object.assign(sosEvent, formatedSosData);
-        // Always notify emergency contacts regardless of location
-        // Generate a presigned URL and save it in the sosEvent model
-        // const { uploadId, presignedUrl } =
-        //   await this.sosService.initiateMultipartUpload(
-        //     sosEvent.id,
-        //     'stream.bin',
-        //   ); // Replace 'yourFileName' with actual filename logic
-        // sosEvent.presignedUrl = presignedUrl;
-        // sosEvent.uploadId = uploadId;
         await sosEvent.save();
 
         if (
@@ -125,9 +116,18 @@ export class SosService {
           sosEvent.location &&
           sosEvent.location.coordinates[0] !== 0
         ) {
-          const notifiedCount = await this.notifyNearbyUsers(sosEvent, true);
-          sosEvent.informed += notifiedCount;
-          await sosEvent.save();
+          const existingNotifications = await this.notificationModel.count({
+            where: {
+              eventId: sosEvent.id,
+              recipientType: 'volunteer',
+            },
+          });
+
+          if (existingNotifications === 0) {
+            const notifiedCount = await this.notifyNearbyUsers(sosEvent, true);
+            sosEvent.informed += notifiedCount;
+            await sosEvent.save();
+          }
         }
 
         return await this.handleSos(sosEvent);
