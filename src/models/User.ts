@@ -191,6 +191,11 @@ export class User extends Model<User> {
   @Column({
     type: DataType.STRING,
   })
+  telegramId: string;
+
+  @Column({
+    type: DataType.STRING,
+  })
   ambassadorTimestamp: string;
 
   @ForeignKey(() => User)
