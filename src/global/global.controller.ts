@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { GlobalService } from './global.service';
 
 @Controller('global')
@@ -8,5 +8,10 @@ export class GlobalController {
   @Post('event-count-update')
   updateEventCount(@Body('type') type: string) {
     return this.globalService.updateEventCount(type);
+  }
+
+  @Post()
+  async getDashboardData() {
+    return this.globalService.getDashboardData();
   }
 }
