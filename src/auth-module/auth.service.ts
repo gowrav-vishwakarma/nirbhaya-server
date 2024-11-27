@@ -219,6 +219,7 @@ export class AuthService {
         mobile: ['mobile, userType and countryCode required'],
       });
     }
+
     let existingUser = await this.userModel.findOne({
       attributes: [
         'id',
@@ -238,7 +239,13 @@ export class AuthService {
     });
     console.log('existingUser...........', existingUser);
 
-    const newOtp = this.generateOtp(4);
+    let newOtp: string;
+
+    if (mobileNumber === '0000111122') {
+      newOtp = '6786'; // Fixed OTP for the special number
+    } else {
+      newOtp = this.generateOtp(4);
+    }
 
     if (existingUser) {
       await this.userModel.update(
@@ -269,11 +276,14 @@ export class AuthService {
       this.gobalService.updateEventCount('registerUsers');
     }
 
-    await this.smsService.sendMessage(
-      mobileNumber,
-      `Welcome to SOSBharat! ${newOtp} is your OTP to join our safety-first community. Together we're stronger! By- Xavoc Technocrats Pvt. Ltd.`,
-      '1407173149479902847',
-    );
+    // Only send SMS if the mobile number is not 0000111122
+    if (mobileNumber !== '0000111122') {
+      await this.smsService.sendMessage(
+        mobileNumber,
+        `Welcome to SOSBharat! ${newOtp} is your OTP to join our safety-first community. Together we're stronger! By- Xavoc Technocrats Pvt. Ltd.`,
+        '1407173149479902847',
+      );
+    }
 
     return { otpSent: true };
   }
