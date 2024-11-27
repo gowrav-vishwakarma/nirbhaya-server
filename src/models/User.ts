@@ -145,12 +145,53 @@ export class User extends Model<User> {
   })
   fcmToken: string;
 
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+  })
+  isAmbassador: boolean;
+
   @Index // Consider if this index is necessary
   @Column({
     type: DataType.STRING,
     // unique: true,
   })
   referralId: string;
+
+  @Column({
+    type: DataType.STRING,
+  })
+  ambassadorReferralId: string;
+
+  @Column({
+    type: DataType.STRING,
+  })
+  instagramId: string;
+
+  @Column({
+    type: DataType.STRING,
+  })
+  twitterId: string;
+
+  @Column({
+    type: DataType.STRING,
+  })
+  facebookId: string;
+
+  @Column({
+    type: DataType.STRING,
+  })
+  linkedinId: string;
+
+  @Column({
+    type: DataType.STRING,
+  })
+  youtubeId: string;
+
+  @Column({
+    type: DataType.STRING,
+  })
+  ambassadorTimestamp: string;
 
   @ForeignKey(() => User)
   @Column({
