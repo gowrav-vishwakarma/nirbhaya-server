@@ -35,20 +35,20 @@ export const UserAction: ActionListDTO = {
 
     returnModel: false,
   },
-  // productDetail: {
-  //   name: 'productDetail',
-  //   label: 'productDetail',
-  //   icon: 'settings',
-  //   description: 'add product detail',
-  //   mode: 'SingleRecord',
-  //   loadBy: 'id',
-  //   ui: {
-  //     mode: 'form',
-  //     title: 'add product detail',
-  //     message: 'add product detail',
-  //     cancelLabel: 'Cancel',
-  //     okLabel: 'Save',
-  //   },
-  //   returnModel: false,
-  // },
+  isAmbassador: {
+    name: 'isAmbassador',
+    label: 'isAmbassador',
+    icon: 'man_3',
+    description: 'add Ambassador detail',
+    mode: 'SingleRecord',
+    loadBy: 'id',
+    ui: {
+      mode: 'form',
+      title: 'add ambassador detail',
+      message: 'add ambassador detail',
+      cancelLabel: 'Cancel',
+      okLabel: 'Save',
+    },
+    returnModel: false,
+  },
 };
