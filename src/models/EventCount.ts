@@ -67,6 +67,18 @@ export class EventCount extends Model<EventCount> {
   sosMovement: number;
 
   @Column({
+    type: DataType.INTEGER,
+    defaultValue: 0,
+  })
+  becomeAmbassador: number;
+
+  @Column({
+    type: DataType.INTEGER,
+    defaultValue: 0,
+  })
+  removeAmbassador: number;
+
+  @Column({
     type: DataType.DATEONLY,
     allowNull: false,
   })

@@ -48,6 +48,7 @@ export class IsAmbassadorServiceHook extends BaseHook {
         instagramId: data?.instagram,
         youtubeId: data?.youtube,
         telegramId: data?.telegram,
+        ambassadorReferralId: data?.ambassadorReferralId,
         ambassadorTimestamp: new Date().toISOString(),
       };
     } else {
@@ -55,7 +56,7 @@ export class IsAmbassadorServiceHook extends BaseHook {
         isAmbassador: false,
       };
     }
-
+    console.log('updateData', updateData);
     await this.userModel.update(updateData, {
       where: {
         id: data.userId,

@@ -7,17 +7,18 @@ import { AmbassadorDto } from './DTO/ambassador.dto';
 import { EventLog } from 'src/models/EventLog';
 import { InjectModel } from '@nestjs/sequelize';
 import { ValidationException } from 'src/qnatk/src/Exceptions/ValidationException';
+import { GlobalService } from 'src/global/global.service';
 @Injectable()
 export class EventLogForAmbassador extends BaseHook {
   constructor(
     @InjectModel(EventLog)
     private eventLogModel: typeof EventLog,
+    private globalService: GlobalService,
   ) {
     super();
   }
   async execute(
     previousData: ActionExecuteParams<User, AmbassadorDto, any>,
-    transaction: Transaction,
   ): Promise<any> {
     const { data } = previousData;
     if (!data.userId) {
@@ -25,10 +26,9 @@ export class EventLogForAmbassador extends BaseHook {
         userId: ['userId is required'],
       });
     }
-    await this.eventLogModel.create({
-      userId: data.userId,
-      eventType: 'isAmbassador',
-      date: new Date(),
-    });
+    const eventType = data.isAmbassador
+      ? 'becomeAmbassador'
+      : 'removeAmbassador';
+    await this.globalService.updateEventCount(eventType, data.userId);
   }
 }
