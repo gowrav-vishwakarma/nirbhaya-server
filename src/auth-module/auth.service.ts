@@ -256,7 +256,7 @@ export class AuthService {
           },
         },
       );
-      this.gobalService.updateEventCount('loginUsers');
+      this.gobalService.updateEventCount('loginUsers', existingUser.id);
     } else {
       existingUser = await this.userModel.create({
         otp: newOtp,
@@ -273,7 +273,7 @@ export class AuthService {
           },
         },
       );
-      this.gobalService.updateEventCount('registerUsers');
+      this.gobalService.updateEventCount('registerUsers', existingUser.id);
     }
 
     // Only send SMS if the mobile number is not 0000111122

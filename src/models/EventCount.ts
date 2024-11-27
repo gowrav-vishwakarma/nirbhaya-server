@@ -28,6 +28,12 @@ export class EventCount extends Model<EventCount> {
     type: DataType.INTEGER,
     defaultValue: 0,
   })
+  appOpen: number;
+
+  @Column({
+    type: DataType.INTEGER,
+    defaultValue: 0,
+  })
   loginUsers: number;
 
   @Column({

@@ -45,6 +45,12 @@ export class EventLog extends Model<EventLog> {
   @Column({ type: DataType.INTEGER, defaultValue: 0 })
   count: number; // Extra details (e.g., old and new values)
 
+  @Column({
+    type: DataType.DATEONLY,
+    allowNull: false,
+  })
+  date: Date;
+
   @CreatedAt
   @Column({ type: DataType.DATE })
   createdAt: Date;
