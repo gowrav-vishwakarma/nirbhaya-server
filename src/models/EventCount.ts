@@ -61,6 +61,12 @@ export class EventCount extends Model<EventCount> {
   sosMovement: number;
 
   @Column({
+    type: DataType.DATEONLY,
+    allowNull: false,
+  })
+  date: Date;
+
+  @Column({
     type: DataType.INTEGER,
     defaultValue: 0,
   })
