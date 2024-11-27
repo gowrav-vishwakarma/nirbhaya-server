@@ -83,7 +83,7 @@ export class SosService {
           contactsOnly: data.contactsOnly || false,
           escalationLevel: 0,
         });
-        this.globalService.updateEventCount('sosEvents');
+        this.globalService.updateEventCount('sosEvents', user.id);
       } else {
         sosEvent = await this.sosEventModel.findOne({
           where: { userId: user.id, status: 'active' },
