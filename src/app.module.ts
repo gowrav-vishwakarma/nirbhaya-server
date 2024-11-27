@@ -44,7 +44,7 @@ import { GlobalModule } from './global/global.module';
 import { GlobalService } from './global/global.service';
 import { FileService } from './files/file.service';
 import { NewsTranslation } from './models/NewsTranslation';
-import { eventSummery } from './models/EventSummery';
+import { EventSummery } from './models/EventSummery';
 
 export const sequelizeModelArray = [
   User,
@@ -65,7 +65,7 @@ export const sequelizeModelArray = [
   EventLog,
   EventCount,
   NewsTranslation,
-  eventSummery,
+  EventSummery,
 ];
 @Module({
   imports: [
