@@ -14,14 +14,12 @@ export class GlobalService {
     try {
       const [record] = await EventCount.findOrCreate({
         where: {
-          createdAt: {
-            [Op.gte]: `${formattedDate} 00:00:00`,
-            [Op.lt]: `${formattedDate} 23:59:59`,
-          },
+          date: formattedDate,
         },
         defaults: {
           [type]: 0,
-          createdAt: new Date(currentDate),
+          createdAt: currentDate,
+          date: new Date(formattedDate),
         },
       });
 
