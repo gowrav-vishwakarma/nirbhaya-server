@@ -51,10 +51,11 @@ export class GlobalService {
 
   async getContactSOSEvents(params) {
     try {
-      const page = params.page || 1;
-      const perPage = params.perPage || 10;
-      const offset = (page - 1) * perPage;
+      const limit = params.limit || 10;
+      const offset = params.offset || 0;
+
       console.log('service..1', params);
+
       // First get all emergency contacts where this user is listed
       const emergencyContacts = await EmergencyContact.findAll({
         where: {
@@ -82,15 +83,15 @@ export class GlobalService {
           },
         ],
         order: [['createdAt', 'DESC']], // Most recent first
-        limit: perPage,
+        limit: limit,
         offset: offset,
       });
 
       console.log('service..2', sosEvents);
       return sosEvents;
     } catch (error) {
+      console.error('Error fetching SOS events:', error);
       throw error;
-      return null;
     }
   }
 }
