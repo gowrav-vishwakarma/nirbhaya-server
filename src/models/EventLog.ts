@@ -16,7 +16,7 @@ export class EventLog extends Model<EventLog> {
   @Column
   id: number;
 
-  @Column({ type: DataType.STRING, allowNull: false })
+  @Column({ type: DataType.STRING, allowNull: true })
   userType: string; // e.g., Product, Order, User
 
   @Column({ type: DataType.INTEGER, allowNull: false })
@@ -27,7 +27,7 @@ export class EventLog extends Model<EventLog> {
   })
   eventType: string;
 
-  @Column({ type: DataType.TEXT, allowNull: false })
+  @Column({ type: DataType.TEXT, allowNull: true })
   description: string;
 
   @Column({ type: DataType.STRING(100), allowNull: true })
