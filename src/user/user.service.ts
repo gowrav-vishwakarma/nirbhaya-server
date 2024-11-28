@@ -372,4 +372,21 @@ export class UserService {
       },
     });
   }
+
+  async deleteEmergencyContact(userId: number, phoneNumber: string) {
+    try {
+      await this.emergencyContactModel.destroy({
+        where: {
+          userId: userId,
+          contactPhone: phoneNumber,
+        },
+      });
+      return {
+        success: true,
+        message: 'Emergency contact deleted successfully',
+      };
+    } catch (error) {
+      throw new error('Failed to delete emergency contact', error);
+    }
+  }
 }
