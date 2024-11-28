@@ -45,7 +45,7 @@ import { GlobalService } from './global/global.service';
 import { FileService } from './files/file.service';
 import { NewsTranslation } from './models/NewsTranslation';
 import { EventSummery } from './models/EventSummery';
-
+import { PointsRulesEntity } from './models/PointsRulesEntity';
 export const sequelizeModelArray = [
   User,
   EmergencyContact,
@@ -66,6 +66,7 @@ export const sequelizeModelArray = [
   EventCount,
   NewsTranslation,
   EventSummery,
+  PointsRulesEntity,
 ];
 @Module({
   imports: [
@@ -84,10 +85,10 @@ export const sequelizeModelArray = [
         database: configService.get<string>('DB_NAME'),
         autoLoadModels: true,
         logQueryParameters: true,
-        // synchronize: true,
-        // sync: {
-        //   alter: true,
-        // },
+        synchronize: true,
+        sync: {
+          alter: true,
+        },
         logging: console.log,
         timezone: '+05:30',
         dialectOptions: {
