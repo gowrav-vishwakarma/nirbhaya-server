@@ -76,4 +76,12 @@ export class UserController {
   async mediaBroadcastPermissionUpdate(@Body() data: any) {
     return this.userService.mediaBroadcastPermissionUpdate(data);
   }
+
+  @Post('/emergency-contact')
+  async deleteEmergencyContact(
+    @Body('contactPhone') phoneNumber: string,
+    @Body('userId') userId: number,
+  ) {
+    return await this.userService.deleteEmergencyContact(userId, phoneNumber);
+  }
 }
