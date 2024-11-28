@@ -28,34 +28,27 @@ export class IsAmbassadorServiceHook extends BaseHook {
         userId: ['userId is required'],
       });
     }
-    let updateData;
-    if (data.isAmbassador) {
-      if (data.ambassadorReferralId) {
-        const referringUser = await this.userModel.findOne({
-          where: { referralId: data.ambassadorReferralId },
+    if (data.ambassadorReferralId) {
+      const referringUser = await this.userModel.findOne({
+        where: { referralId: data.ambassadorReferralId },
+      });
+      if (!referringUser) {
+        throw new ValidationException({
+          ambassadorReferralId: ['Invalid referral ID'],
         });
-        if (!referringUser) {
-          throw new ValidationException({
-            ambassadorReferralId: ['Invalid referral ID'],
-          });
-        }
       }
-      updateData = {
-        isAmbassador: true,
-        linkedinId: data?.linkedin,
-        twitterId: data?.twitter,
-        facebookId: data?.facebook,
-        instagramId: data?.instagram,
-        youtubeId: data?.youtube,
-        telegramId: data?.telegram,
-        ambassadorReferralId: data?.ambassadorReferralId,
-        ambassadorTimestamp: new Date().toISOString(),
-      };
-    } else {
-      updateData = {
-        isAmbassador: false,
-      };
     }
+    const updateData = {
+      isAmbassador: data.isAmbassador,
+      linkedinId: data?.linkedin,
+      twitterId: data?.twitter,
+      facebookId: data?.facebook,
+      instagramId: data?.instagram,
+      youtubeId: data?.youtube,
+      telegramId: data?.telegram,
+      ambassadorReferralId: data?.ambassadorReferralId,
+      ambassadorTimestamp: new Date().toISOString(),
+    };
     console.log('updateData', updateData);
     await this.userModel.update(updateData, {
       where: {
