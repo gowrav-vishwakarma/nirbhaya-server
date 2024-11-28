@@ -39,7 +39,7 @@ export class IsAmbassadorServiceHook extends BaseHook {
       }
     }
     const updateData = {
-      isAmbassador: data.isAmbassador,
+      isAmbassador: data?.isAmbassador,
       linkedinId: data?.linkedin,
       twitterId: data?.twitter,
       facebookId: data?.facebook,
