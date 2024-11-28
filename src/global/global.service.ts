@@ -40,20 +40,19 @@ export class GlobalService {
         await eventLog.increment('count', { by: 1 });
       }
       // Manage EventCount
-      if (
-        created &&
-        [
-          'registerUsers',
-          'appOpen',
-          'loginUsers',
-          'sosEvents',
-          'news',
-          'registerVolunteers',
-          'sosAccepted',
-          'sosMovement',
-          'sosHelp',
-        ].includes(type)
-      ) {
+      // &&
+      //   [
+      //     'registerUsers',
+      //     'appOpen',
+      //     'loginUsers',
+      //     'sosEvents',
+      //     'news',
+      //     'registerVolunteers',
+      //     'sosAccepted',
+      //     'sosMovement',
+      //     'sosHelp',
+      //   ].includes(type)
+      if (created) {
         const [eventCountRecord] = await EventCount.findOrCreate({
           where: { date: formattedDate },
           defaults: {
