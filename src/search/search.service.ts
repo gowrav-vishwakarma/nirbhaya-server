@@ -17,7 +17,7 @@ export class SearchService {
       const baseCondition = {
         [Op.or]: [
           Sequelize.where(
-            Sequelize.fn('LOWER', Sequelize.col('officename')),
+            Sequelize.fn('LOWER', Sequelize.col('district')),
             'LIKE',
             `%${cleanQuery}%`,
           ),
@@ -38,7 +38,7 @@ export class SearchService {
       const cities = await this.govPincodeDataModel.findAll({
         where: whereCondition,
         limit: 100,
-        attributes: ['id', 'officename', 'pincode', 'statename'],
+        attributes: ['id', 'district', 'pincode', 'statename'],
       });
 
       return cities;
