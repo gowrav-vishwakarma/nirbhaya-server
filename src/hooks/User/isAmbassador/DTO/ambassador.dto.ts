@@ -40,4 +40,8 @@ export class AmbassadorDto {
   @IsOptional()
   @IsString()
   youtube?: string;
+
+  @IsOptional()
+  @IsNumber()
+  referUserId?: number;
 }

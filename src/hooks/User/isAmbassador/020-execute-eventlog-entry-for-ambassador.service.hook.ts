@@ -26,6 +26,16 @@ export class EventLogForAmbassador extends BaseHook {
         userId: ['userId is required'],
       });
     }
+    const eventLogs = [];
+    //for referAmbassador
+    if (data.referUserId) {
+      eventLogs.push({
+        eventType: 'referAmbassador',
+        userId: data.referUserId,
+        referUserId: data.referUserId,
+      });
+    }
+    //for becomeAmbassador
     const eventType = data.isAmbassador
       ? 'becomeAmbassador'
       : 'removeAmbassador';
@@ -33,10 +43,18 @@ export class EventLogForAmbassador extends BaseHook {
     if (data.ambassadorReferralId) {
       isReferral = true;
     }
-    await this.globalService.updateEventCount(
-      eventType,
-      data.userId,
-      isReferral,
-    );
+    eventLogs.push({
+      eventType: eventType,
+      userId: data.userId,
+      isReferral: isReferral,
+    });
+    for (let i = 0; i < eventLogs.length; i++) {
+      await this.globalService.updateEventCount(
+        eventLogs[i].eventType,
+        eventLogs[i].userId,
+        eventLogs[i]?.isReferral,
+        eventLogs[i]?.referUserId,
+      );
+    }
   }
 }

@@ -7,9 +7,15 @@ import { Capitalization } from 'randomstring';
 import { User } from 'src/models/User';
 import { EmergencyContact } from 'src/models/EmergencyContact';
 import { SosEvent } from 'src/models/SosEvent';
+import { PointsRulesEntity } from 'src/models/PointsRulesEntity';
 @Injectable()
 export class GlobalService {
-  async updateEventCount(type: string, userId: number, isReferral?: boolean) {
+  async updateEventCount(
+    type: string,
+    userId: number,
+    isReferral?: boolean,
+    referUserId?: number,
+  ) {
     try {
       console.log('isReferral', isReferral);
       // Validate input parameters
@@ -25,8 +31,15 @@ export class GlobalService {
       defaults['userId'] = userId;
       defaults['eventType'] = type;
       defaults['count'] = 1;
-      if (type === 'becomeAmbassador' && isReferral) {
-        defaults['point'] = 10;
+
+      const PointsRule = await PointsRulesEntity.findOne({
+        attributes: ['points'],
+        where: {
+          actionType: type,
+        },
+      });
+      if (PointsRule && referUserId) {
+        defaults['point'] = PointsRule?.points;
       }
       // Create or update EventLog
       const [eventLog, created] = await EventLog.findOrCreate({
@@ -55,6 +68,8 @@ export class GlobalService {
           'sosAccepted',
           'sosMovement',
           'sosHelp',
+          'becomeAmbassador',
+          'removeAmbassador',
         ].includes(type)
       ) {
         const [eventCountRecord] = await EventCount.findOrCreate({
