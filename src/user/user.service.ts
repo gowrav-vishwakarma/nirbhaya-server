@@ -258,12 +258,12 @@ export class UserService {
       (phone) => !newPhones.includes(phone),
     );
 
-    await this.emergencyContactModel.destroy({
-      where: {
-        userId: userId,
-        contactPhone: phonesToDelete,
-      },
-    });
+    // await this.emergencyContactModel.destroy({
+    //   where: {
+    //     userId: userId,
+    //     contactPhone: phonesToDelete,
+    //   },
+    // });
 
     // Update or create new contacts
     for (const contactData of contacts) {

@@ -76,4 +76,10 @@ export class EmergencyContact extends Model {
     defaultValue: false,
   })
   consentGiven: boolean;
+
+  @Column({
+    type: DataType.ENUM('Active', 'Inactive'),
+    defaultValue: 'Active',
+  })
+  status: 'Active' | 'Inactive';
 }
