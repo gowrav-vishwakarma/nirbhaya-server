@@ -14,4 +14,17 @@ export class GlobalController {
   async getDashboardData() {
     return this.globalService.getDashboardData();
   }
+
+  @Post('contact-sos-events')
+  async getContactSOSEvents(@Body() params) {
+    try {
+      return await this.globalService.getContactSOSEvents(params);
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Failed to fetch SOS events',
+        error: error.message,
+      };
+    }
+  }
 }
