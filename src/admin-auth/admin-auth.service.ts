@@ -4,7 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/sequelize';
 import { Admin } from 'src/models/Admin';
 import { ValidationException } from 'src/qnatk/src/Exceptions/ValidationException';
-
+import * as bcrypt from 'bcrypt';
 @Injectable()
 export class AdminAuthService {
   constructor(
@@ -23,7 +23,9 @@ export class AdminAuthService {
         email: ['User not found'],
       });
     }
-    if (user.password !== password) {
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
       throw new ValidationException({
         password: ['Wrong password'],
       });
