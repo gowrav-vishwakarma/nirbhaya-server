@@ -9,8 +9,9 @@ import { EmergencyContact } from 'src/models/EmergencyContact';
 import { SosEvent } from 'src/models/SosEvent';
 @Injectable()
 export class GlobalService {
-  async updateEventCount(type: string, userId: number) {
+  async updateEventCount(type: string, userId: number, isReferral?: boolean) {
     try {
+      console.log('isReferral', isReferral);
       // Validate input parameters
       if (!type || !userId) {
         console.warn('Invalid input: type and userId are required');
@@ -19,7 +20,14 @@ export class GlobalService {
 
       const currentDate = new Date();
       const formattedDate = currentDate.toISOString().split('T')[0];
-
+      const defaults = {};
+      defaults['date'] = currentDate;
+      defaults['userId'] = userId;
+      defaults['eventType'] = type;
+      defaults['count'] = 1;
+      if (type === 'becomeAmbassador' && isReferral) {
+        defaults['point'] = 10;
+      }
       // Create or update EventLog
       const [eventLog, created] = await EventLog.findOrCreate({
         where: {
@@ -27,12 +35,7 @@ export class GlobalService {
           eventType: type,
           userId: userId,
         },
-        defaults: {
-          date: currentDate,
-          userId: userId,
-          eventType: type,
-          count: 1,
-        },
+        defaults: defaults,
       });
 
       // If the record already existed, increment the count
