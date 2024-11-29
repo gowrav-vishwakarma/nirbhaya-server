@@ -194,9 +194,9 @@ export class User extends Model<User> {
   telegramId: string;
 
   @Column({
-    type: DataType.STRING,
+    type: DataType.DATE,
   })
-  ambassadorTimestamp: string;
+  ambassadorTimestamp: Date;
 
   @ForeignKey(() => User)
   @Column({
