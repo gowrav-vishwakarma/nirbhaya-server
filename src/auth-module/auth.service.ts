@@ -219,6 +219,7 @@ export class AuthService {
         mobile: ['mobile, userType and countryCode required'],
       });
     }
+    let eventType;
 
     let existingUser = await this.userModel.findOne({
       attributes: [
@@ -256,7 +257,7 @@ export class AuthService {
           },
         },
       );
-      this.gobalService.updateEventCount('loginUsers', existingUser.id);
+      eventType = 'loginUsers';
     } else {
       existingUser = await this.userModel.create({
         otp: newOtp,
@@ -273,7 +274,7 @@ export class AuthService {
           },
         },
       );
-      this.gobalService.updateEventCount('registerUsers', existingUser.id);
+      eventType = 'registerUsers';
     }
 
     // Only send SMS if the mobile number is not 0000111122
@@ -284,6 +285,7 @@ export class AuthService {
         '1407173149479902847',
       );
     }
+    this.gobalService.updateEventCount(eventType, existingUser.id);
 
     return { otpSent: true };
   }
