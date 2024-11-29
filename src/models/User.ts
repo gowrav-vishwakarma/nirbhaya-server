@@ -205,6 +205,12 @@ export class User extends Model<User> {
   })
   referUserId: number;
 
+  @Column({
+    type: DataType.INTEGER,
+    defaultValue: 0,
+  })
+  point: number;
+
   @BelongsTo(() => User, 'referUserId')
   referredBy: User;
 
