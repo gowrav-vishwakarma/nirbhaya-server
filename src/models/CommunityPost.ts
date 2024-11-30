@@ -43,8 +43,17 @@ export class CommunityPost extends Model<CommunityPost> {
   @Column({
     type: DataType.TEXT,
     get() {
-      const rawValue = this.getDataValue('mediaUrls');
-      return rawValue ? JSON.parse(rawValue) : [];
+      if (
+        typeof this.getDataValue('mediaUrls') === 'string' &&
+        this.getDataValue('mediaUrls').startsWith('http')
+      ) {
+        return this.getDataValue('mediaUrls');
+      }
+      try {
+        return JSON.parse(this.getDataValue('mediaUrls'));
+      } catch (error) {
+        return this.getDataValue('mediaUrls') || [];
+      }
     },
     set(value: string[]) {
       this.setDataValue('mediaUrls', JSON.stringify(value));

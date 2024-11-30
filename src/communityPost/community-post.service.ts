@@ -21,7 +21,7 @@ export class CommunityPostService {
   async findAll(query: any = {}) {
     const { offset = 0, limit = 10 } = query;
 
-    return await this.communityPostModel.findAndCountAll({
+    return await this.communityPostModel.findAll({
       where: {
         status: 'active',
       },
