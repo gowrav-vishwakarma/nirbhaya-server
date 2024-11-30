@@ -46,6 +46,7 @@ import { FileService } from './files/file.service';
 import { NewsTranslation } from './models/NewsTranslation';
 import { EventSummery } from './models/EventSummery';
 import { PointsRulesEntity } from './models/PointsRulesEntity';
+import { CommunityPostModule } from './communityPost/community-post.module';
 export const sequelizeModelArray = [
   User,
   EmergencyContact,
@@ -129,6 +130,7 @@ export const sequelizeModelArray = [
     NewsModule,
     SearchModule,
     GlobalModule,
+    CommunityPostModule,
   ],
   controllers: [AppController, NirbhayaQnatkController],
   providers: [
