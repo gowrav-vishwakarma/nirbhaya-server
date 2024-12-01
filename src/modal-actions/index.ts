@@ -5,6 +5,7 @@ import { AdminAction } from './admin.action';
 import { NewsAction } from './news.action';
 import { UserLocationAction } from './userLocation.action';
 import { PointsRulesEntityAction } from './pointRulesEntity.action';
+import {CommunityPostAction} from './CommunityPost.action'
 export const ModelActions: Record<string, ActionListDTO> = {
   SosEvent: SoSEventAction,
   User: UserAction,
@@ -12,4 +13,5 @@ export const ModelActions: Record<string, ActionListDTO> = {
   News: NewsAction,
   UserLocation: UserLocationAction,
   PointsRulesEntity: PointsRulesEntityAction,
+  CommunityPost:CommunityPostAction,
 };
