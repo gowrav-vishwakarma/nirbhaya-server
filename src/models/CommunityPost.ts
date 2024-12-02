@@ -151,7 +151,7 @@ export class CommunityPost extends Model<CommunityPost> {
 
   @Column({
     type: DataType.INTEGER,
-    allowNull: false,
+    allowNull: true,
   })
   sequence!: number;
 
