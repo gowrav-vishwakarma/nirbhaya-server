@@ -51,7 +51,7 @@ export class CommunityPost extends Model<CommunityPost> {
       }
       try {
         return JSON.parse(this.getDataValue('mediaUrls'));
-      } catch (error) {
+      } catch {
         return this.getDataValue('mediaUrls') || [];
       }
     },
@@ -86,10 +86,11 @@ export class CommunityPost extends Model<CommunityPost> {
   locations: string[];
 
   @Column({
-    type: DataType.GEOMETRY('POINT', 4326),
-    allowNull: true,
+    type: DataType.GEOMETRY('POINT'),
+    allowNull: false,
+    defaultValue: { type: 'Point', coordinates: [0, 0] },
   })
-  location?: string;
+  location: any;
 
   @Column({
     type: DataType.STRING,
@@ -100,11 +101,17 @@ export class CommunityPost extends Model<CommunityPost> {
     type: DataType.TEXT,
     get() {
       const rawValue = this.getDataValue('tags');
-      return rawValue ? JSON.parse(rawValue) : [];
+      if (!rawValue) return [];
+      try {
+        return JSON.parse(rawValue);
+      } catch {
+        return [];
+      }
     },
     set(value: string[]) {
       this.setDataValue('tags', JSON.stringify(value));
     },
+    defaultValue: '[]',
   })
   tags: string[];
 
@@ -151,7 +158,7 @@ export class CommunityPost extends Model<CommunityPost> {
 
   @Column({
     type: DataType.INTEGER,
-    allowNull: false,
+    allowNull: true,
   })
   sequence!: number;
 

@@ -7,10 +7,12 @@ import { User } from '../models/User';
 import { Like } from '../models/Likes';
 import { Comment } from '../models/Comments';
 import { Share } from '../models/Shares';
+import { FileModule } from '../files/file.module';
 
 @Module({
   imports: [
     SequelizeModule.forFeature([CommunityPost, User, Like, Comment, Share]),
+    FileModule,
   ],
   controllers: [CommunityPostController],
   providers: [CommunityPostService],

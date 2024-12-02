@@ -85,6 +85,7 @@ export class AuthService {
       token, // Include the token in the response
       referralId: user.referralId, // Include the referralId in the response
       referredBy: user.referredBy ? user.referredBy.referralId : null,
+      isAmbassador: user.isAmbassador,
     };
   }
 
@@ -120,6 +121,7 @@ export class AuthService {
         'pincode',
         'dob',
         'profession',
+        'isAmbassador',
       ],
       include: [
         {

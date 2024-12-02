@@ -4,24 +4,30 @@ import {
   Post,
   Body,
   Param,
-  Delete,
   Put,
-  Query,
-  UseGuards,
-  Request,
+  UseInterceptors,
+  UploadedFiles,
+  BadRequestException,
 } from '@nestjs/common';
 import { CommunityPostService } from './community-post.service';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('posts')
 export class CommunityPostController {
   constructor(private readonly communityPostService: CommunityPostService) {}
 
-  @Post()
-  create(@Body() createPostDto: any, @Request() req: any) {
-    return this.communityPostService.create({
-      ...createPostDto,
-      userId: req.user.id,
-    });
+  @Post('/post-create')
+  @UseInterceptors(AnyFilesInterceptor())
+  async create(
+    @Body() createPostDto: any,
+    @UploadedFiles() files: Array<Express.Multer.File>,
+  ) {
+    try {
+      return await this.communityPostService.create(createPostDto, files);
+    } catch (error) {
+      console.error('Create post error:', error);
+      throw new BadRequestException('Invalid data format');
+    }
   }
 
   @Get('/community-posts')
