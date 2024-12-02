@@ -95,7 +95,7 @@ export class CommunityPost extends Model<CommunityPost> {
   @Column({
     type: DataType.GEOMETRY('POINT'),
     allowNull: false,
-    defaultValue: { type: 'Point', coordinates: [0, 0] },
+    // defaultValue: { type: 'Point', coordinates: [0, 0] },
   })
   location: any;
 
