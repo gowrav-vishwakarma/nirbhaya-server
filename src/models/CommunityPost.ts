@@ -31,7 +31,7 @@ export class CommunityPost extends Model<CommunityPost> {
   @Column({
     type: DataType.STRING,
     allowNull: false,
-    defaultValue: 'SOS Bharat',
+    defaultValue: 'SOS Bharat Community',
   })
   userName?: string;
 
