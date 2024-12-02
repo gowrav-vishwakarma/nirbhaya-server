@@ -29,6 +29,13 @@ export class CommunityPost extends Model<CommunityPost> {
   userId!: number;
 
   @Column({
+    type: DataType.STRING,
+    allowNull: false,
+    defaultValue: 'SOS Bharat',
+  })
+  userName?: string;
+
+  @Column({
     type: DataType.STRING(200),
     allowNull: false,
   })
