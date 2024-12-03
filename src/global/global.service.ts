@@ -15,14 +15,8 @@ import { Sequelize } from 'sequelize-typescript';
 export class GlobalService {
   constructor(private sequelize: Sequelize) {}
 
-  async updateEventCount(
-    type: string,
-    userId: number,
-    isReferral?: boolean,
-    referUserId?: number,
-  ) {
+  async updateEventCount(type: string, userId: number, referUserId?: number) {
     try {
-      console.log('isReferral', isReferral);
       // Validate input parameters
       if (!type || !userId) {
         console.warn('Invalid input: type and userId are required');
@@ -31,32 +25,44 @@ export class GlobalService {
 
       const currentDate = new Date();
       const formattedDate = currentDate.toISOString().split('T')[0];
-      const defaults = {};
-      defaults['date'] = currentDate;
-      defaults['userId'] = userId;
-      defaults['eventType'] = type;
-      defaults['count'] = 1;
+      const defaults = {
+        date: currentDate,
+        userId: userId,
+        eventType: type,
+        count: 1,
+        point: 0,
+      };
 
-      const PointsRule = await PointsRulesEntity.findOne({
-        attributes: ['points'],
-        where: {
-          actionType: type,
-        },
+      // Get points rule for this action
+      const pointsRule = await PointsRulesEntity.findOne({
+        where: { actionType: type },
       });
-      if (PointsRule) {
-        defaults['point'] = PointsRule?.points;
+
+      // Handle special cases for referral and ambassador
+      if (type === 'referralGiver') {
+        // Check if referrer and receiver are in same city
+        const [referrer, receiver] = await Promise.all([
+          User.findByPk(referUserId),
+          User.findByPk(userId),
+        ]);
+
+        if (referrer?.city === receiver?.city) {
+          defaults.point = pointsRule?.points || 10;
+        } else {
+          defaults.point = 0; // No points if different cities
+        }
+      } else if (type === 'becomeAmbassador') {
+        defaults.point = pointsRule?.points || 200;
+      } else if (pointsRule) {
+        defaults.point = pointsRule.points;
       }
 
-      const updatePointsCondition = {};
-      if (PointsRule) {
-        if (referUserId) {
-          updatePointsCondition['id'] = referUserId;
-        } else {
-          updatePointsCondition['id'] = userId;
-        }
+      // Update user points if applicable
+      if (defaults.point > 0) {
+        const targetUserId = referUserId || userId;
         await User.increment('point', {
-          by: defaults['point'],
-          where: updatePointsCondition,
+          by: defaults.point,
+          where: { id: targetUserId },
         });
       }
 
@@ -189,13 +195,8 @@ export class GlobalService {
 
       if (referralEntry) {
         console.log('referralEntry', referralEntry);
-        // await this.updateEventCount('referralGiver', receiverId, true, giverId);
-        // await this.updateEventCount(
-        //   'referralAcceptor',
-        //   giverId,
-        //   true,
-        //   receiverId,
-        // );
+        await this.updateEventCount('referralGiver', receiverId, giverId);
+        await this.updateEventCount('referralAcceptor', giverId, receiverId);
       }
 
       await t.commit();
