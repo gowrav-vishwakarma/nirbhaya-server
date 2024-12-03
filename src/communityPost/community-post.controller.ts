@@ -29,14 +29,17 @@ export class CommunityPostController {
     );
   }
 
-  @Get('/community-posts')
-  async findAll(@Query() query: any) {
-    const options = {
-      where: { status: query.status || 'active' },
-      include: ['user', 'likes', 'comments'],
-      order: [['createdAt', 'DESC']],
-    };
-    return await this.communityPostService.findAll(options);
+  @Get('community-posts')
+  async getCommunityPosts(
+    @Query('status') status: string,
+    @Query('userId') userId: number,
+  ) {
+    console.log('userId.......', userId);
+
+    return this.communityPostService.findAll({
+      status,
+      userId: Number(userId),
+    });
   }
 
   @Post(':id/like')

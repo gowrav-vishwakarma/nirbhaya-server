@@ -7,6 +7,10 @@ import { CommentLike } from '../models/CommentLike';
 import { CommentReply } from '../models/CommentReply';
 import { FileService } from '../files/file.service';
 
+type PostResponse = CommunityPost & {
+  wasLiked: boolean;
+};
+
 @Injectable()
 export class CommunityPostService {
   constructor(
@@ -38,9 +42,59 @@ export class CommunityPostService {
   }
 
   async findAll(options: any) {
-    console.log('options...........', options);
+    console.log('userId.......1111111111111', options.userId);
 
-    return this.communityPostModel.findAll(options);
+    const posts = await this.communityPostModel.findAll({
+      where: {
+        status: options.status || 'active',
+      },
+      include: [
+        {
+          model: PostLike,
+          as: 'likes',
+          attributes: ['userId'],
+        },
+        {
+          model: PostComment,
+          as: 'comments',
+        },
+      ],
+      order: [['createdAt', 'DESC']],
+    });
+
+    if (options.userId) {
+      console.log('Processing posts for userId:', options.userId);
+      const postsWithLikeStatus = posts.map((post) => {
+        const rawPost = post.toJSON();
+        console.log('Processing post:', post.id);
+        console.log('Post likes:', rawPost.likes);
+        const wasLiked =
+          rawPost.likes?.some((like) => {
+            console.log(
+              'Comparing:',
+              Number(like.userId),
+              Number(options.userId),
+            );
+            return Number(like.userId) === Number(options.userId);
+          }) || false;
+        console.log('wasLiked value:', wasLiked);
+
+        const transformedPost = {
+          ...rawPost,
+          wasLiked,
+        } as PostResponse;
+
+        console.log(
+          'Transformed post:',
+          JSON.stringify(transformedPost, null, 2),
+        );
+        return transformedPost;
+      });
+
+      return postsWithLikeStatus;
+    }
+
+    return posts;
   }
 
   async likePost(postId: number, userId: number) {
@@ -54,7 +108,7 @@ export class CommunityPostService {
     });
 
     if (existingLike) {
-      throw new Error('Post already liked');
+      await this.unlikePost(postId, userId);
     }
 
     await this.postLikeModel.create({ postId, userId });
