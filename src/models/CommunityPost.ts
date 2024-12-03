@@ -4,14 +4,18 @@ import {
   Model,
   DataType,
   ForeignKey,
+  BelongsTo,
+  HasMany,
   CreatedAt,
   UpdatedAt,
 } from 'sequelize-typescript';
-import { User } from './User'; // Assuming there's a `User` model for the `user_id` foreign key.
+import { User } from './User';
+import { PostLike } from './PostLike';
+import { PostComment } from './PostComment';
 
 @Table({
   tableName: 'communityPosts',
-  timestamps: true, // Enables `createdAt` and `updatedAt`.
+  timestamps: true,
 })
 export class CommunityPost extends Model<CommunityPost> {
   @Column({
@@ -22,11 +26,8 @@ export class CommunityPost extends Model<CommunityPost> {
   id: number;
 
   @ForeignKey(() => User)
-  @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-  })
-  userId!: number;
+  @Column(DataType.INTEGER)
+  userId: number;
 
   @Column({
     type: DataType.STRING,
@@ -41,11 +42,8 @@ export class CommunityPost extends Model<CommunityPost> {
   })
   title: string;
 
-  @Column({
-    type: DataType.TEXT,
-    allowNull: true,
-  })
-  description?: string;
+  @Column(DataType.TEXT)
+  description: string;
 
   @Column({
     type: DataType.TEXT,
@@ -72,13 +70,6 @@ export class CommunityPost extends Model<CommunityPost> {
     type: DataType.STRING,
   })
   Position: string;
-
-  @Column({
-    type: DataType.ENUM('active', 'inactive'),
-    allowNull: false,
-    defaultValue: 'active',
-  })
-  status: 'active' | 'inactive';
 
   @Column({
     type: DataType.TEXT,
@@ -127,47 +118,20 @@ export class CommunityPost extends Model<CommunityPost> {
     allowNull: false,
     defaultValue: 0,
   })
-  likesCount: number;
-
-  @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-    defaultValue: 0,
-  })
-  commentsCount: number;
-  @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-    defaultValue: 0,
-  })
   sharesCount: number;
-
-  @CreatedAt
-  @Column({
-    type: DataType.DATE,
-    field: 'created_at',
-  })
-  createdAt!: Date;
-
-  @UpdatedAt
-  @Column({
-    type: DataType.DATE,
-    field: 'updated_at',
-  })
-  updatedAt!: Date;
 
   @Column({
     type: DataType.ENUM('low', 'medium', 'high'),
     allowNull: false,
     defaultValue: 'medium',
   })
-  priority!: 'low' | 'medium' | 'high';
+  priority: 'low' | 'medium' | 'high';
 
   @Column({
     type: DataType.INTEGER,
     allowNull: true,
   })
-  sequence!: number;
+  sequence: number;
 
   @Column({
     type: DataType.STRING,
@@ -180,5 +144,46 @@ export class CommunityPost extends Model<CommunityPost> {
     allowNull: false,
     defaultValue: 'post',
   })
-  postType!: 'post' | 'testimonial' | 'other';
+  postType: 'post' | 'testimonial' | 'other';
+
+  @Column({
+    type: DataType.INTEGER,
+    defaultValue: 0,
+  })
+  likesCount: number;
+
+  @Column({
+    type: DataType.INTEGER,
+    defaultValue: 0,
+  })
+  commentsCount: number;
+
+  @Column({
+    type: DataType.ENUM('active', 'inactive', 'deleted'),
+    defaultValue: 'active',
+  })
+  status: string;
+
+  @BelongsTo(() => User)
+  user: User;
+
+  @HasMany(() => PostLike)
+  likes: PostLike[];
+
+  @HasMany(() => PostComment)
+  comments: PostComment[];
+
+  @CreatedAt
+  @Column({
+    type: DataType.DATE,
+    field: 'created_at',
+  })
+  createdAt: Date;
+
+  @UpdatedAt
+  @Column({
+    type: DataType.DATE,
+    field: 'updated_at',
+  })
+  updatedAt: Date;
 }

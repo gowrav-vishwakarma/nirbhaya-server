@@ -28,6 +28,10 @@ import { Incident } from './models/Incident';
 import { Like } from './models/Likes';
 import { Comment } from './models/Comments';
 import { Share } from './models/Shares';
+import { CommentLike } from './models/CommentLike';
+import { CommentReply } from './models/CommentReply';
+import { PostComment } from './models/PostComment';
+import { PostLike } from './models/PostLike';
 import { EventLog } from './models/EventLog';
 import { EventCount } from './models/EventCount';
 import { FileModule } from './files/file.module';
@@ -68,6 +72,10 @@ export const sequelizeModelArray = [
   NewsTranslation,
   EventSummery,
   PointsRulesEntity,
+  CommentLike,
+  CommentReply,
+  PostComment,
+  PostLike,
 ];
 @Module({
   imports: [
