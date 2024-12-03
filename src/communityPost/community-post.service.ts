@@ -193,7 +193,7 @@ export class CommunityPostService {
           attributes: ['id', 'name'],
         },
       ],
-      order: [['createdAt', 'DESC']],
+      order: [['createdAt', 'ASC']],
     });
   }
 
