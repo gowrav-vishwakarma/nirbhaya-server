@@ -6,6 +6,7 @@ import { PostLike } from '../models/PostLike';
 import { CommentLike } from '../models/CommentLike';
 import { CommentReply } from '../models/CommentReply';
 import { FileService } from '../files/file.service';
+import { User } from '../models/User';
 
 type PostResponse = CommunityPost & {
   wasLiked: boolean;
@@ -54,10 +55,10 @@ export class CommunityPostService {
           as: 'likes',
           attributes: ['userId'],
         },
-        {
-          model: PostComment,
-          as: 'comments',
-        },
+        // {
+        //   model: PostComment,
+        //   as: 'comments',
+        // },
       ],
       order: [['createdAt', 'DESC']],
     });
@@ -159,7 +160,13 @@ export class CommunityPostService {
   async getComments(postId: number) {
     return this.postCommentModel.findAll({
       where: { postId },
-      include: ['user'],
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'name'],
+        },
+      ],
       order: [['createdAt', 'DESC']],
     });
   }
