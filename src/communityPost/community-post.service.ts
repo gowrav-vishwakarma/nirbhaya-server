@@ -31,10 +31,36 @@ export class CommunityPostService {
   async create(createPostDto: any, files: Array<Express.Multer.File>) {
     try {
       const imageUrls = await this.imageUpload(files, createPostDto.userId);
+
+      // Parse the location string into a GeoJSON object
+      let location = null;
+      if (createPostDto.location) {
+        const locationObj = JSON.parse(createPostDto.location);
+        location = {
+          type: 'Point',
+          coordinates: locationObj.coordinates,
+        };
+      }
+
+      // Parse tags if it's a string
+      let tags = createPostDto.tags;
+      if (typeof tags === 'string') {
+        try {
+          tags = JSON.parse(tags);
+        } catch {
+          tags = [];
+        }
+      }
+
       const postData = {
         ...createPostDto,
         mediaUrls: imageUrls,
+        location: location,
+        tags: tags,
       };
+
+      console.log('postData.......', postData);
+
       return await this.communityPostModel.create(postData);
     } catch (error) {
       console.error('Create post error:', error);

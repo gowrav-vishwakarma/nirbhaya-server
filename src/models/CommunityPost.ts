@@ -85,8 +85,7 @@ export class CommunityPost extends Model<CommunityPost> {
 
   @Column({
     type: DataType.GEOMETRY('POINT'),
-    allowNull: false,
-    // defaultValue: { type: 'Point', coordinates: [0, 0] },
+    allowNull: true,
   })
   location: any;
 
@@ -100,6 +99,7 @@ export class CommunityPost extends Model<CommunityPost> {
     get() {
       const rawValue = this.getDataValue('tags');
       if (!rawValue) return [];
+      if (Array.isArray(rawValue)) return rawValue;
       try {
         return JSON.parse(rawValue);
       } catch {
@@ -107,7 +107,11 @@ export class CommunityPost extends Model<CommunityPost> {
       }
     },
     set(value: string[]) {
-      this.setDataValue('tags', JSON.stringify(value));
+      if (Array.isArray(value)) {
+        this.setDataValue('tags', JSON.stringify(value));
+      } else {
+        this.setDataValue('tags', '[]');
+      }
     },
     defaultValue: '[]',
   })
