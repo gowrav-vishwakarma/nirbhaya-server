@@ -3,15 +3,21 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { CommunityPostController } from './community-post.controller';
 import { CommunityPostService } from './community-post.service';
 import { CommunityPost } from '../models/CommunityPost';
-import { User } from '../models/User';
-import { Like } from '../models/Likes';
-import { Comment } from '../models/Comments';
-import { Share } from '../models/Shares';
+import { PostComment } from '../models/PostComment';
+import { PostLike } from '../models/PostLike';
+import { CommentLike } from '../models/CommentLike';
+import { CommentReply } from '../models/CommentReply';
 import { FileModule } from '../files/file.module';
 
 @Module({
   imports: [
-    SequelizeModule.forFeature([CommunityPost, User, Like, Comment, Share]),
+    SequelizeModule.forFeature([
+      CommunityPost,
+      PostComment,
+      PostLike,
+      CommentLike,
+      CommentReply,
+    ]),
     FileModule,
   ],
   controllers: [CommunityPostController],

@@ -32,7 +32,7 @@ export class Admin extends Model<Admin> {
 
   @Column({
     type: DataType.STRING(15),
-    unique: true,
+    // unique: true,
     allowNull: false,
   })
   phoneNumber: string;
@@ -49,7 +49,7 @@ export class Admin extends Model<Admin> {
 
   @Column({
     allowNull: false,
-    unique: true,
+    // unique: true,
   })
   email: string;
 
