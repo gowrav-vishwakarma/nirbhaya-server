@@ -8,8 +8,13 @@ import { User } from 'src/models/User';
 import { EmergencyContact } from 'src/models/EmergencyContact';
 import { SosEvent } from 'src/models/SosEvent';
 import { PointsRulesEntity } from 'src/models/PointsRulesEntity';
+import { ReferralLog } from '../models/ReferralLog';
+import { Sequelize } from 'sequelize-typescript';
+
 @Injectable()
 export class GlobalService {
+  constructor(private sequelize: Sequelize) {}
+
   async updateEventCount(
     type: string,
     userId: number,
@@ -150,4 +155,43 @@ export class GlobalService {
       throw error;
     }
   }
+
+  async createReferralEntry(receiverId: number, giverId: number) {
+    const t = await this.sequelize.transaction();
+
+    try {
+      const currentDate = new Date();
+      const dateOnly = currentDate.toISOString().split('T')[0];
+
+      // Create entry in ReferralLog within transaction
+      const referralEntry = await ReferralLog.create(
+        {
+          receiverId,
+          giverId,
+          date: dateOnly,
+        },
+        { transaction: t },
+      );
+
+      if (referralEntry) {
+        console.log('referralEntry', referralEntry);
+        // await this.updateEventCount('referralGiver', receiverId, true, giverId);
+        // await this.updateEventCount(
+        //   'referralAcceptor',
+        //   giverId,
+        //   true,
+        //   receiverId,
+        // );
+      }
+
+      await t.commit();
+      return referralEntry;
+    } catch (error) {
+      await t.rollback();
+      console.error('Error in createReferralEntry:', error);
+      throw error;
+    }
+  }
+
+  // referral logic
 }
