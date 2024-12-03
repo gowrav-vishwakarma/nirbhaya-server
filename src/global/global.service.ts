@@ -43,9 +43,23 @@ export class GlobalService {
           actionType: type,
         },
       });
-      if (PointsRule && referUserId) {
+      if (PointsRule) {
         defaults['point'] = PointsRule?.points;
       }
+
+      const updatePointsCondition = {};
+      if (PointsRule) {
+        if (referUserId) {
+          updatePointsCondition['id'] = referUserId;
+        } else {
+          updatePointsCondition['id'] = userId;
+        }
+        await User.increment('point', {
+          by: defaults['point'],
+          where: updatePointsCondition,
+        });
+      }
+
       // Create or update EventLog
       const [eventLog, created] = await EventLog.findOrCreate({
         where: {
