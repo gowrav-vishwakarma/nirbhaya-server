@@ -86,6 +86,7 @@ export class AuthService {
       referralId: user.referralId, // Include the referralId in the response
       referredBy: user.referredBy ? user.referredBy.referralId : null,
       isAmbassador: user.isAmbassador,
+      canCreatePost: user.canCreatePost,
     };
   }
 
@@ -122,6 +123,7 @@ export class AuthService {
         'dob',
         'profession',
         'isAmbassador',
+        'canCreatePost',
       ],
       include: [
         {
