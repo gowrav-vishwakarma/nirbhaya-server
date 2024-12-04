@@ -37,6 +37,7 @@ import { EventCount } from './models/EventCount';
 import { FileModule } from './files/file.module';
 import { NewsModule } from './news/news.module';
 import { Feedback } from './models/Feedback';
+import { UserInteraction } from './models/UserInteractions';
 import { AdminAuthModule } from './admin-auth/admin-auth.module';
 import { Admin } from './models/Admin';
 import { GovPincodeData } from './models/GovPincodeData';
@@ -76,6 +77,7 @@ export const sequelizeModelArray = [
   CommentReply,
   PostComment,
   PostLike,
+  UserInteraction,
 ];
 @Module({
   imports: [

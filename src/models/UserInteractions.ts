@@ -48,7 +48,7 @@ export class UserInteraction extends Model<UserInteraction> {
     allowNull: false,
     defaultValue: DataType.NOW,
   })
-  date: Date;
+  date: string;
 
   @CreatedAt
   @Column({ type: DataType.DATE })

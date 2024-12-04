@@ -7,6 +7,8 @@ import { CommentLike } from '../models/CommentLike';
 import { CommentReply } from '../models/CommentReply';
 import { FileService } from '../files/file.service';
 import { User } from '../models/User';
+import { UserInteraction } from '../models/UserInteractions';
+import { Op } from 'sequelize';
 
 type PostResponse = CommunityPost & {
   wasLiked: boolean;
@@ -32,6 +34,10 @@ export class CommunityPostService {
     private commentLikeModel: typeof CommentLike,
     @InjectModel(CommentReply)
     private commentReplyModel: typeof CommentReply,
+    @InjectModel(UserInteraction)
+    private userInteractionModel: typeof UserInteraction,
+    @InjectModel(User)
+    private userModel: typeof User,
     private readonly fileService: FileService,
   ) {}
 
@@ -68,6 +74,8 @@ export class CommunityPostService {
 
       console.log('postData.......', postData);
 
+      await this.updateUserInteraction('post', createPostDto.userId);
+
       return await this.communityPostModel.create(postData);
     } catch (error) {
       console.error('Create post error:', error);
@@ -77,28 +85,21 @@ export class CommunityPostService {
 
   async findAll(params: FindAllParams) {
     const { status, userId, offset = 0, limit = 5 } = params;
-    const [postsData, total] = await Promise.all([
-      this.communityPostModel.findAll({
-        where: {
-          status: status || 'active',
+    const postsData = await this.communityPostModel.findAll({
+      where: {
+        status: status || 'active',
+      },
+      include: [
+        {
+          model: PostLike,
+          as: 'likes',
+          attributes: ['userId'],
         },
-        include: [
-          {
-            model: PostLike,
-            as: 'likes',
-            attributes: ['userId'],
-          },
-        ],
-        order: [['createdAt', 'DESC']],
-        offset,
-        limit,
-      }),
-      this.communityPostModel.count({
-        where: {
-          status: status || 'active',
-        },
-      }),
-    ]);
+      ],
+      order: [['createdAt', 'DESC']],
+      offset,
+      limit,
+    });
 
     const posts = postsData.map((post) => {
       const rawPost = post.toJSON();
@@ -143,6 +144,8 @@ export class CommunityPostService {
     await this.postLikeModel.create({ postId, userId });
     await post.increment('likesCount', { by: 1 });
 
+    await this.updateUserInteraction('like', userId);
+
     return { message: 'Post liked successfully' };
   }
 
@@ -163,6 +166,8 @@ export class CommunityPostService {
     await like.destroy();
     await post.decrement('likesCount', { by: 1 });
 
+    await this.updateUserInteraction('unlike', userId);
+
     return { message: 'Post unliked successfully' };
   }
 
@@ -181,6 +186,8 @@ export class CommunityPostService {
     });
 
     await post.increment('commentsCount', { by: 1 });
+
+    await this.updateUserInteraction('comment', userId);
 
     return comment;
   }
@@ -278,6 +285,51 @@ export class CommunityPostService {
     await comment.decrement('repliesCount', { by: 1 });
 
     return { message: 'Reply deleted successfully' };
+  }
+
+  async getUserInteraction(userId: number) {
+    return this.userModel.findOne({
+      where: {
+        id: userId,
+      },
+      include: [
+        {
+          model: UserInteraction,
+          where: {
+            date: {
+              [Op.gte]: new Date().toISOString().split('T')[0],
+            },
+          },
+          required: false,
+        },
+      ],
+      attributes: ['id', 'name', 'email'],
+    });
+  }
+
+  async updateUserInteraction(type: string, userId: number) {
+    // Find or create a user interaction record
+    const [userInteraction] = await this.userInteractionModel.findOrCreate({
+      where: { userId, date: new Date().toISOString().split('T')[0] },
+      defaults: {
+        userId,
+        usedLikeCount: 0,
+        usedCommentCount: 0,
+        usedPostCount: 0,
+        date: new Date().toISOString().split('T')[0],
+      },
+    });
+
+    // Increment the appropriate field
+    if (type === 'like') {
+      await userInteraction.increment('usedLikeCount', { by: 1 });
+    } else if (type === 'comment') {
+      await userInteraction.increment('usedCommentCount', { by: 1 });
+    } else if (type === 'post') {
+      await userInteraction.increment('usedPostCount', { by: 1 });
+    } else if (type === 'unlike') {
+      await userInteraction.decrement('usedLikeCount', { by: 1 });
+    }
   }
 
   private async imageUpload(

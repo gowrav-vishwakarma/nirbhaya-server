@@ -5,8 +5,10 @@ import { CommunityPostService } from './community-post.service';
 import { CommunityPost } from '../models/CommunityPost';
 import { PostComment } from '../models/PostComment';
 import { PostLike } from '../models/PostLike';
+import { User } from '../models/User';
 import { CommentLike } from '../models/CommentLike';
 import { CommentReply } from '../models/CommentReply';
+import { UserInteraction } from '../models/UserInteractions';
 import { FileModule } from '../files/file.module';
 
 @Module({
@@ -17,6 +19,8 @@ import { FileModule } from '../files/file.module';
       PostLike,
       CommentLike,
       CommentReply,
+      UserInteraction,
+      User,
     ]),
     FileModule,
   ],
