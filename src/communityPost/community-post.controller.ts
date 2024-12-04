@@ -121,4 +121,8 @@ export class CommunityPostController {
   async getReplies(@Param('commentId') commentId: string) {
     return await this.communityPostService.getReplies(+commentId);
   }
+  @Get('user-interaction/:userId')
+  async getUserInteraction(@Param('userId') userId: number) {
+    return await this.communityPostService.getUserInteraction(userId);
+  }
 }

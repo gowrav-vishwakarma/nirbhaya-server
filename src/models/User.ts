@@ -15,6 +15,7 @@ import { SosEvent } from './SosEvent';
 import { CommunityApplications } from './CommunityApplications';
 import { Suggestion } from './Suggestion';
 import { Feedback } from './Feedback';
+import { UserInteraction } from './UserInteractions';
 
 export enum UserStatus {
   ACTIVE = 'active',
@@ -267,4 +268,7 @@ export class User extends Model<User> {
     as: 'receivedFeedbacks',
   })
   receivedFeedbacks: Feedback[];
+
+  @HasMany(() => UserInteraction)
+  userInteractions: UserInteraction[];
 }

@@ -5,7 +5,10 @@ import {
   DataType,
   CreatedAt,
   UpdatedAt,
+  BelongsTo,
+  ForeignKey,
 } from 'sequelize-typescript';
+import { User } from './User';
 
 @Table({ tableName: 'userInteractions', timestamps: true })
 export class UserInteraction extends Model<UserInteraction> {
@@ -16,6 +19,7 @@ export class UserInteraction extends Model<UserInteraction> {
   })
   id: number;
 
+  @ForeignKey(() => User)
   @Column({
     type: DataType.INTEGER.UNSIGNED,
     allowNull: false,
@@ -57,4 +61,7 @@ export class UserInteraction extends Model<UserInteraction> {
   @UpdatedAt
   @Column({ type: DataType.DATE })
   updatedAt: Date;
+
+  @BelongsTo(() => User)
+  user: User;
 }

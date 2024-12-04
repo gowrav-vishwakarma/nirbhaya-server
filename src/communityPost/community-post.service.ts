@@ -288,7 +288,8 @@ export class CommunityPostService {
   }
 
   async getUserInteraction(userId: number) {
-    return this.userModel.findOne({
+    // Fetch the user along with their daily interaction data
+    const user = await this.userModel.findOne({
       where: {
         id: userId,
       },
@@ -297,14 +298,46 @@ export class CommunityPostService {
           model: UserInteraction,
           where: {
             date: {
-              [Op.gte]: new Date().toISOString().split('T')[0],
+              [Op.gte]: new Date().toISOString().split('T')[0], // Filters for today's interactions
             },
           },
-          required: false,
+          required: false, // Allow user to be returned even if no interactions found
+          attributes: ['usedLikeCount', 'usedCommentCount', 'usedPostCount'],
         },
       ],
-      attributes: ['id', 'name', 'email'],
+      attributes: [
+        'id',
+        'name',
+        'email',
+        'dailyLikeLimit',
+        'dailyCommentLimit',
+        'dailyPostLimit',
+      ],
     });
+
+    if (!user) {
+      return null; // Or handle the case where the user is not found
+    }
+
+    // Extract user interaction data (defaults to 0 if no interactions found)
+    const userInteraction = user.userInteractions?.[0] || {
+      // Corrected here: `userInteractions`
+      usedLikeCount: 0,
+      usedCommentCount: 0,
+      usedPostCount: 0,
+    };
+
+    return {
+      // User values
+      dailyLikeLimit: user.dailyLikeLimit,
+      dailyCommentLimit: user.dailyCommentLimit,
+      dailyPostLimit: user.dailyPostLimit,
+
+      // UserInteraction values
+      usedLikeCount: userInteraction.usedLikeCount,
+      usedCommentCount: userInteraction.usedCommentCount,
+      usedPostCount: userInteraction.usedPostCount,
+    };
   }
 
   async updateUserInteraction(type: string, userId: number) {
@@ -328,7 +361,10 @@ export class CommunityPostService {
     } else if (type === 'post') {
       await userInteraction.increment('usedPostCount', { by: 1 });
     } else if (type === 'unlike') {
-      await userInteraction.decrement('usedLikeCount', { by: 1 });
+      // Check if the count is greater than 0 before decrementing
+      if (userInteraction.usedLikeCount > 0) {
+        await userInteraction.decrement('usedLikeCount', { by: 1 });
+      }
     }
   }
 
