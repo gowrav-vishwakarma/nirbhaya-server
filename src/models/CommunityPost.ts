@@ -26,7 +26,10 @@ export class CommunityPost extends Model<CommunityPost> {
   id: number;
 
   @ForeignKey(() => User)
-  @Column(DataType.INTEGER)
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+  })
   userId: number;
 
   @Column({

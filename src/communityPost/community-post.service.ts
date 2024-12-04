@@ -77,7 +77,7 @@ export class CommunityPostService {
 
   async findAll(params: FindAllParams) {
     const { status, userId, offset = 0, limit = 5 } = params;
-    const [posts, total] = await Promise.all([
+    const [postsData, total] = await Promise.all([
       this.communityPostModel.findAll({
         where: {
           status: status || 'active',
@@ -100,7 +100,7 @@ export class CommunityPostService {
       }),
     ]);
 
-    const posts = posts.map((post) => {
+    const posts = postsData.map((post) => {
       const rawPost = post.toJSON();
       console.log('Processing post:', post.id);
       console.log('Post likes:', rawPost.likes);
