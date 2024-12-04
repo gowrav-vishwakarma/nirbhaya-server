@@ -96,7 +96,7 @@ export const sequelizeModelArray = [
         database: configService.get<string>('DB_NAME'),
         autoLoadModels: true,
         logQueryParameters: true,
-        // synchronize: true,
+        synchronize: false,
         // sync: {
         //   alter: true,
         // },

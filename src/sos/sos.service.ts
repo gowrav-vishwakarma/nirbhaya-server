@@ -685,9 +685,19 @@ export class SosService {
     try {
       // Get total number of users
       const totalVolunteers = await this.userModel.count();
-
+      const activeLocations = 0;
+      const successRate = 0;
+      const totalHelped = 0;
+      const avgResponseTime = 0;
+      const activeMember = 0;
+      // const Together, We’ve Helped = 0;
       return {
         totalVolunteers,
+        activeLocations: totalVolunteers - 1, // for temporary solution
+        totalHelped,
+        successRate,
+        avgResponseTime,
+        activeMember,
       };
     } catch (error) {
       console.error('Error getting trust stats:', error);
