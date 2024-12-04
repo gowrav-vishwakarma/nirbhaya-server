@@ -13,7 +13,7 @@ import { User } from './User';
 @Table({ tableName: 'userInteractions', timestamps: true })
 export class UserInteraction extends Model<UserInteraction> {
   @Column({
-    type: DataType.INTEGER.UNSIGNED,
+    type: DataType.INTEGER,
     autoIncrement: true,
     primaryKey: true,
   })
@@ -21,7 +21,7 @@ export class UserInteraction extends Model<UserInteraction> {
 
   @ForeignKey(() => User)
   @Column({
-    type: DataType.INTEGER.UNSIGNED,
+    type: DataType.INTEGER,
     allowNull: false,
   })
   userId: number;
