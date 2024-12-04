@@ -12,6 +12,13 @@ type PostResponse = CommunityPost & {
   wasLiked: boolean;
 };
 
+interface FindAllParams {
+  status?: string;
+  userId?: number;
+  offset?: number;
+  limit?: number;
+}
+
 @Injectable()
 export class CommunityPostService {
   constructor(
@@ -68,58 +75,53 @@ export class CommunityPostService {
     }
   }
 
-  async findAll(options: any) {
-    console.log('userId.......1111111111111', options.userId);
-
-    const posts = await this.communityPostModel.findAll({
-      where: {
-        status: options.status || 'active',
-      },
-      include: [
-        {
-          model: PostLike,
-          as: 'likes',
-          attributes: ['userId'],
+  async findAll(params: FindAllParams) {
+    const { status, userId, offset = 0, limit = 5 } = params;
+    const [posts, total] = await Promise.all([
+      this.communityPostModel.findAll({
+        where: {
+          status: status || 'active',
         },
-        // {
-        //   model: PostComment,
-        //   as: 'comments',
-        // },
-      ],
-      order: [['createdAt', 'DESC']],
+        include: [
+          {
+            model: PostLike,
+            as: 'likes',
+            attributes: ['userId'],
+          },
+        ],
+        order: [['createdAt', 'DESC']],
+        offset,
+        limit,
+      }),
+      this.communityPostModel.count({
+        where: {
+          status: status || 'active',
+        },
+      }),
+    ]);
+
+    const posts = posts.map((post) => {
+      const rawPost = post.toJSON();
+      console.log('Processing post:', post.id);
+      console.log('Post likes:', rawPost.likes);
+      const wasLiked =
+        rawPost.likes?.some((like) => {
+          console.log('Comparing:', Number(like.userId), Number(userId));
+          return Number(like.userId) === Number(userId);
+        }) || false;
+      console.log('wasLiked value:', wasLiked);
+
+      const transformedPost = {
+        ...rawPost,
+        wasLiked,
+      } as PostResponse;
+
+      console.log(
+        'Transformed post:',
+        JSON.stringify(transformedPost, null, 2),
+      );
+      return transformedPost;
     });
-
-    if (options.userId) {
-      console.log('Processing posts for userId:', options.userId);
-      const postsWithLikeStatus = posts.map((post) => {
-        const rawPost = post.toJSON();
-        console.log('Processing post:', post.id);
-        console.log('Post likes:', rawPost.likes);
-        const wasLiked =
-          rawPost.likes?.some((like) => {
-            console.log(
-              'Comparing:',
-              Number(like.userId),
-              Number(options.userId),
-            );
-            return Number(like.userId) === Number(options.userId);
-          }) || false;
-        console.log('wasLiked value:', wasLiked);
-
-        const transformedPost = {
-          ...rawPost,
-          wasLiked,
-        } as PostResponse;
-
-        console.log(
-          'Transformed post:',
-          JSON.stringify(transformedPost, null, 2),
-        );
-        return transformedPost;
-      });
-
-      return postsWithLikeStatus;
-    }
 
     return posts;
   }

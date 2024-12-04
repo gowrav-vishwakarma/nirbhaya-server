@@ -36,12 +36,15 @@ export class CommunityPostController {
   async getCommunityPosts(
     @Query('status') status: string,
     @Query('userId') userId: number,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 5,
   ) {
-    console.log('userId.......', userId);
-
+    const offset = (page - 1) * limit;
     return this.communityPostService.findAll({
       status,
       userId: Number(userId),
+      offset,
+      limit: Number(limit),
     });
   }
 
