@@ -8,7 +8,6 @@ import {
   HasOne,
   ForeignKey,
   BelongsTo,
-  Unique,
 } from 'sequelize-typescript';
 import { EmergencyContact } from './EmergencyContact';
 import { UserLocation } from './UserLocation';
@@ -16,6 +15,12 @@ import { SosEvent } from './SosEvent';
 import { CommunityApplications } from './CommunityApplications';
 import { Suggestion } from './Suggestion';
 import { Feedback } from './Feedback';
+
+export enum UserStatus {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  BLOCKED = 'blocked',
+}
 
 @Table({
   tableName: 'Users', // explicitly define table name
@@ -77,8 +82,12 @@ export class User extends Model<User> {
   @Column(DataType.STRING(100))
   profession: string;
 
-  // @Column(DataType.STRING(25))
-  // status: string;
+  @Column({
+    type: DataType.ENUM(...Object.values(UserStatus)),
+    defaultValue: UserStatus.ACTIVE,
+    allowNull: false,
+  })
+  status: UserStatus;
 
   @Column(DataType.DATE)
   otpCreatedAt: Date;
@@ -91,6 +100,12 @@ export class User extends Model<User> {
     defaultValue: false,
   })
   isVerified: boolean;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: true,
+  })
+  canCreatePost: boolean;
 
   @Column(DataType.BOOLEAN)
   hasJoinedCommunity: boolean;
@@ -197,6 +212,27 @@ export class User extends Model<User> {
     type: DataType.DATE,
   })
   ambassadorTimestamp: Date;
+
+  @Column({
+    type: DataType.INTEGER,
+    defaultValue: 100,
+    allowNull: false,
+  })
+  dailyLikeLimit: number;
+
+  @Column({
+    type: DataType.INTEGER,
+    defaultValue: 100,
+    allowNull: false,
+  })
+  dailyCommentLimit: number;
+
+  @Column({
+    type: DataType.INTEGER,
+    defaultValue: 10,
+    allowNull: false,
+  })
+  dailyPostLimit: number;
 
   @ForeignKey(() => User)
   @Column({
