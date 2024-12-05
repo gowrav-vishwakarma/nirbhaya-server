@@ -129,6 +129,19 @@ export class CommunityPostController {
     return await this.communityPostService.getComments(+postId);
   }
 
+  @Post('delete-comment')
+  async deleteComment(
+    @Body('commentId') commentId: number,
+    @Body('userId') userId: number,
+    @Body('postId') postId: number,
+  ) {
+    return await this.communityPostService.deleteComment(
+      +commentId,
+      userId,
+      +postId,
+    );
+  }
+
   @UseGuards(AuthGuard)
   @Post('comments/:commentId/like')
   async likeComment(

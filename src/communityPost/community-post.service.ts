@@ -259,6 +259,12 @@ export class CommunityPostService {
     });
   }
 
+  async deleteComment(commentId: number, userId: number, postId: number) {
+    return this.postCommentModel.destroy({
+      where: { id: commentId, userId: userId, postId: postId },
+    });
+  }
+
   async likeComment(commentId: number, userId: number) {
     const comment = await this.postCommentModel.findByPk(commentId);
     if (!comment) {
