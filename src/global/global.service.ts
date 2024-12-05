@@ -112,18 +112,6 @@ export class GlobalService {
       const offset = params.offset || 0;
 
       console.log('service..1', params);
-
-      // First get all emergency contacts where this user is listed
-      // const emergencyContacts = await Notification.findAll({
-      //   where: {
-      //     recipientId: params.userId,
-      //   },
-      // });
-
-      // Extract the user IDs who listed this person as emergency contact
-      // const eventIds = emergencyContacts.map((contact) => contact.eventId);
-
-      // Fetch SOS events for all connected users
       console.log('query start..........');
       const sosEvents = await SosEvent.findAll({
         include: [
