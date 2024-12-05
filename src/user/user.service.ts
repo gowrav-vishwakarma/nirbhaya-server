@@ -10,6 +10,7 @@ import { UserLocation } from '../models/UserLocation';
 import { UserJWT } from '../dto/user-jwt.dto';
 import { UserProfileUpdateDto } from '../auth-module/dto/user-profile-update.dto';
 import { ValidationException } from 'src/qnatk/src/Exceptions/ValidationException';
+import { GlobalService } from 'src/global/global.service';
 
 @Injectable()
 export class UserService {
@@ -19,6 +20,7 @@ export class UserService {
     private readonly emergencyContactModel: typeof EmergencyContact,
     @InjectModel(UserLocation)
     private readonly userLocationModel: typeof UserLocation,
+    private readonly globalService: GlobalService,
   ) {}
 
   async userProfileUpdate(
@@ -72,6 +74,10 @@ export class UserService {
         });
         if (referredByUser) {
           user.referUserId = referredByUser.id;
+          await this.globalService.createReferralEntry(
+            loggedInUser.id,
+            referredByUser.id,
+          );
         } else {
           user.referUserId = null;
         }

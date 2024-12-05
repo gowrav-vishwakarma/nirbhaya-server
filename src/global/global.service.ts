@@ -8,16 +8,15 @@ import { User } from 'src/models/User';
 import { EmergencyContact } from 'src/models/EmergencyContact';
 import { SosEvent } from 'src/models/SosEvent';
 import { PointsRulesEntity } from 'src/models/PointsRulesEntity';
+import { ReferralLog } from '../models/ReferralLog';
+import { Sequelize } from 'sequelize-typescript';
+
 @Injectable()
 export class GlobalService {
-  async updateEventCount(
-    type: string,
-    userId: number,
-    isReferral?: boolean,
-    referUserId?: number,
-  ) {
+  constructor(private sequelize: Sequelize) {}
+
+  async updateEventCount(type: string, userId: number, referUserId?: number) {
     try {
-      console.log('isReferral', isReferral);
       // Validate input parameters
       if (!type || !userId) {
         console.warn('Invalid input: type and userId are required');
@@ -26,21 +25,47 @@ export class GlobalService {
 
       const currentDate = new Date();
       const formattedDate = currentDate.toISOString().split('T')[0];
-      const defaults = {};
-      defaults['date'] = currentDate;
-      defaults['userId'] = userId;
-      defaults['eventType'] = type;
-      defaults['count'] = 1;
+      const defaults = {
+        date: currentDate,
+        userId: userId,
+        eventType: type,
+        count: 1,
+        point: 0,
+      };
 
-      const PointsRule = await PointsRulesEntity.findOne({
-        attributes: ['points'],
-        where: {
-          actionType: type,
-        },
+      // Get points rule for this action
+      const pointsRule = await PointsRulesEntity.findOne({
+        where: { actionType: type },
       });
-      if (PointsRule && referUserId) {
-        defaults['point'] = PointsRule?.points;
+
+      // Handle special cases for referral and ambassador
+      if (type === 'referralGiver') {
+        // Check if referrer and receiver are in same city
+        const [referrer, receiver] = await Promise.all([
+          User.findByPk(referUserId),
+          User.findByPk(userId),
+        ]);
+
+        if (referrer?.city === receiver?.city) {
+          defaults.point = pointsRule?.points || 10;
+        } else {
+          defaults.point = 0; // No points if different cities
+        }
+      } else if (type === 'becomeAmbassador') {
+        defaults.point = pointsRule?.points || 200;
+      } else if (pointsRule) {
+        defaults.point = pointsRule.points;
       }
+
+      // Update user points if applicable
+      if (defaults.point > 0) {
+        const targetUserId = referUserId || userId;
+        await User.increment('point', {
+          by: defaults.point,
+          where: { id: targetUserId },
+        });
+      }
+
       // Create or update EventLog
       const [eventLog, created] = await EventLog.findOrCreate({
         where: {
@@ -150,4 +175,38 @@ export class GlobalService {
       throw error;
     }
   }
+
+  async createReferralEntry(receiverId: number, giverId: number) {
+    const t = await this.sequelize.transaction();
+
+    try {
+      const currentDate = new Date();
+      const dateOnly = currentDate.toISOString().split('T')[0];
+
+      // Create entry in ReferralLog within transaction
+      const referralEntry = await ReferralLog.create(
+        {
+          receiverId,
+          giverId,
+          date: dateOnly,
+        },
+        { transaction: t },
+      );
+
+      if (referralEntry) {
+        console.log('referralEntry', referralEntry);
+        await this.updateEventCount('referralGiver', receiverId, giverId);
+        await this.updateEventCount('referralAcceptor', giverId, receiverId);
+      }
+
+      await t.commit();
+      return referralEntry;
+    } catch (error) {
+      await t.rollback();
+      console.error('Error in createReferralEntry:', error);
+      throw error;
+    }
+  }
+
+  // referral logic
 }

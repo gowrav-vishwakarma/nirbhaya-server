@@ -52,7 +52,7 @@ export class EventLogForAmbassador extends BaseHook {
       await this.globalService.updateEventCount(
         eventLogs[i].eventType,
         eventLogs[i].userId,
-        eventLogs[i]?.isReferral,
+        // eventLogs[i]?.isReferral,
         eventLogs[i]?.referUserId,
       );
     }

@@ -52,6 +52,7 @@ import { NewsTranslation } from './models/NewsTranslation';
 import { EventSummery } from './models/EventSummery';
 import { PointsRulesEntity } from './models/PointsRulesEntity';
 import { CommunityPostModule } from './communityPost/community-post.module';
+import { ReferralLog } from './models/ReferralLog';
 export const sequelizeModelArray = [
   User,
   EmergencyContact,
@@ -78,6 +79,7 @@ export const sequelizeModelArray = [
   PostComment,
   PostLike,
   UserInteraction,
+  ReferralLog,
 ];
 @Module({
   imports: [

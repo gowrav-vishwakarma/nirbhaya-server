@@ -145,6 +145,9 @@ export class CommunityPostService {
       offset,
       limit,
     });
+    const userData = await this.userModel.findByPk(userId, {
+      attributes: ['id', 'name', 'email'],
+    });
     const posts = postsData.map((post) => {
       const rawPost = post.toJSON();
       console.log('Processing post:', post.id);
@@ -159,7 +162,7 @@ export class CommunityPostService {
       const transformedPost = {
         ...rawPost,
         wasLiked,
-      } as PostResponse;
+      } as PostResponse & { user: typeof userData };
 
       console.log(
         'Transformed post:',
@@ -168,7 +171,7 @@ export class CommunityPostService {
       return transformedPost;
     });
 
-    return posts;
+    return { posts, user: userData };
   }
 
   async deletePost(postId: number, userId: number) {

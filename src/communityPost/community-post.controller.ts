@@ -64,11 +64,12 @@ export class CommunityPostController {
     return this.communityPostService.findAllmyPost({ userId, status });
   }
 
-  @Get('delete-post')
+  @Post('delete-post')
   async deletePost(
-    @Param('id') postId: number,
-    @Param('userId') userId: number,
+    @Body('postId') postId: number,
+    @Body('userId') userId: number,
   ) {
+    console.log('postId..........', postId);
     return this.communityPostService.deletePost(postId, userId);
   }
 
