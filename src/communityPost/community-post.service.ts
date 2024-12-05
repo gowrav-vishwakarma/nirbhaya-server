@@ -260,9 +260,22 @@ export class CommunityPostService {
   }
 
   async deleteComment(commentId: number, userId: number, postId: number) {
-    return this.postCommentModel.destroy({
+    // First find the post
+    const post = await this.communityPostModel.findByPk(postId);
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
+    // Delete the comment
+    const result = await this.postCommentModel.destroy({
       where: { id: commentId, userId: userId, postId: postId },
     });
+
+    if (result > 0) {
+      await post.decrement('commentsCount', { by: 1 });
+    }
+
+    return result;
   }
 
   async likeComment(commentId: number, userId: number) {
