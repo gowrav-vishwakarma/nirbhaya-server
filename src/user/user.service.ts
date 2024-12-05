@@ -239,6 +239,13 @@ export class UserService {
       token, // Include the token in the response
       referralId: user.referralId, // Include the referralId in the response
       referredBy: user.referredBy ? user.referredBy.referralId : null,
+      isAmbassador: user.isAmbassador,
+      canCreatePost: user.canCreatePost,
+      id: user.id,
+      state: user.state,
+      dob: user.dob,
+      profession: user.profession,
+      pincode: user.pincode,
     };
   }
   async userEmergencyContactAdd(userId: number, contacts: any[]): Promise<any> {

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { CommunityPostController } from './community-post.controller';
 import { CommunityPostService } from './community-post.service';
@@ -10,6 +10,7 @@ import { CommentLike } from '../models/CommentLike';
 import { CommentReply } from '../models/CommentReply';
 import { UserInteraction } from '../models/UserInteractions';
 import { FileModule } from '../files/file.module';
+import { AuthModule } from '../auth-module/auth.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { FileModule } from '../files/file.module';
       User,
     ]),
     FileModule,
+    forwardRef(() => AuthModule),
   ],
   controllers: [CommunityPostController],
   providers: [CommunityPostService],
