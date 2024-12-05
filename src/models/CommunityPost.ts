@@ -171,6 +171,19 @@ export class CommunityPost extends Model<CommunityPost> {
   })
   status: string;
 
+  @Column({
+    type: DataType.BOOLEAN,
+    allowNull: true,
+    defaultValue: false,
+  })
+  isDeleted?: boolean;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: true,
+  })
+  deletedAt?: Date;
+
   @BelongsTo(() => User)
   user: User;
 

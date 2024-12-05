@@ -131,6 +131,7 @@ export class CommunityPostService {
     const postsData = await this.communityPostModel.findAll({
       where: {
         status: status || 'active',
+        isDeleted: false,
         userId: userId,
       },
       include: [
@@ -144,7 +145,6 @@ export class CommunityPostService {
       offset,
       limit,
     });
-
     const posts = postsData.map((post) => {
       const rawPost = post.toJSON();
       console.log('Processing post:', post.id);
@@ -171,6 +171,12 @@ export class CommunityPostService {
     return posts;
   }
 
+  async deletePost(postId: number, userId: number) {
+    return this.communityPostModel.update(
+      { status: 'Inactive', isDeleted: true, deletedAt: new Date() },
+      { where: { id: postId, userId: userId } },
+    );
+  }
   async likePost(postId: number, userId: number) {
     const post = await this.communityPostModel.findByPk(postId);
     if (!post) {

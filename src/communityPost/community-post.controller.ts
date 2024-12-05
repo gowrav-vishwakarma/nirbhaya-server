@@ -64,6 +64,14 @@ export class CommunityPostController {
     return this.communityPostService.findAllmyPost({ userId, status });
   }
 
+  @Get('delete-post')
+  async deletePost(
+    @Param('id') postId: number,
+    @Param('userId') userId: number,
+  ) {
+    return this.communityPostService.deletePost(postId, userId);
+  }
+
   @Post(':id/like')
   async likePost(
     @Param('id') postId: number,
