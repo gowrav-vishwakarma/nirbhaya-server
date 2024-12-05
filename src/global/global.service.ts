@@ -8,6 +8,7 @@ import { User } from 'src/models/User';
 import { EmergencyContact } from 'src/models/EmergencyContact';
 import { SosEvent } from 'src/models/SosEvent';
 import { PointsRulesEntity } from 'src/models/PointsRulesEntity';
+import { Notification } from 'src/models/Notification';
 @Injectable()
 export class GlobalService {
   async updateEventCount(
@@ -113,35 +114,37 @@ export class GlobalService {
       console.log('service..1', params);
 
       // First get all emergency contacts where this user is listed
-      const emergencyContacts = await EmergencyContact.findAll({
-        where: {
-          contactUserId: params.userId,
-        },
-      });
+      // const emergencyContacts = await Notification.findAll({
+      //   where: {
+      //     recipientId: params.userId,
+      //   },
+      // });
 
       // Extract the user IDs who listed this person as emergency contact
-      const connectedUserIds = emergencyContacts.map(
-        (contact) => contact.userId,
-      );
+      // const eventIds = emergencyContacts.map((contact) => contact.eventId);
 
       // Fetch SOS events for all connected users
+      console.log('query start..........');
       const sosEvents = await SosEvent.findAll({
-        where: {
-          userId: {
-            [Op.in]: connectedUserIds,
-          },
-          status: 'resolved',
-        },
         include: [
           {
             model: User,
             attributes: ['name'], // Include basic user info
+          },
+          {
+            model: Notification,
+            as: 'notifications',
+            attributes: ['id'], // Include basic user info
+            where: {
+              recipientId: params.userId,
+            },
           },
         ],
         order: [['createdAt', 'DESC']], // Most recent first
         limit: limit,
         offset: offset,
       });
+      console.log('query end..........');
 
       console.log('service..2', sosEvents);
       return sosEvents;
