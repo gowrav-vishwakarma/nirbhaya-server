@@ -125,6 +125,7 @@ export class GlobalService {
             attributes: ['id'], // Include basic user info
             where: {
               recipientId: params.userId,
+              recipientType: 'emergency_contact',
             },
           },
         ],
