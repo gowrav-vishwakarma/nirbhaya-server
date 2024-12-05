@@ -126,6 +126,50 @@ export class CommunityPostService {
 
     return posts;
   }
+  async findAllmyPost(params: FindAllParams) {
+    const { status, userId, offset = 0, limit = 5 } = params;
+    const postsData = await this.communityPostModel.findAll({
+      where: {
+        status: status || 'active',
+        userId: userId,
+      },
+      include: [
+        {
+          model: PostLike,
+          as: 'likes',
+          attributes: ['userId'],
+        },
+      ],
+      order: [['createdAt', 'DESC']],
+      offset,
+      limit,
+    });
+
+    const posts = postsData.map((post) => {
+      const rawPost = post.toJSON();
+      console.log('Processing post:', post.id);
+      console.log('Post likes:', rawPost.likes);
+      const wasLiked =
+        rawPost.likes?.some((like) => {
+          console.log('Comparing:', Number(like.userId), Number(userId));
+          return Number(like.userId) === Number(userId);
+        }) || false;
+      console.log('wasLiked value:', wasLiked);
+
+      const transformedPost = {
+        ...rawPost,
+        wasLiked,
+      } as PostResponse;
+
+      console.log(
+        'Transformed post:',
+        JSON.stringify(transformedPost, null, 2),
+      );
+      return transformedPost;
+    });
+
+    return posts;
+  }
 
   async likePost(postId: number, userId: number) {
     const post = await this.communityPostModel.findByPk(postId);

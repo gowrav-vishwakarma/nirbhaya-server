@@ -48,6 +48,14 @@ export class CommunityPostController {
     });
   }
 
+  @Get('my-posts')
+  async getMyPosts(
+    @Query('userId') userId: number,
+    @Query('status') status: string,
+  ) {
+    return this.communityPostService.findAllmyPost({ userId, status });
+  }
+
   @Post(':id/like')
   async likePost(
     @Param('id') postId: number,
