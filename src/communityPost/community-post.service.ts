@@ -8,7 +8,7 @@ import { CommentReply } from '../models/CommentReply';
 import { FileService } from '../files/file.service';
 import { User } from '../models/User';
 import { UserInteraction } from '../models/UserInteractions';
-import { Op } from 'sequelize';
+import { Op, literal } from 'sequelize';
 
 type PostResponse = CommunityPost & {
   wasLiked: boolean;
@@ -384,5 +384,123 @@ export class CommunityPostService {
     });
 
     return Promise.all(uploadPromises);
+  }
+
+  async getRelevantPosts(
+    userId: number,
+    userLat: number,
+    userLong: number,
+    page: number = 1,
+    pageSize: number = 5,
+    maxDistanceKm: number = 10, // Maximum distance to consider
+    timeWeightFactor: number = 0.6, // Weight for time relevance (0-1)
+    distanceWeightFactor: number = 0.4, // Weight for distance relevance (0-1)
+  ) {
+    const offset = (page - 1) * pageSize;
+
+    // Calculate time decay factor (posts older than 30 days start losing relevance)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    // When using ST_X(location) and ST_Y(location), ST_X returns longitude and ST_Y returns latitude.
+    try {
+      console.log('relevent post finding');
+      // Using Haversine formula to calculate distance
+      const posts = await this.communityPostModel.findAll({
+        attributes: [
+          'id',
+          'title',
+          'description',
+          'createdAt',
+          'mediaUrls',
+          'userId',
+          [
+            literal(`(
+                6371 * acos(
+                  cos(radians(${userLat})) * 
+                  cos(radians(ST_Y(location))) * 
+                  cos(radians(${userLong}) - radians(ST_X(location))) + 
+                  sin(radians(${userLat})) * 
+                  sin(radians(ST_Y(location)))
+                )
+              )
+            `),
+            'distance',
+          ],
+          [
+            literal(`
+              CASE 
+                WHEN created_at > DATE_SUB(NOW(), INTERVAL 30 DAY) 
+                THEN 1 
+                ELSE EXP(-DATEDIFF(NOW(), created_at) / 30)
+              END
+            `),
+            'timeRelevance',
+          ],
+        ],
+        where: literal(`
+          (
+            6371 * acos(
+              cos(radians(${userLat})) * 
+              cos(radians(ST_Y(location))) * 
+              cos(radians(${userLong}) - radians(ST_X(location))) + 
+              sin(radians(${userLat})) * 
+              sin(radians(ST_Y(location)))
+            )
+          ) <= ${maxDistanceKm} AND status = 'active
+        `),
+        include: [
+          {
+            model: PostLike,
+            as: 'likes',
+            attributes: ['id'],
+            required: false,
+            where: { userId: userId },
+          },
+        ],
+        order: [
+          [
+            literal(`
+              (
+                ${timeWeightFactor} * timeRelevance + 
+                ${distanceWeightFactor} * (1 - (distance / ${maxDistanceKm}))
+              )
+            `),
+            'DESC',
+          ],
+        ],
+        limit: typeof pageSize === 'string' ? parseInt(pageSize) : pageSize,
+        offset: offset,
+      });
+
+      // Calculate total count for pagination
+      // const totalCount = await this.communityPostModel.count({
+      //   where: literal(`
+      //     (
+      //       6371 * acos(
+      //         cos(radians(${userLat})) *
+      //         cos(radians(ST_X(location))) *
+      //         cos(radians(${userLong}) - radians(ST_Y(location))) +
+      //         sin(radians(${userLat})) *
+      //         sin(radians(ST_X(location)))
+      //       )
+      //     ) <= ${maxDistanceKm}
+      //   `),
+      // });
+      // return {
+      //   posts,
+      //   pagination: {
+      //     currentPage: page,
+      //     pageSize,
+      //     totalPages: Math.ceil(totalCount / pageSize),
+      //     totalCount,
+      //   },
+      // };
+
+      return posts;
+    } catch (error) {
+      console.log(`Failed to fetch relevant posts: ${error.message}`);
+      return [];
+    }
   }
 }

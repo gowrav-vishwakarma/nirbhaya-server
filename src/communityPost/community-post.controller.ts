@@ -43,17 +43,25 @@ export class CommunityPostController {
     @Query('userId') userId: number,
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 5,
+    @Query('latitude') userLat: number,
+    @Query('longitude') userLong: number,
     @GetUser() user: UserJWT,
   ) {
-    console.log('user..........', user.id);
+    return this.communityPostService.getRelevantPosts(
+      user.id,
+      userLat,
+      userLong,
+      page,
+      limit,
+    );
 
-    const offset = (page - 1) * limit;
-    return this.communityPostService.findAll({
-      status,
-      userId: user.id,
-      offset,
-      limit: Number(limit),
-    });
+    // const offset = (page - 1) * limit;
+    // return this.communityPostService.findAll({
+    //   status,
+    //   userId: Number(userId),
+    //   offset,
+    //   limit: Number(limit),
+    // });
   }
 
   @Post(':id/like')
