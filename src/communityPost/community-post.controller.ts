@@ -64,6 +64,7 @@ export class CommunityPostController {
     // });
   }
 
+  @UseGuards(AuthGuard)
   @Post(':id/like')
   async likePost(
     @Param('id') postId: number,

@@ -414,6 +414,15 @@ export class CommunityPostService {
           'createdAt',
           'mediaUrls',
           'userId',
+          'status',
+          'tags',
+          'likesCount',
+          'commentsCount',
+          'sharesCount',
+          'priority',
+          'videoUrl',
+          'postType',
+          'userName',
           [
             literal(`(
                 6371 * acos(
@@ -437,6 +446,14 @@ export class CommunityPostService {
             `),
             'timeRelevance',
           ],
+          [
+            literal(`(
+              SELECT COUNT(id) FROM post_likes
+              WHERE postId = CommunityPost.id AND userId = ${userId}
+              Limit 1
+            )`),
+            'wasLiked',
+          ],
         ],
         where: literal(`
           (
@@ -447,17 +464,18 @@ export class CommunityPostService {
               sin(radians(${userLat})) * 
               sin(radians(ST_Y(location)))
             )
-          ) <= ${maxDistanceKm} AND status = 'active
+          ) <= ${maxDistanceKm} AND status = 'active'
         `),
-        include: [
-          {
-            model: PostLike,
-            as: 'likes',
-            attributes: ['id'],
-            required: false,
-            where: { userId: userId },
-          },
-        ],
+        // include: [
+        //   {
+        //     model: PostLike,
+        //     as: 'likes',
+        //     attributes: ['id'],
+        //     required: false,
+        //     where: { userId: userId },
+        //     limit: 1,
+        //   },
+        // ],
         order: [
           [
             literal(`
