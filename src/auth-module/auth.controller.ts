@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Query } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
 import { GetUser } from './getuser.decorator';
@@ -7,10 +7,10 @@ import { UserJWT } from 'src/dto/user-jwt.dto';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
-  @Post('shared-post')
+  @Get('shared-post')
   async getMyPosts(
-    @Body('postId') postId: number,
-    @Body('status') status: string,
+    @Query('postId') postId: number,
+    @Query('status') status: string,
   ) {
     return this.authService.findSharedPost({ postId, status });
   }
