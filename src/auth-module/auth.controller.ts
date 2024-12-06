@@ -1,23 +1,19 @@
-import {
-  Controller,
-  Post,
-  Body,
-  UseGuards,
-  Get,
-  Query,
-  Param,
-  Put,
-} from '@nestjs/common';
+import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
 import { GetUser } from './getuser.decorator';
 import { UserJWT } from 'src/dto/user-jwt.dto';
-import { SuggestionDto } from '../suggestion/suggestion.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
-
+  @Post('shared-post')
+  async getMyPosts(
+    @Body('postId') postId: number,
+    @Body('status') status: string,
+  ) {
+    return this.authService.findSharedPost({ postId, status });
+  }
   @Post('/signup')
   signUp(@Body() SignUpDto: any): Promise<{ token: string }> {
     return this.authService.signUp(SignUpDto);

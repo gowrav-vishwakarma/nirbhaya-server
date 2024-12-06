@@ -21,6 +21,7 @@ import { UserJWT } from 'src/dto/user-jwt.dto';
 import { SmsService } from 'src/sms/sms.service';
 import { ConfigService } from '@nestjs/config';
 import { GlobalService } from 'src/global/global.service';
+import { CommunityPost } from '../models/CommunityPost';
 
 @Injectable()
 export class AuthService {
@@ -41,6 +42,8 @@ export class AuthService {
     private readonly communityApplicationsModel: typeof CommunityApplications,
     @InjectModel(Suggestion)
     private readonly suggestionModel: typeof Suggestion,
+    @InjectModel(CommunityPost)
+    private communityPostModel: typeof CommunityPost,
     private readonly smsService: SmsService,
     private readonly configService: ConfigService,
     private readonly gobalService: GlobalService,
@@ -455,5 +458,21 @@ export class AuthService {
       { status: 'discarded' },
       { where: { id: notificationId, recipientId: userId } },
     );
+  }
+
+  async findSharedPost(params: any) {
+    const { status, offset = 0, limit = 5, postId } = params;
+    const posts = await this.communityPostModel.findAll({
+      where: {
+        status: status || 'active',
+        isDeleted: false,
+        id: postId,
+      },
+      order: [['createdAt', 'DESC']],
+      offset,
+      limit,
+    });
+
+    return posts;
   }
 }
