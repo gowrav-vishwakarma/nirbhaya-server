@@ -464,7 +464,7 @@ export class CommunityPostService {
     userLong: number,
     page: number = 1,
     pageSize: number = 5,
-    maxDistanceKm: number = 10, // Maximum distance to consider
+    maxDistanceKm: number = 1000, // Maximum distance to consider
     timeWeightFactor: number = 0.6, // Weight for time relevance (0-1)
     distanceWeightFactor: number = 0.4, // Weight for distance relevance (0-1)
   ) {
