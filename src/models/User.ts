@@ -174,10 +174,15 @@ export class User extends Model<User> {
   })
   referralId: string;
 
+  @ForeignKey(() => User)
   @Column({
-    type: DataType.STRING,
+    type: DataType.INTEGER,
+    allowNull: true,
   })
-  ambassadorReferralId: string;
+  ambassadorReferralId: number;
+
+  @BelongsTo(() => User, 'ambassadorReferralId')
+  ambassadorReferrer: User;
 
   @Column({
     type: DataType.STRING,
@@ -241,6 +246,9 @@ export class User extends Model<User> {
     allowNull: true,
   })
   referUserId: number;
+
+  @BelongsTo(() => User, 'referUserId')
+  referrer: User;
 
   @Column({
     type: DataType.INTEGER,

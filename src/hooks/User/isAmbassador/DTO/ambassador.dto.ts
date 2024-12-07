@@ -27,8 +27,8 @@ export class AmbassadorDto {
   userId: number;
 
   @IsOptional()
-  @IsString()
-  ambassadorReferralId: string;
+  @IsNumber()
+  ambassadorReferralId: number;
 
   @IsBoolean()
   isAmbassador: boolean;
