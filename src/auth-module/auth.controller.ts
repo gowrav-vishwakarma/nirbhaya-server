@@ -35,8 +35,11 @@ export class AuthController {
   }
 
   @Post('sendOtp')
-  async sendOtp(@Body('mobileNumber') mobileNumber: string) {
-    return this.authService.send_otp(mobileNumber);
+  async sendOtp(
+    @Body('mobileNumber') mobileNumber: string,
+    @Body('platform') platform: object = {},
+  ) {
+    return this.authService.send_otp(mobileNumber, platform);
   }
 
   @UseGuards(AuthGuard)

@@ -17,6 +17,10 @@ import { Suggestion } from './Suggestion';
 import { Feedback } from './Feedback';
 import { UserInteraction } from './UserInteractions';
 
+interface PlatformInfo {
+  [key: string]: any;
+}
+
 export enum UserStatus {
   ACTIVE = 'active',
   INACTIVE = 'inactive',
@@ -297,4 +301,11 @@ export class User extends Model<User> {
 
   @HasMany(() => UserInteraction)
   userInteractions: UserInteraction[];
+
+  @Column({
+    type: DataType.JSON,
+    allowNull: true,
+    comment: 'Stores device/browser platform information',
+  })
+  platform: PlatformInfo;
 }

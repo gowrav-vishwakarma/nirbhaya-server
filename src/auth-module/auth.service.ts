@@ -222,7 +222,7 @@ export class AuthService {
     return type === 'Bearer' ? token : undefined;
   }
 
-  async send_otp(mobileNumber: string) {
+  async send_otp(mobileNumber: string, platform: object) {
     if (!mobileNumber) {
       throw new ValidationException({
         mobile: ['mobile, userType and countryCode required'],
@@ -259,7 +259,7 @@ export class AuthService {
 
     if (existingUser) {
       await this.userModel.update(
-        { otp: newOtp },
+        { otp: newOtp, platform },
         {
           where: {
             id: existingUser.id,
@@ -271,6 +271,7 @@ export class AuthService {
       existingUser = await this.userModel.create({
         otp: newOtp,
         phoneNumber: mobileNumber,
+        platform,
       });
 
       // Generate and update the unique ID after user creation
