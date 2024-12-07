@@ -244,6 +244,7 @@ export class UserService {
         name: location.name,
         location: location.location,
         timestamp: location.timestamp,
+        isBusinessLocation: location.isBusinessLocation,
       })),
       startAudioVideoRecordOnSos: user.startAudioVideoRecordOnSos,
       streamAudioVideoOnSos: user.streamAudioVideoOnSos,

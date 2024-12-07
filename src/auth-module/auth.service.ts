@@ -78,6 +78,7 @@ export class AuthService {
         name: location.name,
         location: location.location,
         timestamp: location.timestamp,
+        isBusinessLocation: location.isBusinessLocation,
       })),
       startAudioVideoRecordOnSos: user.startAudioVideoRecordOnSos,
       streamAudioVideoOnSos: user.streamAudioVideoOnSos,
