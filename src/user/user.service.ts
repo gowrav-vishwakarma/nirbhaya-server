@@ -402,4 +402,47 @@ export class UserService {
       throw new error('Failed to delete emergency contact', error);
     }
   }
+
+  async addBusinessInformation(businessInfo: any, user: any) {
+    // Update user business information
+    console.log('businessInfo........', businessInfo);
+
+    const userBusinessObj = {
+      businessName: businessInfo.businessName,
+      whatsappNumber: businessInfo.whatsappNumber,
+    };
+    await this.userModel.update(userBusinessObj, {
+      where: { id: user.id },
+    });
+
+    // Handle location logic
+    const [location, created] = await this.userLocationModel.findOrCreate({
+      where: { userId: user.id },
+      defaults: {
+        name: businessInfo.locationName,
+        location: {
+          type: 'Point',
+          coordinates: [businessInfo.longitude, businessInfo.latitude],
+        },
+        isBusinessLocation: true,
+      },
+    });
+
+    if (!created) {
+      // Update the location if it already exists
+      await location.update({
+        name: businessInfo.locationName,
+        location: {
+          type: 'Point',
+          coordinates: [businessInfo.longitude, businessInfo.latitude],
+        },
+        isBusinessLocation: true,
+      });
+    }
+
+    return {
+      success: true,
+      message: 'Business information updated successfully.',
+    };
+  }
 }

@@ -248,6 +248,24 @@ export class User extends Model<User> {
   })
   point: number;
 
+  @Column({
+    type: DataType.STRING(100),
+    allowNull: true,
+  })
+  businessName: string;
+
+  @Column({
+    type: DataType.STRING(15),
+    allowNull: true,
+  })
+  whatsappNumber: string;
+
+  @Column({
+    type: DataType.STRING(15),
+    allowNull: true,
+  })
+  deviceName: string;
+
   @BelongsTo(() => User, 'referUserId')
   referredBy: User;
 

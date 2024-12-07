@@ -70,6 +70,13 @@ export class UserLocation extends Model<UserLocation> {
   location: { type: string; coordinates: number[] } | null;
 
   @Column({
+    type: DataType.BOOLEAN,
+    allowNull: true,
+    defaultValue: false,
+  })
+  isBusinessLocation?: boolean;
+
+  @Column({
     type: DataType.DATE,
     defaultValue: DataType.NOW,
   })
