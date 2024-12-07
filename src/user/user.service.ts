@@ -116,7 +116,13 @@ export class UserService {
       // Fetch user locations separately
       const userLocations = await this.userLocationModel.findAll({
         where: { userId: loggedInUser.id },
-        attributes: ['id', 'name', 'location', 'timestamp'],
+        attributes: [
+          'id',
+          'name',
+          'location',
+          'isBusinessLocation',
+          'timestamp',
+        ],
       });
 
       const updatedUserDetails = this.formatUserResponse(
@@ -252,6 +258,8 @@ export class UserService {
       dob: user.dob,
       profession: user.profession,
       pincode: user.pincode,
+      businessName: user.businessName,
+      whatsappNumber: user.whatsappNumber,
     };
   }
   async userEmergencyContactAdd(userId: number, contacts: any[]): Promise<any> {

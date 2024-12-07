@@ -87,6 +87,8 @@ export class AuthService {
       referredBy: user.referredBy ? user.referredBy.referralId : null,
       isAmbassador: user.isAmbassador,
       canCreatePost: user.canCreatePost,
+      businessName: user.businessName,
+      whatsappNumber: user.whatsappNumber,
     };
   }
 
@@ -124,6 +126,8 @@ export class AuthService {
         'profession',
         'isAmbassador',
         'canCreatePost',
+        'businessName',
+        'whatsappNumber',
       ],
       include: [
         {
@@ -158,7 +162,7 @@ export class AuthService {
     // Fetch user locations separately
     const userLocations = await this.userLocationModel.findAll({
       where: { userId: user.id },
-      attributes: ['id', 'name', 'location', 'timestamp'],
+      attributes: ['id', 'name', 'location', 'isBusinessLocation', 'timestamp'],
     });
 
     const tokenPayload: UserJWT = {
