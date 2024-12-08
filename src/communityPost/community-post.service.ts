@@ -185,15 +185,15 @@ export class CommunityPostService {
     }
 
     // Delete associated media files if they exist and don't start with 'http'
-    if (post.mediaUrls && Array.isArray(post.mediaUrls)) {
-      const deletePromises = post.mediaUrls
-        .filter((url) => typeof url === 'string' && !url.startsWith('http'))
-        .map((url) => this.fileService.deleteFile(url));
+    // if (post.mediaUrls && Array.isArray(post.mediaUrls)) {
+    //   const deletePromises = post.mediaUrls
+    //     .filter((url) => typeof url === 'string' && !url.startsWith('http'))
+    //     .map((url) => this.fileService.deleteFile(url));
 
-      if (deletePromises.length > 0) {
-        await Promise.all(deletePromises);
-      }
-    }
+    //   if (deletePromises.length > 0) {
+    //     await Promise.all(deletePromises);
+    //   }
+    // }
 
     // Update post status
     return this.communityPostModel.update(
