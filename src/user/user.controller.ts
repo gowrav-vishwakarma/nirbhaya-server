@@ -6,6 +6,7 @@ import {
   Get,
   Param,
   Query,
+  Delete,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AuthGuard } from '../auth-module/auth.guard';
@@ -93,5 +94,11 @@ export class UserController {
     console.log('businessInfo..1111111......', businessInfo);
 
     return await this.userService.addBusinessInformation(businessInfo, user);
+  }
+
+  @UseGuards(AuthGuard)
+  @Delete('/remove-business-information')
+  async removeBusinessInformation(@GetUser() user: UserJWT) {
+    return await this.userService.removeBusinessInformation(user);
   }
 }

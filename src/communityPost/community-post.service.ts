@@ -146,7 +146,7 @@ export class CommunityPostService {
       limit,
     });
     const userData = await this.userModel.findByPk(userId, {
-      attributes: ['id', 'name', 'email'],
+      attributes: ['id', 'name', 'email', 'businessName'],
     });
     const posts = postsData.map((post) => {
       const rawPost = post.toJSON();

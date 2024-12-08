@@ -454,4 +454,35 @@ export class UserService {
       message: 'Business information updated successfully.',
     };
   }
+
+  async removeBusinessInformation(user: UserJWT) {
+    try {
+      // Update user to remove business information
+      await this.userModel.update(
+        {
+          businessName: null,
+          whatsappNumber: null,
+        },
+        {
+          where: { id: user.id },
+        },
+      );
+
+      // Remove business location
+      await this.userLocationModel.destroy({
+        where: {
+          userId: user.id,
+          isBusinessLocation: true,
+        },
+      });
+
+      return {
+        success: true,
+        message: 'Business information removed successfully',
+      };
+    } catch (error) {
+      console.error('Error removing business information:', error);
+      throw new BadRequestException('Failed to remove business information');
+    }
+  }
 }
