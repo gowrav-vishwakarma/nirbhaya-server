@@ -184,4 +184,9 @@ export class CommunityPostController {
   async getUserInteraction(@Param('userId') userId: number) {
     return await this.communityPostService.getUserInteraction(userId);
   }
+
+  @Get(':postId/likes')
+  async getPostLikes(@Param('postId') postId: string) {
+    return await this.communityPostService.getPostLikes(+postId);
+  }
 }

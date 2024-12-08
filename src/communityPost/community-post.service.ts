@@ -615,4 +615,29 @@ export class CommunityPostService {
       return [];
     }
   }
+
+  async getPostLikes(postId: number) {
+    try {
+      const likes = await this.postLikeModel.findAll({
+        where: { postId },
+        include: [
+          {
+            model: User,
+            attributes: ['id', 'name', 'email'],
+          },
+        ],
+        order: [['createdAt', 'DESC']],
+      });
+
+      // Transform the data to match the frontend expectations
+      return likes.map((like) => ({
+        userId: like.user.id,
+        userName: like.user.name || like.user.email,
+        likedAt: like.createdAt,
+      }));
+    } catch (error) {
+      console.error('Error fetching post likes:', error);
+      throw error;
+    }
+  }
 }
