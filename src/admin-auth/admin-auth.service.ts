@@ -87,7 +87,6 @@ export class AdminAuthService {
         token: token,
       },
       rolePermissions: {
-        menus: [],
         routes: permissionsData?.permissions?.routes || [],
       },
     };
