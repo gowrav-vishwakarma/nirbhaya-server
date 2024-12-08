@@ -7,7 +7,9 @@ import { Admin } from '../models/Admin';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AdminAuthGuard } from './admin-auth.guard';
-
+import AclRolePermissions from 'src/models/AclRolePermissions';
+import AclEntityActions from 'src/models/AclEntityActions';
+import AclRoles from 'src/models/AclRoles';
 // import { AdminAuthGuard } from './';
 @Module({
   imports: [
@@ -22,7 +24,12 @@ import { AdminAuthGuard } from './admin-auth.guard';
         },
       }),
     } as JwtModuleAsyncOptions),
-    SequelizeModule.forFeature([Admin]),
+    SequelizeModule.forFeature([
+      Admin,
+      AclRolePermissions,
+      AclEntityActions,
+      AclRoles,
+    ]),
     forwardRef(() => AdminAuthModule),
   ],
   controllers: [AdminAuthController],

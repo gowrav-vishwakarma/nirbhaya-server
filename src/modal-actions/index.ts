@@ -6,6 +6,8 @@ import { NewsAction } from './news.action';
 import { UserLocationAction } from './userLocation.action';
 import { PointsRulesEntityAction } from './pointRulesEntity.action';
 import { CommunityPostAction } from './communityPost.action';
+import { AclEntityActions } from './AclEntityActions-action';
+import { AclRolesActions } from './aclRoles.action';
 export const ModelActions: Record<string, ActionListDTO> = {
   SosEvent: SoSEventAction,
   User: UserAction,
@@ -14,4 +16,6 @@ export const ModelActions: Record<string, ActionListDTO> = {
   UserLocation: UserLocationAction,
   PointsRulesEntity: PointsRulesEntityAction,
   CommunityPost: CommunityPostAction,
+  AclEntityActions: AclEntityActions,
+  AclRoles: AclRolesActions,
 };

@@ -53,6 +53,10 @@ import { EventSummery } from './models/EventSummery';
 import { PointsRulesEntity } from './models/PointsRulesEntity';
 import { CommunityPostModule } from './communityPost/community-post.module';
 import { ReferralLog } from './models/ReferralLog';
+import AclEntityActions from './models/AclEntityActions';
+import AclRolePermissions from './models/AclRolePermissions';
+import AclRoles from './models/AclRoles';
+import AdminQnatkController from './admin-auth/admin-auth-qnatk.controller';
 export const sequelizeModelArray = [
   User,
   EmergencyContact,
@@ -80,6 +84,9 @@ export const sequelizeModelArray = [
   PostLike,
   UserInteraction,
   ReferralLog,
+  AclEntityActions,
+  AclRolePermissions,
+  AclRoles,
 ];
 @Module({
   imports: [
@@ -144,7 +151,7 @@ export const sequelizeModelArray = [
     GlobalModule,
     CommunityPostModule,
   ],
-  controllers: [AppController, NirbhayaQnatkController],
+  controllers: [AppController, NirbhayaQnatkController, AdminQnatkController],
   providers: [
     AppService,
     SmsService,
