@@ -495,6 +495,7 @@ export class CommunityPostService {
           'videoUrl',
           'postType',
           'userName',
+          'isBusinessPost',
           [
             literal(`(
                 6371 * acos(
