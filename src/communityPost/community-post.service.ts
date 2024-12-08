@@ -175,6 +175,27 @@ export class CommunityPostService {
   }
 
   async deletePost(postId: number, userId: number) {
+    // First find the post to get media URLs
+    const post = await this.communityPostModel.findOne({
+      where: { id: postId, userId: userId },
+    });
+
+    if (!post) {
+      throw new NotFoundException('Post not found or unauthorized');
+    }
+
+    // Delete associated media files if they exist and don't start with 'http'
+    if (post.mediaUrls && Array.isArray(post.mediaUrls)) {
+      const deletePromises = post.mediaUrls
+        .filter((url) => typeof url === 'string' && !url.startsWith('http'))
+        .map((url) => this.fileService.deleteFile(url));
+
+      if (deletePromises.length > 0) {
+        await Promise.all(deletePromises);
+      }
+    }
+
+    // Update post status
     return this.communityPostModel.update(
       { status: 'Inactive', isDeleted: true, deletedAt: new Date() },
       { where: { id: postId, userId: userId } },
