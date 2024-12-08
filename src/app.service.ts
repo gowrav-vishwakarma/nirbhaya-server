@@ -8,6 +8,7 @@ export class AppService {
 
   checkVersion(currentVersion: string) {
     return {
+      skipUpdate: true,
       latestVersion: '0.0.185',
       forceUpdate: false,
       minimumVersion: '0.0.185',
