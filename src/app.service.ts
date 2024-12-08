@@ -8,9 +8,9 @@ export class AppService {
 
   checkVersion(currentVersion: string) {
     return {
-      latestVersion: '0.0.186',
+      latestVersion: '0.0.185',
       forceUpdate: false,
-      minimumVersion: '0.0.186',
+      minimumVersion: '0.0.185',
       androidUpdateUrl:
         'https://play.google.com/store/apps/details?id=com.xavoc.shoutout',
       iosUpdateUrl: 'https://apps.apple.com/app/6738719612',
