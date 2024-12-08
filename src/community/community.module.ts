@@ -6,10 +6,16 @@ import { CommunityApplications } from '../models/CommunityApplications';
 import { User } from '../models/User';
 import { AuthModule } from '../auth-module/auth.module';
 import { UserLocation } from 'src/models/UserLocation';
+import { CommunityPost } from 'src/models/CommunityPost';
 
 @Module({
   imports: [
-    SequelizeModule.forFeature([CommunityApplications, User, UserLocation]),
+    SequelizeModule.forFeature([
+      CommunityApplications,
+      User,
+      UserLocation,
+      CommunityPost,
+    ]),
     forwardRef(() => AuthModule),
   ],
   controllers: [CommunityController],
