@@ -17,6 +17,10 @@ import { Suggestion } from './Suggestion';
 import { Feedback } from './Feedback';
 import { UserInteraction } from './UserInteractions';
 
+interface PlatformInfo {
+  [key: string]: any;
+}
+
 export enum UserStatus {
   ACTIVE = 'active',
   INACTIVE = 'inactive',
@@ -174,10 +178,15 @@ export class User extends Model<User> {
   })
   referralId: string;
 
+  @ForeignKey(() => User)
   @Column({
-    type: DataType.STRING,
+    type: DataType.INTEGER,
+    allowNull: true,
   })
-  ambassadorReferralId: string;
+  ambassadorReferralId: number;
+
+  @BelongsTo(() => User, 'ambassadorReferralId')
+  ambassadorReferrer: User;
 
   @Column({
     type: DataType.STRING,
@@ -242,11 +251,32 @@ export class User extends Model<User> {
   })
   referUserId: number;
 
+  @BelongsTo(() => User, 'referUserId')
+  referrer: User;
+
   @Column({
     type: DataType.INTEGER,
     defaultValue: 0,
   })
   point: number;
+
+  @Column({
+    type: DataType.STRING(100),
+    allowNull: true,
+  })
+  businessName: string;
+
+  @Column({
+    type: DataType.STRING(15),
+    allowNull: true,
+  })
+  whatsappNumber: string;
+
+  @Column({
+    type: DataType.STRING(15),
+    allowNull: true,
+  })
+  deviceName: string;
 
   @BelongsTo(() => User, 'referUserId')
   referredBy: User;
@@ -271,4 +301,11 @@ export class User extends Model<User> {
 
   @HasMany(() => UserInteraction)
   userInteractions: UserInteraction[];
+
+  @Column({
+    type: DataType.JSON,
+    allowNull: true,
+    comment: 'Stores device/browser platform information',
+  })
+  platform: PlatformInfo;
 }

@@ -146,7 +146,7 @@ export class CommunityPostService {
       limit,
     });
     const userData = await this.userModel.findByPk(userId, {
-      attributes: ['id', 'name', 'email'],
+      attributes: ['id', 'name', 'email', 'businessName'],
     });
     const posts = postsData.map((post) => {
       const rawPost = post.toJSON();
@@ -175,6 +175,27 @@ export class CommunityPostService {
   }
 
   async deletePost(postId: number, userId: number) {
+    // First find the post to get media URLs
+    const post = await this.communityPostModel.findOne({
+      where: { id: postId, userId: userId },
+    });
+
+    if (!post) {
+      throw new NotFoundException('Post not found or unauthorized');
+    }
+
+    // Delete associated media files if they exist and don't start with 'http'
+    // if (post.mediaUrls && Array.isArray(post.mediaUrls)) {
+    //   const deletePromises = post.mediaUrls
+    //     .filter((url) => typeof url === 'string' && !url.startsWith('http'))
+    //     .map((url) => this.fileService.deleteFile(url));
+
+    //   if (deletePromises.length > 0) {
+    //     await Promise.all(deletePromises);
+    //   }
+    // }
+
+    // Update post status
     return this.communityPostModel.update(
       { status: 'Inactive', isDeleted: true, deletedAt: new Date() },
       { where: { id: postId, userId: userId } },
@@ -464,7 +485,7 @@ export class CommunityPostService {
     userLong: number,
     page: number = 1,
     pageSize: number = 5,
-    maxDistanceKm: number = 10, // Maximum distance to consider
+    maxDistanceKm: number = 1000, // Maximum distance to consider
     timeWeightFactor: number = 0.6, // Weight for time relevance (0-1)
     distanceWeightFactor: number = 0.4, // Weight for distance relevance (0-1)
   ) {
@@ -495,6 +516,7 @@ export class CommunityPostService {
           'videoUrl',
           'postType',
           'userName',
+          'isBusinessPost',
           [
             literal(`(
                 6371 * acos(
@@ -591,6 +613,31 @@ export class CommunityPostService {
     } catch (error) {
       console.log(`Failed to fetch relevant posts: ${error.message}`);
       return [];
+    }
+  }
+
+  async getPostLikes(postId: number) {
+    try {
+      const likes = await this.postLikeModel.findAll({
+        where: { postId },
+        include: [
+          {
+            model: User,
+            attributes: ['id', 'name', 'email'],
+          },
+        ],
+        order: [['createdAt', 'DESC']],
+      });
+
+      // Transform the data to match the frontend expectations
+      return likes.map((like) => ({
+        userId: like.user.id,
+        userName: like.user.name || like.user.email,
+        likedAt: like.createdAt,
+      }));
+    } catch (error) {
+      console.error('Error fetching post likes:', error);
+      throw error;
     }
   }
 }

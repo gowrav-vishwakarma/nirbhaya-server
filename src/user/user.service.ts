@@ -116,7 +116,13 @@ export class UserService {
       // Fetch user locations separately
       const userLocations = await this.userLocationModel.findAll({
         where: { userId: loggedInUser.id },
-        attributes: ['id', 'name', 'location', 'timestamp'],
+        attributes: [
+          'id',
+          'name',
+          'location',
+          'isBusinessLocation',
+          'timestamp',
+        ],
       });
 
       const updatedUserDetails = this.formatUserResponse(
@@ -238,6 +244,7 @@ export class UserService {
         name: location.name,
         location: location.location,
         timestamp: location.timestamp,
+        isBusinessLocation: location.isBusinessLocation,
       })),
       startAudioVideoRecordOnSos: user.startAudioVideoRecordOnSos,
       streamAudioVideoOnSos: user.streamAudioVideoOnSos,
@@ -252,6 +259,8 @@ export class UserService {
       dob: user.dob,
       profession: user.profession,
       pincode: user.pincode,
+      businessName: user.businessName,
+      whatsappNumber: user.whatsappNumber,
     };
   }
   async userEmergencyContactAdd(userId: number, contacts: any[]): Promise<any> {
@@ -400,6 +409,80 @@ export class UserService {
       };
     } catch (error) {
       throw new error('Failed to delete emergency contact', error);
+    }
+  }
+
+  async addBusinessInformation(businessInfo: any, user: any) {
+    // Update user business information
+    console.log('businessInfo........', businessInfo);
+
+    const userBusinessObj = {
+      businessName: businessInfo.businessName,
+      whatsappNumber: businessInfo.whatsappNumber,
+    };
+    await this.userModel.update(userBusinessObj, {
+      where: { id: user.id },
+    });
+
+    // Handle location logic
+    const [location, created] = await this.userLocationModel.findOrCreate({
+      where: { userId: user.id },
+      defaults: {
+        name: businessInfo.locationName,
+        location: {
+          type: 'Point',
+          coordinates: [businessInfo.longitude, businessInfo.latitude],
+        },
+        isBusinessLocation: true,
+      },
+    });
+
+    if (!created) {
+      // Update the location if it already exists
+      await location.update({
+        name: businessInfo.locationName,
+        location: {
+          type: 'Point',
+          coordinates: [businessInfo.longitude, businessInfo.latitude],
+        },
+        isBusinessLocation: true,
+      });
+    }
+
+    return {
+      success: true,
+      message: 'Business information updated successfully.',
+    };
+  }
+
+  async removeBusinessInformation(user: UserJWT) {
+    try {
+      // Update user to remove business information
+      await this.userModel.update(
+        {
+          businessName: null,
+          whatsappNumber: null,
+        },
+        {
+          where: { id: user.id },
+        },
+      );
+
+      // Remove business location
+      await this.userLocationModel.destroy({
+        where: {
+          userId: user.id,
+          isBusinessLocation: true,
+        },
+      });
+
+      return {
+        success: true,
+        message: 'Business information removed successfully',
+      };
+    } catch (error) {
+      console.error('Error removing business information:', error);
+      throw new BadRequestException('Failed to remove business information');
     }
   }
 }

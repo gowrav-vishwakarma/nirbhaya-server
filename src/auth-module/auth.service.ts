@@ -78,6 +78,7 @@ export class AuthService {
         name: location.name,
         location: location.location,
         timestamp: location.timestamp,
+        isBusinessLocation: location.isBusinessLocation,
       })),
       startAudioVideoRecordOnSos: user.startAudioVideoRecordOnSos,
       streamAudioVideoOnSos: user.streamAudioVideoOnSos,
@@ -87,6 +88,8 @@ export class AuthService {
       referredBy: user.referredBy ? user.referredBy.referralId : null,
       isAmbassador: user.isAmbassador,
       canCreatePost: user.canCreatePost,
+      businessName: user.businessName,
+      whatsappNumber: user.whatsappNumber,
     };
   }
 
@@ -124,6 +127,8 @@ export class AuthService {
         'profession',
         'isAmbassador',
         'canCreatePost',
+        'businessName',
+        'whatsappNumber',
       ],
       include: [
         {
@@ -158,7 +163,7 @@ export class AuthService {
     // Fetch user locations separately
     const userLocations = await this.userLocationModel.findAll({
       where: { userId: user.id },
-      attributes: ['id', 'name', 'location', 'timestamp'],
+      attributes: ['id', 'name', 'location', 'isBusinessLocation', 'timestamp'],
     });
 
     const tokenPayload: UserJWT = {
@@ -217,7 +222,7 @@ export class AuthService {
     return type === 'Bearer' ? token : undefined;
   }
 
-  async send_otp(mobileNumber: string) {
+  async send_otp(mobileNumber: string, platform: object) {
     if (!mobileNumber) {
       throw new ValidationException({
         mobile: ['mobile, userType and countryCode required'],
@@ -254,7 +259,7 @@ export class AuthService {
 
     if (existingUser) {
       await this.userModel.update(
-        { otp: newOtp },
+        { otp: newOtp, platform },
         {
           where: {
             id: existingUser.id,
@@ -266,6 +271,7 @@ export class AuthService {
       existingUser = await this.userModel.create({
         otp: newOtp,
         phoneNumber: mobileNumber,
+        platform,
       });
 
       // Generate and update the unique ID after user creation

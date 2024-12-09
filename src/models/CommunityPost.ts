@@ -179,6 +179,13 @@ export class CommunityPost extends Model<CommunityPost> {
   isDeleted?: boolean;
 
   @Column({
+    type: DataType.BOOLEAN,
+    allowNull: true,
+    defaultValue: false,
+  })
+  isBusinessPost?: boolean;
+
+  @Column({
     type: DataType.DATE,
     allowNull: true,
   })

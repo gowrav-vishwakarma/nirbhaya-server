@@ -1,4 +1,12 @@
-import { Controller, Post, Body, UseGuards, Get, Query } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Get,
+  Query,
+  Param,
+} from '@nestjs/common';
 import { CommunityService } from './community.service';
 import { AuthGuard } from '../auth-module/auth.guard';
 import { GetUser } from '../auth-module/getuser.decorator';
@@ -26,5 +34,11 @@ export class CommunityController {
       longitude,
       range,
     );
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('business-whatsapp/:postId')
+  async getBusinessWhatsApp(@Param('postId') postId: string) {
+    return this.communityService.getBusinessWhatsApp(postId);
   }
 }
