@@ -64,12 +64,18 @@ export class CommunityPostController {
     // });
   }
 
+  @UseGuards(AuthGuard)
   @Get('my-posts')
   async getMyPosts(
     @Query('userId') userId: number,
     @Query('status') status: string,
+    @GetUser() user: UserJWT,
   ) {
-    return this.communityPostService.findAllmyPost({ userId, status });
+    return this.communityPostService.findAllmyPost({
+      userId,
+      status,
+      logedinUser: user.id,
+    });
   }
 
   @Post('delete-post')

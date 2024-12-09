@@ -126,8 +126,10 @@ export class CommunityPostService {
 
     return posts;
   }
-  async findAllmyPost(params: FindAllParams) {
-    const { status, userId, offset = 0, limit = 5 } = params;
+  async findAllmyPost(params: any) {
+    const { status, userId, offset = 0, limit = 5, logedinUser } = params;
+    console.log('logedinUser', logedinUser);
+
     const postsData = await this.communityPostModel.findAll({
       where: {
         status: status || 'active',
@@ -139,6 +141,8 @@ export class CommunityPostService {
           model: PostLike,
           as: 'likes',
           attributes: ['userId'],
+          where: { userId: logedinUser },
+          required: false,
         },
       ],
       order: [['createdAt', 'DESC']],
@@ -152,11 +156,7 @@ export class CommunityPostService {
       const rawPost = post.toJSON();
       console.log('Processing post:', post.id);
       console.log('Post likes:', rawPost.likes);
-      const wasLiked =
-        rawPost.likes?.some((like) => {
-          console.log('Comparing:', Number(like.userId), Number(userId));
-          return Number(like.userId) === Number(userId);
-        }) || false;
+      const wasLiked = rawPost.likes?.length > 0;
       console.log('wasLiked value:', wasLiked);
 
       const transformedPost = {
