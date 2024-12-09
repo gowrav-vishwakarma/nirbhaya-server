@@ -125,8 +125,20 @@ export class CommunityPostController {
   }
 
   @Get(':postId/comments')
-  async getComments(@Param('postId') postId: string) {
-    return await this.communityPostService.getComments(+postId);
+  async getComments(
+    @Param('postId') postId: string,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+  ) {
+    // Convert string parameters to numbers
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+
+    return await this.communityPostService.getComments(
+      parseInt(postId, 10),
+      pageNumber,
+      limitNumber,
+    );
   }
 
   @Post('delete-comment')
@@ -186,7 +198,13 @@ export class CommunityPostController {
   }
 
   @Get(':postId/likes')
-  async getPostLikes(@Param('postId') postId: string) {
-    return await this.communityPostService.getPostLikes(+postId);
+  async getPostLikes(
+    @Param('postId') postId: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 5,
+  ) {
+    console.log('page11111111111111', postId, page, limit);
+
+    return await this.communityPostService.getPostLikes(+postId, page, limit);
   }
 }

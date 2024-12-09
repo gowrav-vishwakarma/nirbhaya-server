@@ -266,7 +266,8 @@ export class CommunityPostService {
     return comment;
   }
 
-  async getComments(postId: number) {
+  async getComments(postId: number, page: number, pageSize: number) {
+    const offset = (page - 1) * pageSize;
     return this.postCommentModel.findAll({
       where: { postId },
       include: [
@@ -276,7 +277,9 @@ export class CommunityPostService {
           attributes: ['id', 'name'],
         },
       ],
-      order: [['createdAt', 'ASC']],
+      order: [['createdAt', 'DESC']],
+      limit: pageSize,
+      offset: offset,
     });
   }
 
@@ -616,28 +619,36 @@ export class CommunityPostService {
     }
   }
 
-  async getPostLikes(postId: number) {
+  async getPostLikes(postId: number, page: number, limit: number) {
     try {
-      const likes = await this.postLikeModel.findAll({
+      // Convert page and limit to numbers and set defaults if needed
+      const pageNumber = Number(page) || 1;
+      const limitNumber = Number(limit) || 5;
+      const offset = (pageNumber - 1) * limitNumber;
+
+      const result = await this.postLikeModel.findAndCountAll({
         where: { postId },
         include: [
           {
-            model: User,
+            model: this.userModel,
             attributes: ['id', 'name', 'email'],
           },
         ],
         order: [['createdAt', 'DESC']],
+        limit: limitNumber, // Using the converted number
+        offset: offset, // Calculate offset based on page and limit
       });
 
-      // Transform the data to match the frontend expectations
-      return likes.map((like) => ({
-        userId: like.user.id,
-        userName: like.user.name || like.user.email,
-        likedAt: like.createdAt,
-      }));
+      return {
+        likes: result.rows,
+        total: result.count,
+        page: pageNumber,
+        pageSize: limitNumber,
+        totalPages: Math.ceil(result.count / limitNumber),
+      };
     } catch (error) {
       console.error('Error fetching post likes:', error);
-      throw error;
+      throw new Error('Failed to fetch post likes');
     }
   }
 }
