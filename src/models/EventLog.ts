@@ -7,7 +7,10 @@ import {
   AutoIncrement,
   CreatedAt,
   UpdatedAt,
+  ForeignKey,
+  BelongsTo,
 } from 'sequelize-typescript';
+import { User } from './User';
 
 @Table({ tableName: 'eventLog', timestamps: true })
 export class EventLog extends Model<EventLog> {
@@ -19,8 +22,12 @@ export class EventLog extends Model<EventLog> {
   @Column({ type: DataType.STRING, allowNull: true })
   userType: string; // e.g., Product, Order, User
 
+  @ForeignKey(() => User)
   @Column({ type: DataType.INTEGER, allowNull: false })
   userId: number; // ID of the affected entity
+
+  @BelongsTo(() => User)
+  User: User;
 
   @Column({
     type: DataType.STRING,
