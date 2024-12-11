@@ -39,15 +39,15 @@ export class EventLogForAmbassador extends BaseHook {
     const eventType = data.isAmbassador
       ? 'becomeAmbassador'
       : 'removeAmbassador';
-    let isReferral = false;
-    if (data.ambassadorReferralId) {
-      isReferral = true;
-    }
+    // let isReferral = false;
+    // if (data.ambassadorReferralId) {
+    //   isReferral = true;
+    // }
     eventLogs.push({
       eventType: eventType,
       userId: data.userId,
-      isReferral: isReferral,
     });
+    console.log('eventLog', eventLogs);
     for (let i = 0; i < eventLogs.length; i++) {
       await this.globalService.updateEventCount(
         eventLogs[i].eventType,

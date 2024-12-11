@@ -53,16 +53,18 @@ export class GlobalService {
           defaults.point = 0; // No points if different cities
         }
       } else if (type === 'becomeAmbassador') {
+        console.log('Enter..here ?');
         defaults.point = pointsRule?.points || 200;
       } else if (pointsRule) {
         defaults.point = pointsRule.points;
       }
 
       // Update user points if applicable
+
       if (defaults.point > 0) {
         const targetUserId = referUserId || userId;
         await User.increment('point', {
-          by: defaults.point,
+          by: Number(defaults.point),
           where: { id: targetUserId },
         });
       }
@@ -82,19 +84,21 @@ export class GlobalService {
         await eventLog.increment('count', { by: 1 });
       }
       // Manage EventCount
-      // &&
-      //   [
-      //     'registerUsers',
-      //     'appOpen',
-      //     'loginUsers',
-      //     'sosEvents',
-      //     'news',
-      //     'registerVolunteers',
-      //     'sosAccepted',
-      //     'sosMovement',
-      //     'sosHelp',
-      //   ].includes(type)
-      if (created) {
+
+      if (
+        created &&
+        [
+          'registerUsers',
+          'appOpen',
+          'loginUsers',
+          'sosEvents',
+          'news',
+          'registerVolunteers',
+          'sosAccepted',
+          'sosMovement',
+          'sosHelp',
+        ].includes(type)
+      ) {
         const [eventCountRecord] = await EventCount.findOrCreate({
           where: { date: formattedDate },
           defaults: {
@@ -201,4 +205,46 @@ export class GlobalService {
   }
 
   // referral logic
+
+  async getEventLogCounts(
+    limit: number,
+    offset: number,
+    startDate?: string,
+    endDate?: string,
+  ) {
+    try {
+      const whereCondition: any = {};
+      if (startDate && endDate) {
+        console.log('ENter here//>');
+        whereCondition.date = {
+          [Op.between]: [new Date(startDate), new Date(endDate)],
+        };
+      } else {
+        // Default to today's date if no date range is provided
+        const today = new Date();
+        const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+        whereCondition.date = {
+          [Op.between]: [startOfDay, endOfDay],
+        };
+      }
+      console.log('wherecondii', whereCondition.date);
+      const eventCounts = await EventLog.findAll({
+        attributes: [
+          'eventType',
+          'date',
+          [Sequelize.fn('SUM', Sequelize.col('count')), 'totalCount'],
+        ],
+        group: ['eventType', 'date'],
+        limit: limit ? limit : undefined,
+        offset: offset ? offset : undefined,
+        where: whereCondition,
+      });
+      console.log('eventCounts', eventCounts);
+      return eventCounts;
+    } catch (error) {
+      console.error('Error fetching event log counts:', error);
+      throw error;
+    }
+  }
 }

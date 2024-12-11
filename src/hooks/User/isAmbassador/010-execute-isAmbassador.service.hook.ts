@@ -30,7 +30,7 @@ export class IsAmbassadorServiceHook extends BaseHook {
     }
     if (data.ambassadorReferralId) {
       const referringUser = await this.userModel.findOne({
-        where: { referralId: data.ambassadorReferralId },
+        where: { id: data.ambassadorReferralId },
       });
       if (!referringUser) {
         throw new ValidationException({

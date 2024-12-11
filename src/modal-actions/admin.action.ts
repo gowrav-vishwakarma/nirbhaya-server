@@ -18,4 +18,20 @@ export const AdminAction: ActionListDTO = {
     loadBy: 'id',
     returnModel: false,
   } as ActionDTO,
+  changePassword: {
+    name: 'changePassword',
+    label: 'changePassword',
+    icon: 'password',
+    description: 'change password',
+    mode: 'SingleRecord',
+    loadBy: 'id',
+    ui: {
+      mode: 'confirmation',
+      title: 'Change Password',
+      message: 'Change Password ?',
+      cancelLabel: 'Cancel',
+      okLabel: 'Save',
+    },
+    returnModel: false,
+  },
 };
