@@ -18,7 +18,6 @@ export class GlobalService {
 
   async updateEventCount(type: string, userId: number, referUserId?: number) {
     try {
-
       // Validate input parameters
       if (!type || !userId) {
         console.warn('Invalid input: type and userId are required');
@@ -207,23 +206,45 @@ export class GlobalService {
 
   // referral logic
 
-  async getEventLogCounts(limit: number, offset: number) {
+  async getEventLogCounts(
+    limit: number,
+    offset: number,
+    startDate?: string,
+    endDate?: string,
+  ) {
     try {
+      const whereCondition: any = {};
+      if (startDate && endDate) {
+        console.log('ENter here//>');
+        whereCondition.date = {
+          [Op.between]: [new Date(startDate), new Date(endDate)],
+        };
+      } else {
+        // Default to today's date if no date range is provided
+        const today = new Date();
+        const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+        whereCondition.date = {
+          [Op.between]: [startOfDay, endOfDay],
+        };
+      }
+      console.log('wherecondii', whereCondition.date);
       const eventCounts = await EventLog.findAll({
         attributes: [
           'eventType',
           'date',
-          [Sequelize.fn('SUM', Sequelize.col('count')), 'totalCount'], // Sum of count
+          [Sequelize.fn('SUM', Sequelize.col('count')), 'totalCount'],
         ],
         group: ['eventType', 'date'],
         limit: limit ? limit : undefined,
         offset: offset ? offset : undefined,
+        where: whereCondition,
       });
-
+      console.log('eventCounts', eventCounts);
       return eventCounts;
     } catch (error) {
       console.error('Error fetching event log counts:', error);
-      throw error; // Re-throw to allow caller to handle the error
+      throw error;
     }
   }
 }

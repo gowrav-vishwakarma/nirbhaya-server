@@ -29,11 +29,19 @@ export class GlobalController {
   }
   @Post('event-log-count')
   async getEventLogCounts(
-    @Body() pagination: { limit: number; offset: number },
+    @Body()
+    pagination: {
+      limit: number;
+      offset: number;
+      startDate?: string;
+      endDate?: string;
+    },
   ) {
     return await this.globalService.getEventLogCounts(
       pagination.limit,
       pagination.offset,
+      pagination.startDate,
+      pagination.endDate,
     );
   }
 }
