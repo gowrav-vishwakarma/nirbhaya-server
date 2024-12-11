@@ -15,6 +15,7 @@ import { StreamingModule } from 'src/streaming/streaming.module';
 import { Suggestion } from 'src/models/Suggestion';
 import { AppModule } from 'src/app.module';
 import { GlobalService } from 'src/global/global.service';
+import { CommunityPost } from '../models/CommunityPost';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { GlobalService } from 'src/global/global.service';
       Notification,
       CommunityApplications,
       Suggestion,
+      CommunityPost,
     ]),
     forwardRef(() => StreamingModule),
     forwardRef(() => AppModule),
