@@ -201,4 +201,24 @@ export class GlobalService {
   }
 
   // referral logic
+
+  async getEventLogCounts(limit: number, offset: number) {
+    try {
+      const eventCounts = await EventLog.findAll({
+        attributes: [
+          'eventType',
+          'date',
+          [Sequelize.fn('SUM', Sequelize.col('count')), 'totalCount'], // Sum of count
+        ],
+        group: ['eventType', 'date'],
+        limit: limit ? limit : undefined,
+        offset: offset ? offset : undefined,
+      });
+
+      return eventCounts;
+    } catch (error) {
+      console.error('Error fetching event log counts:', error);
+      throw error; // Re-throw to allow caller to handle the error
+    }
+  }
 }

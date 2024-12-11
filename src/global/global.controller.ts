@@ -27,4 +27,13 @@ export class GlobalController {
       };
     }
   }
+  @Post('event-log-count')
+  async getEventLogCounts(
+    @Body() pagination: { limit: number; offset: number },
+  ) {
+    return await this.globalService.getEventLogCounts(
+      pagination.limit,
+      pagination.offset,
+    );
+  }
 }
