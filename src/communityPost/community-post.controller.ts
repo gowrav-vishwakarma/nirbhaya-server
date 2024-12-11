@@ -69,12 +69,17 @@ export class CommunityPostController {
   async getMyPosts(
     @Query('userId') userId: number,
     @Query('status') status: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 5,
     @GetUser() user: UserJWT,
   ) {
+    console.log('user.id........', userId, status, page, limit);
     return this.communityPostService.findAllmyPost({
       userId,
       status,
       logedinUser: user.id,
+      page,
+      limit,
     });
   }
 

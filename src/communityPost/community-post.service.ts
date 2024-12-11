@@ -127,8 +127,12 @@ export class CommunityPostService {
     return posts;
   }
   async findAllmyPost(params: any) {
-    const { status, userId, offset = 0, limit = 5, logedinUser } = params;
+    const { status, userId, logedinUser, page = 0, limit = 5 } = params;
     console.log('logedinUser', logedinUser);
+
+    const pageNum = Math.max(1, Number(page));
+    const limitNum = Math.max(1, Number(limit));
+    const offsetNum = (pageNum - 1) * limitNum;
 
     const postsData = await this.communityPostModel.findAll({
       where: {
@@ -146,8 +150,8 @@ export class CommunityPostService {
         },
       ],
       order: [['createdAt', 'DESC']],
-      offset,
-      limit,
+      offset: offsetNum,
+      limit: limitNum,
     });
     const userData = await this.userModel.findByPk(userId, {
       attributes: ['id', 'name', 'email', 'businessName'],
