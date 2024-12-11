@@ -33,6 +33,8 @@ export class NewsCreateHook extends BaseHook {
       }
       if (
         previousData.data.mediaUrls &&
+        previousData.data.mediaUrls !== undefined &&
+        previousData.data.mediaUrls !== 'undefined' &&
         previousData.data.mediaUrls.length > 0
       ) {
         previousData.data.mediaUrls = JSON.parse(previousData.data.mediaUrls);
