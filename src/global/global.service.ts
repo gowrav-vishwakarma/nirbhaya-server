@@ -18,6 +18,7 @@ export class GlobalService {
 
   async updateEventCount(type: string, userId: number, referUserId?: number) {
     try {
+
       // Validate input parameters
       if (!type || !userId) {
         console.warn('Invalid input: type and userId are required');
@@ -53,16 +54,18 @@ export class GlobalService {
           defaults.point = 0; // No points if different cities
         }
       } else if (type === 'becomeAmbassador') {
+        console.log('Enter..here ?');
         defaults.point = pointsRule?.points || 200;
       } else if (pointsRule) {
         defaults.point = pointsRule.points;
       }
 
       // Update user points if applicable
+
       if (defaults.point > 0) {
         const targetUserId = referUserId || userId;
         await User.increment('point', {
-          by: defaults.point,
+          by: Number(defaults.point),
           where: { id: targetUserId },
         });
       }
@@ -82,19 +85,21 @@ export class GlobalService {
         await eventLog.increment('count', { by: 1 });
       }
       // Manage EventCount
-      // &&
-      //   [
-      //     'registerUsers',
-      //     'appOpen',
-      //     'loginUsers',
-      //     'sosEvents',
-      //     'news',
-      //     'registerVolunteers',
-      //     'sosAccepted',
-      //     'sosMovement',
-      //     'sosHelp',
-      //   ].includes(type)
-      if (created) {
+
+      if (
+        created &&
+        [
+          'registerUsers',
+          'appOpen',
+          'loginUsers',
+          'sosEvents',
+          'news',
+          'registerVolunteers',
+          'sosAccepted',
+          'sosMovement',
+          'sosHelp',
+        ].includes(type)
+      ) {
         const [eventCountRecord] = await EventCount.findOrCreate({
           where: { date: formattedDate },
           defaults: {

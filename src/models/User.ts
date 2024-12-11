@@ -27,6 +27,13 @@ export enum UserStatus {
   BLOCKED = 'blocked',
 }
 
+export enum RoleType {
+  USER = 'User',
+  VOLUNTEER = 'Volunteer',
+  AMBASSADOR = 'Ambassador',
+  ADVISER = 'Adviser',
+}
+
 @Table({
   tableName: 'Users', // explicitly define table name
 })
@@ -105,6 +112,13 @@ export class User extends Model<User> {
     defaultValue: false,
   })
   isVerified: boolean;
+
+  @Column({
+    type: DataType.ENUM(...Object.values(RoleType)),
+    allowNull: false,
+    defaultValue: RoleType.USER,
+  })
+  roleType: RoleType;
 
   @Column({
     type: DataType.BOOLEAN,
