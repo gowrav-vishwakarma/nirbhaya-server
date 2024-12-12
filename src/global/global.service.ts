@@ -217,11 +217,18 @@ export class GlobalService {
     offset: number,
     startDate?: string,
     endDate?: string,
+    eventType?: string,
+    groupByDate?: boolean,
   ) {
     try {
       const whereCondition: any = {};
+      let groupByCondition = ['eventType'];
+
+      if (groupByDate) {
+        groupByCondition = ['eventType', 'date'];
+      }
+
       if (startDate && endDate) {
-        console.log('ENter here//>');
         whereCondition.date = {
           [Op.between]: [new Date(startDate), new Date(endDate)],
         };
@@ -234,19 +241,24 @@ export class GlobalService {
           [Op.between]: [startOfDay, endOfDay],
         };
       }
-      console.log('wherecondii', whereCondition.date);
+
+      // Only add eventType to whereCondition if it's not 'all'
+      if (eventType && eventType !== 'all') {
+        whereCondition.eventType = eventType;
+      }
+
       const eventCounts = await EventLog.findAll({
         attributes: [
           'eventType',
           'date',
           [Sequelize.fn('SUM', Sequelize.col('count')), 'totalCount'],
         ],
-        group: ['eventType', 'date'],
+        group: groupByCondition,
         limit: limit ? limit : undefined,
         offset: offset ? offset : undefined,
         where: whereCondition,
       });
-      console.log('eventCounts', eventCounts);
+
       return eventCounts;
     } catch (error) {
       console.error('Error fetching event log counts:', error);
