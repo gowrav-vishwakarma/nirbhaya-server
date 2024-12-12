@@ -10,13 +10,18 @@ import { SosEvent } from 'src/models/SosEvent';
 import { PointsRulesEntity } from 'src/models/PointsRulesEntity';
 import { ReferralLog } from '../models/ReferralLog';
 import { Sequelize } from 'sequelize-typescript';
-
+import { Transaction } from 'sequelize';
 import { Notification } from 'src/models/Notification';
 @Injectable()
 export class GlobalService {
   constructor(private sequelize: Sequelize) {}
 
-  async updateEventCount(type: string, userId: number, referUserId?: number) {
+  async updateEventCount(
+    type: string,
+    userId: number,
+    referUserId?: number,
+    transaction?: Transaction,
+  ) {
     try {
       // Validate input parameters
       if (!type || !userId) {
@@ -52,23 +57,22 @@ export class GlobalService {
         } else {
           defaults.point = 0; // No points if different cities
         }
-      } else if (type === 'becomeAmbassador') {
-        console.log('Enter..here ?');
-        defaults.point = pointsRule?.points || 200;
+      } else if (type === 'referAmbassador') {
+        defaults.point = pointsRule?.points;
       } else if (pointsRule) {
         defaults.point = pointsRule.points;
       }
 
       // Update user points if applicable
-
+      console.log('defaults.point', defaults.point);
       if (defaults.point > 0) {
         const targetUserId = referUserId || userId;
         await User.increment('point', {
           by: Number(defaults.point),
           where: { id: targetUserId },
+          transaction,
         });
       }
-
       // Create or update EventLog
       const [eventLog, created] = await EventLog.findOrCreate({
         where: {
@@ -97,6 +101,8 @@ export class GlobalService {
           'sosAccepted',
           'sosMovement',
           'sosHelp',
+          'becomeAmbassador',
+          'removeAmbassador',
         ].includes(type)
       ) {
         const [eventCountRecord] = await EventCount.findOrCreate({
