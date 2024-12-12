@@ -44,10 +44,10 @@ export class AuthService {
     private readonly communityApplicationsModel: typeof CommunityApplications,
     @InjectModel(Suggestion)
     private readonly suggestionModel: typeof Suggestion,
-    @InjectModel(CommunityPost)
     @InjectModel(TempOtps)
     private readonly tempOtpModel: typeof TempOtps,
-    private communityPostModel: typeof CommunityPost,
+    @InjectModel(CommunityPost)
+    private readonly communityPostModel: typeof CommunityPost,
     private readonly smsService: SmsService,
     private readonly configService: ConfigService,
     private readonly gobalService: GlobalService,
