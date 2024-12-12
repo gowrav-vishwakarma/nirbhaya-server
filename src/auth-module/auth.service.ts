@@ -302,7 +302,7 @@ export class AuthService {
     ) {
       await this.tempOtpModel.create({
         mobile: mobileNumber,
-        isSend: true,
+        isSend: false,
         otp: newOtp,
       });
       const otpSenderId = this.configService
