@@ -10,6 +10,9 @@ import { AdminAuthGuard } from './admin-auth.guard';
 import AclRolePermissions from 'src/models/AclRolePermissions';
 import AclEntityActions from 'src/models/AclEntityActions';
 import AclRoles from 'src/models/AclRoles';
+import { CommunityPost } from 'src/models/CommunityPost';
+import { PostComment } from 'src/models/PostComment';
+import { PostLike } from 'src/models/PostLike';
 // import { AdminAuthGuard } from './';
 @Module({
   imports: [
@@ -29,6 +32,9 @@ import AclRoles from 'src/models/AclRoles';
       AclRolePermissions,
       AclEntityActions,
       AclRoles,
+      CommunityPost,
+      PostComment,
+      PostLike,
     ]),
     forwardRef(() => AdminAuthModule),
   ],
