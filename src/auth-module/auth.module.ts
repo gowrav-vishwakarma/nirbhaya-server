@@ -16,7 +16,8 @@ import { Suggestion } from 'src/models/Suggestion';
 import { AppModule } from 'src/app.module';
 import { GlobalService } from 'src/global/global.service';
 import { CommunityPost } from '../models/CommunityPost';
-
+import { TempOtps } from 'src/models/TempOtps';
+import { FirebaseService } from 'src/sos/firebase.service';
 @Module({
   imports: [
     ConfigModule,
@@ -39,12 +40,13 @@ import { CommunityPost } from '../models/CommunityPost';
       CommunityApplications,
       Suggestion,
       CommunityPost,
+      TempOtps,
     ]),
     forwardRef(() => StreamingModule),
     forwardRef(() => AppModule),
   ],
   controllers: [AuthController],
-  providers: [AuthService, AuthGuard, GlobalService],
+  providers: [AuthService, AuthGuard, GlobalService, FirebaseService],
   exports: [AuthService, AuthGuard, JwtModule, GlobalService],
 })
 export class AuthModule {}
