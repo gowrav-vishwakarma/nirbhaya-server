@@ -22,6 +22,7 @@ import { SmsService } from 'src/sms/sms.service';
 import { ConfigService } from '@nestjs/config';
 import { GlobalService } from 'src/global/global.service';
 import { CommunityPost } from '../models/CommunityPost';
+import { TempOtp } from 'src/models/TempOtp';
 
 @Injectable()
 export class AuthService {
@@ -47,6 +48,8 @@ export class AuthService {
     private readonly smsService: SmsService,
     private readonly configService: ConfigService,
     private readonly gobalService: GlobalService,
+    @InjectModel(TempOtp)
+    private readonly tempOtpModel: typeof TempOtp,
   ) {}
 
   async signUp(signUpDto: any): Promise<any> {
@@ -250,14 +253,16 @@ export class AuthService {
       },
       raw: true,
     });
-    console.log('existingUser...........', existingUser);
 
     let newOtp: string;
 
     if (mobileNumber === '0000111122') {
       newOtp = '6786'; // Fixed OTP for the special number
     } else {
-      newOtp = this.generateOtp(4);
+      newOtp =
+        this.configService.get<string>('IS_MENUAL_OTP_SEND_ENABLED') === 'true'
+          ? '6752' // Fixed OTP when manual mode is enabled
+          : this.generateOtp(4); // Random OTP when manual mode is disabled
     }
 
     if (existingUser) {
@@ -277,7 +282,6 @@ export class AuthService {
         platform,
       });
 
-      // Generate and update the unique ID after user creation
       const uniqueId = this.generateUniqueId(existingUser.id);
       await this.userModel.update(
         { referralId: uniqueId },
@@ -290,16 +294,25 @@ export class AuthService {
       eventType = 'registerUsers';
     }
 
-    // Only send SMS if the mobile number is not 0000111122
-    if (mobileNumber !== '0000111122') {
+    // Store OTP in TempOtp table if manual mode is enabled
+    if (
+      this.configService.get<string>('IS_MENUAL_OTP_SEND_ENABLED') === 'true'
+    ) {
+      await this.tempOtpModel.create({
+        phoneNumber: mobileNumber,
+        otp: newOtp,
+        isSent: true,
+      });
+    } else if (mobileNumber !== '0000111122') {
+      // Send SMS only if manual mode is disabled and not a test number
       await this.smsService.sendMessage(
         mobileNumber,
         `Welcome to SOSBharat! ${newOtp} is your OTP to join our safety-first community. Together we're stronger! By- Xavoc Technocrats Pvt. Ltd.`,
         '1407173149479902847',
       );
     }
-    this.gobalService.updateEventCount(eventType, existingUser.id);
 
+    this.gobalService.updateEventCount(eventType, existingUser.id);
     return { otpSent: true };
   }
 

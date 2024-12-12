@@ -16,6 +16,7 @@ import { Suggestion } from 'src/models/Suggestion';
 import { AppModule } from 'src/app.module';
 import { GlobalService } from 'src/global/global.service';
 import { CommunityPost } from '../models/CommunityPost';
+import { TempOtp } from 'src/models/TempOtp';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { CommunityPost } from '../models/CommunityPost';
       CommunityApplications,
       Suggestion,
       CommunityPost,
+      TempOtp,
     ]),
     forwardRef(() => StreamingModule),
     forwardRef(() => AppModule),
