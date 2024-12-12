@@ -35,6 +35,8 @@ export class GlobalController {
       offset: number;
       startDate?: string;
       endDate?: string;
+      eventType?: string;
+      groupByDate?: boolean;
     },
   ) {
     return await this.globalService.getEventLogCounts(
@@ -42,6 +44,8 @@ export class GlobalController {
       pagination.offset,
       pagination.startDate,
       pagination.endDate,
+      pagination.eventType,
+      pagination.groupByDate,
     );
   }
 }
