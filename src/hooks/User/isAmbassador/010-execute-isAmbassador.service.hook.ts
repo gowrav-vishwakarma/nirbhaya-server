@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { User } from 'src/models/User';
+import { RoleType, User } from 'src/models/User';
 import { ActionExecuteParams } from 'src/qnatk/src';
 import { AmbassadorDto } from './DTO/ambassador.dto';
 import { BaseHook } from 'src/qnatk/src/hooks/base-hook';
@@ -48,6 +48,7 @@ export class IsAmbassadorServiceHook extends BaseHook {
       telegramId: data?.telegram,
       ambassadorReferralId: data?.ambassadorReferralId,
       ambassadorTimestamp: new Date(),
+      roleType: data?.isAmbassador ? RoleType.AMBASSADOR : RoleType.USER,
     };
     console.log('updateData', updateData);
     await this.userModel.update(updateData, {

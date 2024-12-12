@@ -44,4 +44,8 @@ export class AmbassadorDto {
   @IsOptional()
   @IsNumber()
   referUserId?: number;
+
+  @IsOptional()
+  @IsString()
+  roleType?: string;
 }
