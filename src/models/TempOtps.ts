@@ -2,6 +2,8 @@ import {
     Table,
     Column,
     Model,
+    ForeignKey,
+    BelongsTo,
     DataType,
     CreatedAt,
     Unique,
@@ -23,7 +25,7 @@ import {
     @Column({
       type: DataType.STRING,
     })
-    mobile: number;
+    mobile: string;
   
     @Column({
       type: DataType.NUMBER,
@@ -34,5 +36,19 @@ import {
       type: DataType.BOOLEAN,
     })
     isSend: boolean;
+  
+    @CreatedAt
+    @Column({
+      type: DataType.DATE,
+      defaultValue: DataType.NOW,
+    })
+    createdAt: Date;
+
+    @UpdatedAt
+    @Column({
+      type: DataType.DATE,
+      defaultValue: DataType.NOW,
+    })
+    updatedAt: Date;
   }
   
