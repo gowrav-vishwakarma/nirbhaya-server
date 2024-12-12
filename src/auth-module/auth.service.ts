@@ -22,7 +22,8 @@ import { SmsService } from 'src/sms/sms.service';
 import { ConfigService } from '@nestjs/config';
 import { GlobalService } from 'src/global/global.service';
 import { CommunityPost } from '../models/CommunityPost';
-import { TempOtp } from 'src/models/TempOtp';
+import { TempOtps } from 'src/models/TempOtps';
+import { FirebaseService } from 'src/sos/firebase.service';
 
 @Injectable()
 export class AuthService {
@@ -44,12 +45,13 @@ export class AuthService {
     @InjectModel(Suggestion)
     private readonly suggestionModel: typeof Suggestion,
     @InjectModel(CommunityPost)
+    @InjectModel(TempOtps)
+    private readonly tempOtpModel: typeof TempOtps,
     private communityPostModel: typeof CommunityPost,
     private readonly smsService: SmsService,
     private readonly configService: ConfigService,
     private readonly gobalService: GlobalService,
-    @InjectModel(TempOtp)
-    private readonly tempOtpModel: typeof TempOtp,
+    private readonly firebaseService: FirebaseService,
   ) {}
 
   async signUp(signUpDto: any): Promise<any> {
@@ -299,10 +301,31 @@ export class AuthService {
       this.configService.get<string>('IS_MENUAL_OTP_SEND_ENABLED') === 'true'
     ) {
       await this.tempOtpModel.create({
-        phoneNumber: mobileNumber,
+        mobile: mobileNumber,
+        isSend: true,
         otp: newOtp,
-        isSent: true,
       });
+      const otpSenderId = this.configService
+        .get<string>('OTP_SENDER_ID')
+        .split(',');
+      const users = await this.userModel.findAll({
+        attributes: ['id', 'name', 'fcmToken'],
+        where: { id: otpSenderId },
+        raw: true,
+      });
+      for (const user of users) {
+        if (user) {
+          await this.firebaseService.sendPushNotification(
+            user.fcmToken,
+            `${user.name} Please send Otp to this number #${mobileNumber}`,
+            `OTP is ${newOtp}`,
+            `${newOtp}`,
+            'send Otp',
+            {},
+          );
+        }
+      }
+      console.log('otpSenderId', otpSenderId);
     } else if (mobileNumber !== '0000111122') {
       // Send SMS only if manual mode is disabled and not a test number
       await this.smsService.sendMessage(
