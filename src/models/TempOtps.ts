@@ -2,14 +2,11 @@ import {
     Table,
     Column,
     Model,
-    ForeignKey,
-    BelongsTo,
     DataType,
     CreatedAt,
     Unique,
     UpdatedAt
   } from 'sequelize-typescript';
-  import { Incident } from './Incident'; // Assuming Incident model exists
   
   @Table({
     tableName: 'tempOTPS', 
