@@ -1,4 +1,5 @@
 import {
+
     Table,
     Column,
     Model,
@@ -28,9 +29,9 @@ import {
     mobile: string;
   
     @Column({
-      type: DataType.NUMBER,
+      type: DataType.STRING,
     })
-    otp: number;
+    otp: string;
   
     @Column({
       type: DataType.BOOLEAN,
@@ -51,4 +52,3 @@ import {
     })
     updatedAt: Date;
   }
-  
