@@ -42,6 +42,7 @@ import { AdminAuthModule } from './admin-auth/admin-auth.module';
 import { Admin } from './models/Admin';
 import { GovPincodeData } from './models/GovPincodeData';
 import { News } from './models/News';
+import { TempOtps } from './models/TempOtps';
 import { SmsService } from './sms/sms.service';
 import { HttpModule } from '@nestjs/axios';
 import { SearchModule } from './search/search.module';
@@ -89,6 +90,7 @@ export const sequelizeModelArray = [
   AclRolePermissions,
   AclRoles,
   CommunityPost,
+  TempOtps,
 ];
 @Module({
   imports: [
