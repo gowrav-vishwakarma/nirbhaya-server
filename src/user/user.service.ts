@@ -385,17 +385,11 @@ export class UserService {
           name: locationData.name,
           location: location,
         });
+        await this.globalService.updateEventCount('registerVolunteers', userId);
       }
     }
-    // const findVolLog = await this.eventLogModel.findOne({
-    //   where: {
-    //     id: userId,
-    //     eventType: 'registerVolunteers',
-    //   },
-    // });
-    // if (!findVolLog) {
-    //   await this.globalService.updateEventCount('registerVolunteers', userId);
-    // }
+    console.log('existingLocations', existingLocations);
+
     return { message: 'User locations updated successfully' };
   }
 
