@@ -98,6 +98,7 @@ export class AuthService {
       canCreatePost: user.canCreatePost,
       businessName: user.businessName,
       whatsappNumber: user.whatsappNumber,
+      profileImage: user.profileImage,
     };
   }
 
@@ -137,6 +138,7 @@ export class AuthService {
         'canCreatePost',
         'businessName',
         'whatsappNumber',
+        'profileImage',
       ],
       include: [
         {
@@ -202,7 +204,6 @@ export class AuthService {
         transaction: t,
       },
     );
-
     const userDetails = this.formatUserResponse(user, token, userLocations);
 
     return userDetails;

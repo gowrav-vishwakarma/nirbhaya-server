@@ -53,7 +53,7 @@ export class GlobalService {
         ]);
 
         if (referrer?.city === receiver?.city) {
-          defaults.point = pointsRule?.points || 10;
+          defaults.point = pointsRule?.points;
         } else {
           defaults.point = 0; // No points if different cities
         }
@@ -81,11 +81,12 @@ export class GlobalService {
           userId: userId,
         },
         defaults: defaults,
+        transaction,
       });
 
       // If the record already existed, increment the count
       if (!created) {
-        await eventLog.increment('count', { by: 1 });
+        await eventLog.increment('count', { by: 1, transaction });
       }
       // Manage EventCount
 

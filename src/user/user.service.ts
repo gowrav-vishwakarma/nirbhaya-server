@@ -11,7 +11,7 @@ import { UserJWT } from '../dto/user-jwt.dto';
 import { UserProfileUpdateDto } from '../auth-module/dto/user-profile-update.dto';
 import { ValidationException } from 'src/qnatk/src/Exceptions/ValidationException';
 import { GlobalService } from 'src/global/global.service';
-
+import { EventLog } from 'src/models/EventLog';
 @Injectable()
 export class UserService {
   constructor(
@@ -20,6 +20,8 @@ export class UserService {
     private readonly emergencyContactModel: typeof EmergencyContact,
     @InjectModel(UserLocation)
     private readonly userLocationModel: typeof UserLocation,
+    @InjectModel(EventLog)
+    private readonly eventLogModel: typeof EventLog,
     private readonly globalService: GlobalService,
   ) {}
 
@@ -92,6 +94,7 @@ export class UserService {
 
       // Handle locations if provided
       if (data.locations) {
+        console.log('enterrr..here');
         await this.userLocationAdd(user.id, data.locations);
       }
 
@@ -330,6 +333,7 @@ export class UserService {
   }
 
   async userLocationAdd(userId: number, locations: any[]): Promise<any> {
+    console.log('entrrrr..');
     // Get all existing locations for the user
     const existingLocations = await this.userLocationModel.findAll({
       where: { userId: userId },
@@ -383,7 +387,15 @@ export class UserService {
         });
       }
     }
-
+    // const findVolLog = await this.eventLogModel.findOne({
+    //   where: {
+    //     id: userId,
+    //     eventType: 'registerVolunteers',
+    //   },
+    // });
+    // if (!findVolLog) {
+    //   await this.globalService.updateEventCount('registerVolunteers', userId);
+    // }
     return { message: 'User locations updated successfully' };
   }
 
