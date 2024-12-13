@@ -30,6 +30,7 @@ export class ProfileImageChange extends BaseHook {
     }
     console.log('previousData.files', previousData.files);
     if (previousData.files && previousData.files.length) {
+      console.log('previousData.files', previousData.files);
       const filePath = await this.fileService.uploadFile(
         `uploads/usersProfile/${previousData.data.userId}`,
         `${previousData.data.userId}_${previousData.data.referralId}`,
