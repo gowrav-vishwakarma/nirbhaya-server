@@ -51,4 +51,21 @@ export const UserAction: ActionListDTO = {
     },
     returnModel: false,
   },
+  profileChange: {
+    name: 'profileChange',
+    label: 'profileChange',
+    icon: 'man_3',
+    description: 'profileChange',
+    mode: 'SingleRecord',
+    loadBy: 'id',
+    ui: {
+      mode: 'form',
+      title: 'add profileChange',
+      message: 'add profileChange',
+      cancelLabel: 'Cancel',
+      okLabel: 'Save',
+    },
+    hideInAcl: true,
+    returnModel: false,
+  },
 };

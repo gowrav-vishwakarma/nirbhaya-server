@@ -45,6 +45,11 @@ export class User extends Model<User> {
   })
   id: number;
 
+  @Column({
+    type: DataType.STRING,
+  })
+  profileImage: string;
+
   @Index // Consider if this index is necessary
   @Column({
     type: DataType.STRING(15),
