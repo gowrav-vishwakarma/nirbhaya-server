@@ -81,11 +81,12 @@ export class GlobalService {
           userId: userId,
         },
         defaults: defaults,
+        transaction,
       });
 
       // If the record already existed, increment the count
       if (!created) {
-        await eventLog.increment('count', { by: 1 });
+        await eventLog.increment('count', { by: 1, transaction });
       }
       // Manage EventCount
 
