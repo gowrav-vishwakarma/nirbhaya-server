@@ -16,6 +16,12 @@ import { PostComment } from './PostComment';
 @Table({
   tableName: 'communityPosts',
   timestamps: true,
+  indexes: [
+    {
+      type: 'FULLTEXT',
+      fields: ['title', 'description', 'tags'], // Specify the columns for the full-text index
+    },
+  ],
 })
 export class CommunityPost extends Model<CommunityPost> {
   @Column({
