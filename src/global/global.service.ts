@@ -10,13 +10,18 @@ import { SosEvent } from 'src/models/SosEvent';
 import { PointsRulesEntity } from 'src/models/PointsRulesEntity';
 import { ReferralLog } from '../models/ReferralLog';
 import { Sequelize } from 'sequelize-typescript';
-
+import { Transaction } from 'sequelize';
 import { Notification } from 'src/models/Notification';
 @Injectable()
 export class GlobalService {
   constructor(private sequelize: Sequelize) {}
 
-  async updateEventCount(type: string, userId: number, referUserId?: number) {
+  async updateEventCount(
+    type: string,
+    userId: number,
+    referUserId?: number,
+    transaction?: Transaction,
+  ) {
     try {
       // Validate input parameters
       if (!type || !userId) {
@@ -52,23 +57,22 @@ export class GlobalService {
         } else {
           defaults.point = 0; // No points if different cities
         }
-      } else if (type === 'becomeAmbassador') {
-        console.log('Enter..here ?');
-        defaults.point = pointsRule?.points || 200;
+      } else if (type === 'referAmbassador') {
+        defaults.point = pointsRule?.points;
       } else if (pointsRule) {
         defaults.point = pointsRule.points;
       }
 
       // Update user points if applicable
-
+      console.log('defaults.point', defaults.point);
       if (defaults.point > 0) {
         const targetUserId = referUserId || userId;
         await User.increment('point', {
           by: Number(defaults.point),
           where: { id: targetUserId },
+          transaction,
         });
       }
-
       // Create or update EventLog
       const [eventLog, created] = await EventLog.findOrCreate({
         where: {
@@ -97,6 +101,8 @@ export class GlobalService {
           'sosAccepted',
           'sosMovement',
           'sosHelp',
+          'becomeAmbassador',
+          'removeAmbassador',
         ].includes(type)
       ) {
         const [eventCountRecord] = await EventCount.findOrCreate({
@@ -211,11 +217,18 @@ export class GlobalService {
     offset: number,
     startDate?: string,
     endDate?: string,
+    eventType?: string,
+    groupByDate?: boolean,
   ) {
     try {
       const whereCondition: any = {};
+      let groupByCondition = ['eventType'];
+
+      if (groupByDate) {
+        groupByCondition = ['eventType', 'date'];
+      }
+
       if (startDate && endDate) {
-        console.log('ENter here//>');
         whereCondition.date = {
           [Op.between]: [new Date(startDate), new Date(endDate)],
         };
@@ -228,19 +241,24 @@ export class GlobalService {
           [Op.between]: [startOfDay, endOfDay],
         };
       }
-      console.log('wherecondii', whereCondition.date);
+
+      // Only add eventType to whereCondition if it's not 'all'
+      if (eventType && eventType !== 'all') {
+        whereCondition.eventType = eventType;
+      }
+
       const eventCounts = await EventLog.findAll({
         attributes: [
           'eventType',
           'date',
           [Sequelize.fn('SUM', Sequelize.col('count')), 'totalCount'],
         ],
-        group: ['eventType', 'date'],
+        group: groupByCondition,
         limit: limit ? limit : undefined,
         offset: offset ? offset : undefined,
         where: whereCondition,
       });
-      console.log('eventCounts', eventCounts);
+
       return eventCounts;
     } catch (error) {
       console.error('Error fetching event log counts:', error);

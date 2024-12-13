@@ -19,6 +19,7 @@ export class EventLogForAmbassador extends BaseHook {
   }
   async execute(
     previousData: ActionExecuteParams<User, AmbassadorDto, any>,
+    transaction: Transaction,
   ): Promise<any> {
     const { data } = previousData;
     if (!data.userId) {
@@ -26,35 +27,25 @@ export class EventLogForAmbassador extends BaseHook {
         userId: ['userId is required'],
       });
     }
-    const eventLogs = [];
+    console.log('data...user..id', data.userId, data.referUserId);
     //for referAmbassador
     if (data.referUserId) {
-      eventLogs.push({
-        eventType: 'referAmbassador',
-        userId: data.referUserId,
-        referUserId: data.referUserId,
-      });
+      await this.globalService.updateEventCount(
+        'referAmbassador',
+        data.referUserId,
+        null,
+        transaction,
+      );
     }
     //for becomeAmbassador
     const eventType = data.isAmbassador
       ? 'becomeAmbassador'
       : 'removeAmbassador';
-    // let isReferral = false;
-    // if (data.ambassadorReferralId) {
-    //   isReferral = true;
-    // }
-    eventLogs.push({
-      eventType: eventType,
-      userId: data.userId,
-    });
-    console.log('eventLog', eventLogs);
-    for (let i = 0; i < eventLogs.length; i++) {
-      await this.globalService.updateEventCount(
-        eventLogs[i].eventType,
-        eventLogs[i].userId,
-        // eventLogs[i]?.isReferral,
-        eventLogs[i]?.referUserId,
-      );
-    }
+    await this.globalService.updateEventCount(
+      eventType,
+      data.userId,
+      null,
+      transaction,
+    );
   }
 }
