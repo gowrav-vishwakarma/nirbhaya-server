@@ -53,7 +53,7 @@ export class GlobalService {
         ]);
 
         if (referrer?.city === receiver?.city) {
-          defaults.point = pointsRule?.points || 10;
+          defaults.point = pointsRule?.points;
         } else {
           defaults.point = 0; // No points if different cities
         }

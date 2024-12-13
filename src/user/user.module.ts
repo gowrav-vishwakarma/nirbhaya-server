@@ -6,10 +6,15 @@ import { User } from '../models/User';
 import { EmergencyContact } from '../models/EmergencyContact';
 import { UserLocation } from '../models/UserLocation';
 import { AuthModule } from '../auth-module/auth.module';
-
+import { EventLog } from 'src/models/EventLog';
 @Module({
   imports: [
-    SequelizeModule.forFeature([User, EmergencyContact, UserLocation]),
+    SequelizeModule.forFeature([
+      User,
+      EmergencyContact,
+      UserLocation,
+      EventLog,
+    ]),
     forwardRef(() => AuthModule),
   ],
   controllers: [UserController],
