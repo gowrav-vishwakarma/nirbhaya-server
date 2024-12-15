@@ -23,7 +23,7 @@ export class LeaderboardController {
       return this.leaderboardService.getLocationLeaderboard(
         user.id,
         [coordinates[0], coordinates[1]],
-        radius || 5,
+        radius || 5000,
       );
     } else if (scope === 'administrative' && region) {
       return this.leaderboardService.getAdministrativeLeaderboard(
