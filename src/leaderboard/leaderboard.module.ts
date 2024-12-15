@@ -5,9 +5,13 @@ import { LeaderboardService } from './leaderboard.service';
 import { User } from '../models/User';
 import { UserLocation } from '../models/UserLocation';
 import { AuthModule } from 'src/auth-module/auth.module';
+import { EventLog } from '../models/EventLog';
 
 @Module({
-  imports: [SequelizeModule.forFeature([User, UserLocation]), AuthModule],
+  imports: [
+    SequelizeModule.forFeature([User, UserLocation, EventLog]),
+    AuthModule,
+  ],
   controllers: [LeaderboardController],
   providers: [LeaderboardService],
 })
