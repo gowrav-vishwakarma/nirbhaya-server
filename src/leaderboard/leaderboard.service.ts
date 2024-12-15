@@ -6,10 +6,19 @@ import { User } from '../models/User';
 import { UserLocation } from '../models/UserLocation';
 import { EventLog } from '../models/EventLog';
 
-// Scoring weights
+// Add at the top of the file, before the WEIGHTS
+export enum EventTypes {
+  APP_OPEN = 'appOpen',
+  LOCATION_ADDED = 'locationAdded',
+  REFERRAL_ADDED = 'referralAdded',
+  SOS_RESPONDED = 'sosResponded',
+}
+
+// Update the WEIGHTS constant to include volunteer location points
 const WEIGHTS = {
   REFERRAL: 10, // Points per successful referral
   REFERRAL_LOCATION: 100, // Points per location added by referrals
+  VOLUNTEER_LOCATION: 50, // Points per location where user volunteers
   DAILY_APP_OPEN_SELF: 10, // Points per day for opening app
   DAILY_APP_OPEN_REFERRAL: 5, // Points per day for referrals opening app
   MAX_DAILY_POINTS: 30, // Max points per day from app opens
@@ -30,6 +39,10 @@ export interface ScoreBreakdown {
     score: number;
   };
   referralLocations: {
+    count: number;
+    score: number;
+  };
+  volunteerLocations: {
     count: number;
     score: number;
   };
@@ -99,13 +112,19 @@ export class LeaderboardService {
         ],
         [
           literal(
-            `(SELECT COUNT(DISTINCT date) FROM eventLog WHERE userId = User.id AND eventType = 'appOpen' AND date >= DATE_SUB(NOW(), INTERVAL 30 DAY))`,
+            '(SELECT COUNT(*) FROM UserLocations WHERE userId = User.id AND isBusinessLocation = false)',
+          ),
+          'volunteerLocationsCount',
+        ],
+        [
+          literal(
+            `(SELECT COUNT(DISTINCT date) FROM eventLog WHERE userId = User.id AND eventType = '${EventTypes.APP_OPEN}' AND date >= DATE_SUB(NOW(), INTERVAL 30 DAY))`,
           ),
           'selfAppOpenDays',
         ],
         [
           literal(
-            `COALESCE((SELECT SUM(daily_opens) FROM (SELECT COUNT(DISTINCT date) as daily_opens FROM eventLog WHERE userId IN (SELECT id FROM Users WHERE referUserId = User.id) AND eventType = 'app' AND date >= DATE_SUB(NOW(), INTERVAL 30 DAY) GROUP BY userId) as ref_opens), 0)`,
+            `COALESCE((SELECT SUM(daily_opens) FROM (SELECT COUNT(DISTINCT date) as daily_opens FROM eventLog WHERE userId IN (SELECT id FROM Users WHERE referUserId = User.id) AND eventType = '${EventTypes.APP_OPEN}' AND date >= DATE_SUB(NOW(), INTERVAL 30 DAY) GROUP BY userId) as ref_opens), 0)`,
           ),
           'referralsAppOpenDays',
         ],
@@ -148,13 +167,19 @@ export class LeaderboardService {
         ],
         [
           literal(
-            `(SELECT COUNT(DISTINCT date) FROM eventLog WHERE userId = User.id AND eventType = 'appOpen' AND date >= DATE_SUB(NOW(), INTERVAL 30 DAY))`,
+            '(SELECT COUNT(*) FROM UserLocations WHERE userId = User.id AND isBusinessLocation = false)',
+          ),
+          'volunteerLocationsCount',
+        ],
+        [
+          literal(
+            `(SELECT COUNT(DISTINCT date) FROM eventLog WHERE userId = User.id AND eventType = '${EventTypes.APP_OPEN}' AND date >= DATE_SUB(NOW(), INTERVAL 30 DAY))`,
           ),
           'selfAppOpenDays',
         ],
         [
           literal(
-            `COALESCE((SELECT SUM(daily_opens) FROM (SELECT COUNT(DISTINCT date) as daily_opens FROM eventLog WHERE userId IN (SELECT id FROM Users WHERE referUserId = User.id) AND eventType = 'appOpen' AND date >= DATE_SUB(NOW(), INTERVAL 30 DAY) GROUP BY userId) as ref_opens), 0)`,
+            `COALESCE((SELECT SUM(daily_opens) FROM (SELECT COUNT(DISTINCT date) as daily_opens FROM eventLog WHERE userId IN (SELECT id FROM Users WHERE referUserId = User.id) AND eventType = '${EventTypes.APP_OPEN}' AND date >= DATE_SUB(NOW(), INTERVAL 30 DAY) GROUP BY userId) as ref_opens), 0)`,
           ),
           'referralsAppOpenDays',
         ],
@@ -178,13 +203,19 @@ export class LeaderboardService {
        FROM Users referrals 
        INNER JOIN UserLocations refLocs ON refLocs.userId = referrals.id
        WHERE referrals.referUserId = User.id) +
+
+      /* Volunteer locations points */
+      (SELECT COUNT(*) * ${WEIGHTS.VOLUNTEER_LOCATION}
+       FROM UserLocations 
+       WHERE userId = User.id 
+       AND isBusinessLocation = false) +
       
       /* Self daily app opens (last 30 days) */
       LEAST(
         (SELECT COUNT(DISTINCT date) * ${WEIGHTS.DAILY_APP_OPEN_SELF}
          FROM eventLog 
          WHERE userId = User.id 
-         AND eventType = 'appOpen'
+         AND eventType = '${EventTypes.APP_OPEN}'
          AND date >= DATE_SUB(NOW(), INTERVAL 30 DAY)
         ), ${WEIGHTS.MAX_DAILY_POINTS}
       ) +
@@ -199,7 +230,7 @@ export class LeaderboardService {
            FROM Users refs
            LEFT JOIN eventLog el ON el.userId = refs.id
            WHERE refs.referUserId = User.id
-           AND el.eventType = 'appOpen'
+           AND el.eventType = '${EventTypes.APP_OPEN}'
            AND date >= DATE_SUB(NOW(), INTERVAL 30 DAY)
            GROUP BY refs.id
          ) as referral_points
@@ -218,9 +249,12 @@ export class LeaderboardService {
         (SELECT COUNT(*) FROM Users u 
          INNER JOIN UserLocations ul ON ul.userId = u.id 
          WHERE u.referUserId = ${userId}) as referralLocationsCount,
+        (SELECT COUNT(*) FROM UserLocations 
+         WHERE userId = ${userId} 
+         AND isBusinessLocation = false) as volunteerLocationsCount,
         (SELECT COUNT(DISTINCT date) FROM eventLog 
          WHERE userId = ${userId} 
-         AND eventType = 'appOpen'
+         AND eventType = '${EventTypes.APP_OPEN}'
          AND date >= '${thirtyDaysAgo.toISOString()}') as selfAppOpenDays,
         (SELECT 
            COUNT(DISTINCT refs.id) as referral_count,
@@ -231,7 +265,7 @@ export class LeaderboardService {
              userId,
              COUNT(DISTINCT date) as daily_opens
            FROM eventLog
-           WHERE eventType = 'appOpen'
+           WHERE eventType = '${EventTypes.APP_OPEN}'
            AND date >= '${thirtyDaysAgo.toISOString()}'
            GROUP BY userId
          ) el ON el.userId = refs.id
@@ -244,6 +278,8 @@ export class LeaderboardService {
     const referralScore = breakdown.referralCount * WEIGHTS.REFERRAL;
     const referralLocationsScore =
       breakdown.referralLocationsCount * WEIGHTS.REFERRAL_LOCATION;
+    const volunteerLocationsScore =
+      breakdown.volunteerLocationsCount * WEIGHTS.VOLUNTEER_LOCATION;
     const selfAppOpenScore = Math.min(
       breakdown.selfAppOpenDays || 0 * WEIGHTS.DAILY_APP_OPEN_SELF,
       WEIGHTS.MAX_DAILY_POINTS,
@@ -257,6 +293,7 @@ export class LeaderboardService {
       totalScore:
         referralScore +
         referralLocationsScore +
+        volunteerLocationsScore +
         selfAppOpenScore +
         referralsAppOpenScore,
       referrals: {
@@ -266,6 +303,10 @@ export class LeaderboardService {
       referralLocations: {
         count: breakdown.referralLocationsCount || 0,
         score: referralLocationsScore,
+      },
+      volunteerLocations: {
+        count: breakdown.volunteerLocationsCount || 0,
+        score: volunteerLocationsScore,
       },
       selfActivity: {
         daysActive: breakdown.selfAppOpenDays || 0,
@@ -284,6 +325,9 @@ export class LeaderboardService {
         user.getDataValue('referralCount') * WEIGHTS.REFERRAL;
       const referralLocationsScore =
         user.getDataValue('referralLocationsCount') * WEIGHTS.REFERRAL_LOCATION;
+      const volunteerLocationsScore =
+        user.getDataValue('volunteerLocationsCount') *
+        WEIGHTS.VOLUNTEER_LOCATION;
       const selfAppOpenScore = Math.min(
         user.getDataValue('selfAppOpenDays') * WEIGHTS.DAILY_APP_OPEN_SELF,
         WEIGHTS.MAX_DAILY_POINTS,
@@ -308,6 +352,10 @@ export class LeaderboardService {
           referralLocations: {
             count: user.getDataValue('referralLocationsCount') || 0,
             score: referralLocationsScore,
+          },
+          volunteerLocations: {
+            count: user.getDataValue('volunteerLocationsCount') || 0,
+            score: volunteerLocationsScore,
           },
           selfActivity: {
             daysActive: user.getDataValue('selfAppOpenDays') || 0,
