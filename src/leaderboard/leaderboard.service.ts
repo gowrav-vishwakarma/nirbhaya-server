@@ -62,25 +62,27 @@ export class LeaderboardService {
   ): Promise<LeaderboardEntry[]> {
     const [longitude, latitude] = coordinates;
 
-    // Haversine formula for distance calculation
-    const distanceFormula = `
-      6371 * acos(
-        cos(radians(${latitude})) * 
-        cos(radians(ST_X(location))) * 
-        cos(radians(ST_Y(location)) - radians(${longitude})) + 
-        sin(radians(${latitude})) * 
-        sin(radians(ST_X(location)))
-      )
-    `;
+    // First get all userIds that have locations within the radius using ST_Distance_Sphere
+    const [usersWithinRadius] = await this.sequelize.query(`
+      SELECT DISTINCT ul.userId 
+      FROM UserLocations ul
+      WHERE ST_Distance_Sphere(
+        ul.location,
+        ST_GeomFromText('POINT(${longitude} ${latitude})')
+      ) <= ${radius}
+    `);
 
+    const userIds = (usersWithinRadius as any[]).map((u) => u.userId);
+
+    if (!userIds.length) {
+      return [];
+    }
+
+    // Then get the leaderboard for these users
     const users = await this.userModel.findAll({
-      include: [
-        {
-          model: UserLocation,
-          where: literal(`${distanceFormula} <= ${radius}`),
-          required: true,
-        },
-      ],
+      where: {
+        id: userIds,
+      },
       attributes: [
         'id',
         'name',
