@@ -8,8 +8,8 @@ import { EventLog } from '../models/EventLog';
 
 // Scoring weights
 const WEIGHTS = {
-  REFERRAL: 100, // Points per successful referral
-  REFERRAL_LOCATION: 50, // Points per location added by referrals
+  REFERRAL: 10, // Points per successful referral
+  REFERRAL_LOCATION: 100, // Points per location added by referrals
   DAILY_APP_OPEN_SELF: 10, // Points per day for opening app
   DAILY_APP_OPEN_REFERRAL: 5, // Points per day for referrals opening app
   MAX_DAILY_POINTS: 30, // Max points per day from app opens
@@ -99,13 +99,13 @@ export class LeaderboardService {
         ],
         [
           literal(
-            `(SELECT COUNT(DISTINCT date) FROM eventLog WHERE userId = User.id AND eventType = 'APP_OPEN' AND date >= DATE_SUB(NOW(), INTERVAL 30 DAY))`,
+            `(SELECT COUNT(DISTINCT date) FROM eventLog WHERE userId = User.id AND eventType = 'appOpen' AND date >= DATE_SUB(NOW(), INTERVAL 30 DAY))`,
           ),
           'selfAppOpenDays',
         ],
         [
           literal(
-            `COALESCE((SELECT SUM(daily_opens) FROM (SELECT COUNT(DISTINCT date) as daily_opens FROM eventLog WHERE userId IN (SELECT id FROM Users WHERE referUserId = User.id) AND eventType = 'APP_OPEN' AND date >= DATE_SUB(NOW(), INTERVAL 30 DAY) GROUP BY userId) as ref_opens), 0)`,
+            `COALESCE((SELECT SUM(daily_opens) FROM (SELECT COUNT(DISTINCT date) as daily_opens FROM eventLog WHERE userId IN (SELECT id FROM Users WHERE referUserId = User.id) AND eventType = 'app' AND date >= DATE_SUB(NOW(), INTERVAL 30 DAY) GROUP BY userId) as ref_opens), 0)`,
           ),
           'referralsAppOpenDays',
         ],
@@ -148,13 +148,13 @@ export class LeaderboardService {
         ],
         [
           literal(
-            `(SELECT COUNT(DISTINCT date) FROM eventLog WHERE userId = User.id AND eventType = 'APP_OPEN' AND date >= DATE_SUB(NOW(), INTERVAL 30 DAY))`,
+            `(SELECT COUNT(DISTINCT date) FROM eventLog WHERE userId = User.id AND eventType = 'appOpen' AND date >= DATE_SUB(NOW(), INTERVAL 30 DAY))`,
           ),
           'selfAppOpenDays',
         ],
         [
           literal(
-            `COALESCE((SELECT SUM(daily_opens) FROM (SELECT COUNT(DISTINCT date) as daily_opens FROM eventLog WHERE userId IN (SELECT id FROM Users WHERE referUserId = User.id) AND eventType = 'APP_OPEN' AND date >= DATE_SUB(NOW(), INTERVAL 30 DAY) GROUP BY userId) as ref_opens), 0)`,
+            `COALESCE((SELECT SUM(daily_opens) FROM (SELECT COUNT(DISTINCT date) as daily_opens FROM eventLog WHERE userId IN (SELECT id FROM Users WHERE referUserId = User.id) AND eventType = 'appOpen' AND date >= DATE_SUB(NOW(), INTERVAL 30 DAY) GROUP BY userId) as ref_opens), 0)`,
           ),
           'referralsAppOpenDays',
         ],
@@ -184,7 +184,7 @@ export class LeaderboardService {
         (SELECT COUNT(DISTINCT date) * ${WEIGHTS.DAILY_APP_OPEN_SELF}
          FROM eventLog 
          WHERE userId = User.id 
-         AND eventType = 'APP_OPEN'
+         AND eventType = 'appOpen'
          AND date >= DATE_SUB(NOW(), INTERVAL 30 DAY)
         ), ${WEIGHTS.MAX_DAILY_POINTS}
       ) +
@@ -199,7 +199,7 @@ export class LeaderboardService {
            FROM Users refs
            LEFT JOIN eventLog el ON el.userId = refs.id
            WHERE refs.referUserId = User.id
-           AND el.eventType = 'APP_OPEN'
+           AND el.eventType = 'appOpen'
            AND date >= DATE_SUB(NOW(), INTERVAL 30 DAY)
            GROUP BY refs.id
          ) as referral_points
@@ -220,7 +220,7 @@ export class LeaderboardService {
          WHERE u.referUserId = ${userId}) as referralLocationsCount,
         (SELECT COUNT(DISTINCT date) FROM eventLog 
          WHERE userId = ${userId} 
-         AND eventType = 'APP_OPEN'
+         AND eventType = 'appOpen'
          AND date >= '${thirtyDaysAgo.toISOString()}') as selfAppOpenDays,
         (SELECT 
            COUNT(DISTINCT refs.id) as referral_count,
@@ -231,7 +231,7 @@ export class LeaderboardService {
              userId,
              COUNT(DISTINCT date) as daily_opens
            FROM eventLog
-           WHERE eventType = 'APP_OPEN'
+           WHERE eventType = 'appOpen'
            AND date >= '${thirtyDaysAgo.toISOString()}'
            GROUP BY userId
          ) el ON el.userId = refs.id
