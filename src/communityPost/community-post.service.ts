@@ -8,7 +8,8 @@ import { CommentReply } from '../models/CommentReply';
 import { FileService } from '../files/file.service';
 import { User } from '../models/User';
 import { UserInteraction } from '../models/UserInteractions';
-import { Op, literal } from 'sequelize';
+import { Op, literal, where, fn, col } from 'sequelize';
+import { PostDataWithDistance } from '../models/CommunityPost';
 
 type PostResponse = CommunityPost & {
   wasLiked: boolean;
@@ -77,6 +78,10 @@ export class CommunityPostService {
         location: location,
         tags: tags,
         showLocation: showLocation,
+        whatsappNumber:
+          createPostDto.isBusinessPost === 'true'
+            ? createPostDto.whatsappNumber
+            : null,
       };
 
       console.log('postData.......', postData);
@@ -159,6 +164,7 @@ export class CommunityPostService {
         'postType',
         'userName',
         'isBusinessPost',
+        'whatsappNumber',
         'showLocation',
         'location',
         // Add distance calculation if location exists
@@ -206,13 +212,13 @@ export class CommunityPostService {
       const rawPost = post.toJSON();
       const wasLiked = rawPost.likes?.length > 0;
 
-      // Only include location if user is owner or showLocation is true
+      // Type the postData properly
       const postData = {
         ...rawPost,
         wasLiked,
-      };
+      } as PostDataWithDistance;
 
-      // Remove location if not owner and showLocation is false
+      // Now TypeScript knows about the distance property
       if (Number(userId) !== Number(logedinUser) && !rawPost.showLocation) {
         delete postData.location;
         delete postData.distance;
@@ -538,21 +544,57 @@ export class CommunityPostService {
     userLong: number,
     page: number = 1,
     pageSize: number = 5,
-    maxDistanceKm: number = 1000, // Maximum distance to consider
-    timeWeightFactor: number = 0.6, // Weight for time relevance (0-1)
-    distanceWeightFactor: number = 0.4, // Weight for distance relevance (0-1)
+    maxDistanceKm: number = 1000,
+    timeWeightFactor: number = 0.6,
+    distanceWeightFactor: number = 0.4,
+    status?: string,
+    searchText?: string,
+    isSearch?: boolean,
   ) {
     const offset = (page - 1) * pageSize;
 
-    // Calculate time decay factor (posts older than 30 days start losing relevance)
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    // When using ST_X(location) and ST_Y(location), ST_X returns longitude and ST_Y returns latitude.
     try {
-      console.log('relevent post finding');
-      // Using Haversine formula to calculate distance
-      const posts = await this.communityPostModel.findAll({
+      // Base where conditions
+      let whereConditions: any = {
+        status: status || 'active',
+        isDeleted: false,
+      };
+
+      // Add full-text search if isSearch is true and searchText exists
+      if (isSearch && searchText) {
+        whereConditions = {
+          ...whereConditions,
+          [Op.and]: [
+            whereConditions,
+            literal(
+              `MATCH(title, description, tags) AGAINST(:searchQuery IN BOOLEAN MODE)`,
+            ),
+          ],
+        };
+      }
+
+      // Add distance condition if coordinates are provided
+      if (userLat && userLong) {
+        whereConditions = {
+          ...whereConditions,
+          [Op.and]: [
+            ...(whereConditions[Op.and] || [whereConditions]),
+            literal(`
+              (
+                6371 * acos(
+                  cos(radians(${userLat})) * 
+                  cos(radians(ST_Y(location))) * 
+                  cos(radians(${userLong}) - radians(ST_X(location))) + 
+                  sin(radians(${userLat})) * 
+                  sin(radians(ST_Y(location)))
+                )
+              ) <= ${maxDistanceKm}
+            `),
+          ],
+        };
+      }
+
+      const searchOptions: any = {
         attributes: [
           'id',
           'title',
@@ -570,21 +612,37 @@ export class CommunityPostService {
           'postType',
           'userName',
           'isBusinessPost',
+          'whatsappNumber',
           'showLocation',
           'location',
-          [
-            literal(`(
-                6371 * acos(
-                  cos(radians(${userLat})) * 
-                  cos(radians(ST_Y(location))) * 
-                  cos(radians(${userLong}) - radians(ST_X(location))) + 
-                  sin(radians(${userLat})) * 
-                  sin(radians(ST_Y(location)))
-                )
+          // Only add distance calculation if coordinates are provided
+          ...(userLat && userLong
+            ? [
+                [
+                  literal(`(
+              6371 * acos(
+                cos(radians(${userLat})) * 
+                cos(radians(ST_Y(location))) * 
+                cos(radians(${userLong}) - radians(ST_X(location))) + 
+                sin(radians(${userLat})) * 
+                sin(radians(ST_Y(location)))
               )
-            `),
-            'distance',
-          ],
+            )`),
+                  'distance',
+                ],
+              ]
+            : []),
+          // Add relevance score for full-text search
+          ...(isSearch && searchText
+            ? [
+                [
+                  literal(
+                    `MATCH(title, description, tags) AGAINST(:searchQuery IN BOOLEAN MODE)`,
+                  ),
+                  'searchRelevance',
+                ],
+              ]
+            : []),
           [
             literal(`
               CASE 
@@ -604,72 +662,48 @@ export class CommunityPostService {
             'wasLiked',
           ],
         ],
-        where: literal(`
-          (
-            6371 * acos(
-              cos(radians(${userLat})) * 
-              cos(radians(ST_Y(location))) * 
-              cos(radians(${userLong}) - radians(ST_X(location))) + 
-              sin(radians(${userLat})) * 
-              sin(radians(ST_Y(location)))
-            )
-          ) <= ${maxDistanceKm} AND status = 'active'
-        `),
-        // include: [
-        //   {
-        //     model: PostLike,
-        //     as: 'likes',
-        //     attributes: ['id'],
-        //     required: false,
-        //     where: { userId: userId },
-        //     limit: 1,
-        //   },
-        // ],
+        where: whereConditions,
         order: [
-          [
-            literal(`
+          ...(isSearch && searchText
+            ? [[literal('searchRelevance'), 'DESC']]
+            : []),
+          ...(userLat && userLong
+            ? [
+                [
+                  literal(`
               (
                 ${timeWeightFactor} * timeRelevance + 
                 ${distanceWeightFactor} * (1 - (distance / ${maxDistanceKm}))
               )
             `),
-            'DESC',
-          ],
+                  'DESC',
+                ],
+              ]
+            : []),
+          ['createdAt', 'DESC'],
         ],
         limit: typeof pageSize === 'string' ? parseInt(pageSize) : pageSize,
         offset: offset,
-      });
+      };
 
-      // Calculate total count for pagination
-      // const totalCount = await this.communityPostModel.count({
-      //   where: literal(`
-      //     (
-      //       6371 * acos(
-      //         cos(radians(${userLat})) *
-      //         cos(radians(ST_X(location))) *
-      //         cos(radians(${userLong}) - radians(ST_Y(location))) +
-      //         sin(radians(${userLat})) *
-      //         sin(radians(ST_X(location)))
-      //       )
-      //     ) <= ${maxDistanceKm}
-      //   `),
-      // });
-      // return {
-      //   posts,
-      //   pagination: {
-      //     currentPage: page,
-      //     pageSize,
-      //     totalPages: Math.ceil(totalCount / pageSize),
-      //     totalCount,
-      //   },
-      // };
+      // Add replacements for the search query if needed
+      if (isSearch && searchText) {
+        searchOptions.replacements = {
+          searchQuery: `${searchText}*`, // Adding wildcard for partial matches
+        };
+      }
+
+      const posts = await this.communityPostModel.findAll(searchOptions);
+
       const processedPosts = posts.map((post) => {
-        const postData = post.toJSON();
+        const postData = post.toJSON() as PostDataWithDistance;
         if (!postData.showLocation) {
           delete postData.location;
+          delete postData.distance;
         }
         return postData;
       });
+
       return processedPosts;
     } catch (error) {
       console.log(`Failed to fetch relevant posts: ${error.message}`);
