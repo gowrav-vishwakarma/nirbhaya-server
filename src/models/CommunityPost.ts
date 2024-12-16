@@ -13,13 +13,21 @@ import { User } from './User';
 import { PostLike } from './PostLike';
 import { PostComment } from './PostComment';
 
+export interface PostDataWithDistance extends CommunityPost {
+  distance?: number;
+  timeRelevance?: number;
+  wasLiked?: boolean;
+  searchRelevance?: number;
+}
+
 @Table({
   tableName: 'communityPosts',
   timestamps: true,
   indexes: [
     {
       type: 'FULLTEXT',
-      fields: ['title', 'description', 'tags'], // Specify the columns for the full-text index
+      name: 'post_search_idx',
+      fields: ['title', 'description', 'tags'],
     },
   ],
 })
@@ -203,6 +211,12 @@ export class CommunityPost extends Model<CommunityPost> {
     allowNull: true,
   })
   deletedAt?: Date;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  whatsappNumber?: string;
 
   @BelongsTo(() => User)
   user: User;

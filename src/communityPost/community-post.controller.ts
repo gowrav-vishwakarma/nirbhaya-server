@@ -45,6 +45,8 @@ export class CommunityPostController {
     @Query('limit') limit: number = 5,
     @Query('latitude') userLat: number,
     @Query('longitude') userLong: number,
+    @Query('prompt') searchText: string,
+    @Query('isSearch') isSearch: boolean,
     @GetUser() user: UserJWT,
   ) {
     return this.communityPostService.getRelevantPosts(
@@ -53,15 +55,13 @@ export class CommunityPostController {
       userLong,
       page,
       limit,
+      1000, // maxDistanceKm
+      0.6, // timeWeightFactor
+      0.4, // distanceWeightFactor
+      status,
+      searchText,
+      isSearch,
     );
-
-    // const offset = (page - 1) * limit;
-    // return this.communityPostService.findAll({
-    //   status,
-    //   userId: Number(userId),
-    //   offset,
-    //   limit: Number(limit),
-    // });
   }
 
   @UseGuards(AuthGuard)
