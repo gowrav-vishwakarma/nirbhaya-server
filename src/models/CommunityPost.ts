@@ -99,6 +99,13 @@ export class CommunityPost extends Model<CommunityPost> {
   location: any;
 
   @Column({
+    type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: true,
+  })
+  showLocation: boolean;
+
+  @Column({
     type: DataType.STRING,
   })
   badge?: string;

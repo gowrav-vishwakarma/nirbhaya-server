@@ -65,11 +65,18 @@ export class CommunityPostService {
         }
       }
 
+      // Parse showLocation if it's a string
+      let showLocation = true; // default value
+      if (createPostDto.showLocation) {
+        showLocation = createPostDto.showLocation === 'true';
+      }
+
       const postData = {
         ...createPostDto,
         mediaUrls: imageUrls,
         location: location,
         tags: tags,
+        showLocation: showLocation,
       };
 
       console.log('postData.......', postData);
