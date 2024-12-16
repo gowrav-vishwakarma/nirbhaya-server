@@ -22,6 +22,13 @@ interface FindAllParams {
   limit?: number;
 }
 
+type PriorityWeight = {
+  [key: string]: number;
+  low: number;
+  medium: number;
+  high: number;
+};
+
 @Injectable()
 export class CommunityPostService {
   constructor(
@@ -545,13 +552,21 @@ export class CommunityPostService {
     page: number = 1,
     pageSize: number = 5,
     maxDistanceKm: number = 1000,
-    timeWeightFactor: number = 0.6,
-    distanceWeightFactor: number = 0.4,
+    timeWeightFactor: number = 0.4,
+    distanceWeightFactor: number = 0.3,
+    priorityWeightFactor: number = 0.3,
     status?: string,
     searchText?: string,
     isSearch?: boolean,
   ) {
     const offset = (page - 1) * pageSize;
+
+    // Define priority weights
+    const priorityWeights: PriorityWeight = {
+      low: 0.2,
+      medium: 0.6,
+      high: 1.0,
+    };
 
     try {
       // Base where conditions
@@ -643,6 +658,17 @@ export class CommunityPostService {
                 ],
               ]
             : []),
+          // Add priority score calculation
+          [
+            literal(`
+              CASE priority
+                WHEN 'high' THEN ${priorityWeights.high}
+                WHEN 'medium' THEN ${priorityWeights.medium}
+                ELSE ${priorityWeights.low}
+              END
+            `),
+            'priorityScore',
+          ],
           [
             literal(`
               CASE 
@@ -664,26 +690,26 @@ export class CommunityPostService {
         ],
         where: whereConditions,
         order: [
-          ...(isSearch && searchText
-            ? [[literal('searchRelevance'), 'DESC']]
-            : []),
-          ...(userLat && userLong
-            ? [
-                [
-                  literal(`
+          // Combined relevance score
+          [
+            literal(`
               (
                 ${timeWeightFactor} * timeRelevance + 
-                ${distanceWeightFactor} * (1 - (distance / ${maxDistanceKm}))
+                ${distanceWeightFactor} * (1 - LEAST(distance / ${maxDistanceKm}, 1)) +
+                ${priorityWeightFactor} * priorityScore +
+                ${isSearch ? 'searchRelevance * 0.2' : '0'}
               )
             `),
-                  'DESC',
-                ],
-              ]
-            : []),
-          ['createdAt', 'DESC'],
+            'DESC',
+          ],
+          ['createdAt', 'DESC'], // Secondary sort by creation date
         ],
         limit: typeof pageSize === 'string' ? parseInt(pageSize) : pageSize,
         offset: offset,
+        // Add index hints for better performance
+        indexHints: [
+          { type: 'FORCE', values: ['priority_idx', 'created_at_idx'] },
+        ],
       };
 
       // Add replacements for the search query if needed

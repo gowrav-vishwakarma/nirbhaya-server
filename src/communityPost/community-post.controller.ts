@@ -40,27 +40,28 @@ export class CommunityPostController {
   @Get('community-posts')
   async getCommunityPosts(
     @Query('status') status: string,
-    @Query('userId') userId: number,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 5,
-    @Query('latitude') userLat: number,
-    @Query('longitude') userLong: number,
+    @Query('userId') userId: string,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '5',
+    @Query('latitude') latitude: string,
+    @Query('longitude') longitude: string,
     @Query('prompt') searchText: string,
-    @Query('isSearch') isSearch: boolean,
+    @Query('isSearch') isSearch: string,
     @GetUser() user: UserJWT,
   ) {
     return this.communityPostService.getRelevantPosts(
-      user.id,
-      userLat,
-      userLong,
-      page,
-      limit,
+      Number(userId),
+      Number(latitude),
+      Number(longitude),
+      page ? Number(page) : undefined,
+      limit ? Number(limit) : undefined,
       1000, // maxDistanceKm
-      0.6, // timeWeightFactor
-      0.4, // distanceWeightFactor
+      0.4, // timeWeightFactor
+      0.3, // distanceWeightFactor
+      0.3, // priorityWeightFactor
       status,
       searchText,
-      isSearch,
+      isSearch === 'true',
     );
   }
 
