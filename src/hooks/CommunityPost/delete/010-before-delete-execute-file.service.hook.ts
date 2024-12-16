@@ -6,6 +6,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { FileService } from 'src/files/file.service';
 import { PostComment } from 'src/models/PostComment';
 import { PostLike } from 'src/models/PostLike';
+import { Transaction } from 'sequelize';
 @Injectable()
 export class BeforeDeleteExecuteHook extends BaseHook {
   constructor(
@@ -21,8 +22,9 @@ export class BeforeDeleteExecuteHook extends BaseHook {
   }
   async execute(
     previousData: BeforeHookParams<any, any>,
+    transaction: Transaction,
   ): Promise<BeforeHookParams<any, any>> {
-    console.log('previousData...........', previousData);
+    console.log('previousData........... community post', previousData);
     if (previousData.data.primaryKey) {
       const postData = await this.communityPostModel.findOne({
         where: {
@@ -34,17 +36,20 @@ export class BeforeDeleteExecuteHook extends BaseHook {
           where: {
             postId: postData.id,
           },
+          transaction,
         });
         await this.postLike.destroy({
           where: {
-            id: postData.id,
+            postId: postData.id,
           },
+          transaction,
         });
         if (postData.mediaUrls && postData.mediaUrls.length > 0) {
           for (const i of postData.mediaUrls) {
             await this.fileService.deleteFile('public/' + i);
           }
         }
+        console.log('completed this ?');
       }
     }
     return previousData;

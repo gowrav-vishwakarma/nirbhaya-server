@@ -13,6 +13,7 @@ import AclRoles from 'src/models/AclRoles';
 import { CommunityPost } from 'src/models/CommunityPost';
 import { PostComment } from 'src/models/PostComment';
 import { PostLike } from 'src/models/PostLike';
+import AdminQnatkController from './admin-auth-qnatk.controller';
 // import { AdminAuthGuard } from './';
 @Module({
   imports: [
