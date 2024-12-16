@@ -7,6 +7,7 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 import { Op } from 'sequelize';
 import { UserLocation } from 'src/models/UserLocation';
 import { CommunityPost } from '../models/CommunityPost';
+import { VolunteerNearbyResponseDto } from './dto/volunteer-nearby.dto';
 
 @Injectable()
 export class CommunityService {
@@ -40,7 +41,7 @@ export class CommunityService {
     latitude: number,
     longitude: number,
     range: number,
-  ): Promise<any[]> {
+  ): Promise<VolunteerNearbyResponseDto[]> {
     try {
       const volunteers = await this.userLocationModel.findAll({
         attributes: ['id', 'location'],
