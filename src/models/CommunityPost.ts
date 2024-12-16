@@ -151,7 +151,7 @@ export class CommunityPost extends Model<CommunityPost> {
   @Column({
     type: DataType.ENUM('low', 'medium', 'high'),
     allowNull: false,
-    defaultValue: 'medium',
+    defaultValue: 'low',
   })
   priority: 'low' | 'medium' | 'high';
 
