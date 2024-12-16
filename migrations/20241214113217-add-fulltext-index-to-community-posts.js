@@ -2,18 +2,34 @@
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  up: async (queryInterface) => {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.sequelize.query(`
+      ALTER TABLE communityPosts 
+      ADD FULLTEXT INDEX post_search_idx (title, description, tags)
+      WITH PARSER ngram
+      /*!50100 WITH PARSER ngram */
+    `);
+
     await queryInterface.addIndex(
       'communityPosts',
-      ['title', 'description', 'tags'],
+      ['status', 'isDeleted', 'createdAt', 'priority'],
       {
-        type: 'FULLTEXT',
-        name: 'post_search_idx',
+        name: 'idx_posts_common_filters',
       },
     );
+
+    await queryInterface.sequelize.query(`
+      ALTER TABLE communityPosts 
+      ADD SPATIAL INDEX spatial_location (location)
+    `);
   },
 
-  down: async (queryInterface) => {
-    await queryInterface.removeIndex('communityPosts', 'post_search_idx');
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.sequelize.query(`
+      ALTER TABLE communityPosts 
+      DROP INDEX post_search_idx,
+      DROP INDEX idx_posts_common_filters,
+      DROP INDEX spatial_location
+    `);
   },
 };

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { CommunityPost } from '../models/CommunityPost';
 import { PostComment } from '../models/PostComment';
@@ -563,9 +567,9 @@ export class CommunityPostService {
 
     // Define priority weights
     const priorityWeights: PriorityWeight = {
-      low: 0.2,
-      medium: 0.6,
-      high: 1.0,
+      low: 1.0, // Base multiplier
+      medium: 1.2, // 20% boost
+      high: 1.5, // 50% boost
     };
 
     try {
@@ -575,16 +579,61 @@ export class CommunityPostService {
         isDeleted: false,
       };
 
+      // Initialize searchOptions early
+      const searchOptions: any = {
+        replacements: {},
+        attributes: [
+          'id',
+          'title',
+          'description',
+          'createdAt',
+          'mediaUrls',
+          'userId',
+          'status',
+          'tags',
+          'likesCount',
+          'commentsCount',
+          'sharesCount',
+          'priority',
+          'videoUrl',
+          'postType',
+          'userName',
+          'isBusinessPost',
+          'whatsappNumber',
+          'showLocation',
+          'location',
+        ],
+      };
+
       // Add full-text search if isSearch is true and searchText exists
       if (isSearch && searchText) {
+        // Minimum search term length
+        if (searchText.length < 3) {
+          throw new BadRequestException(
+            'Search term must be at least 3 characters long',
+          );
+        }
+
+        // Clean and normalize search terms
+        const cleanSearchText = searchText
+          .trim()
+          .toLowerCase()
+          .replace(/[^\w\s]/g, ' ') // Replace special chars with space
+          .replace(/\s+/g, ' '); // Normalize spaces
+
         whereConditions = {
           ...whereConditions,
           [Op.and]: [
             whereConditions,
-            literal(
-              `MATCH(title, description, tags) AGAINST(:searchQuery IN BOOLEAN MODE)`,
-            ),
+            literal(`
+              MATCH(title, description, tags) 
+              AGAINST(:searchQuery IN NATURAL LANGUAGE MODE WITH QUERY EXPANSION)
+            `),
           ],
+        };
+
+        searchOptions.replacements = {
+          searchQuery: cleanSearchText,
         };
       }
 
@@ -607,117 +656,97 @@ export class CommunityPostService {
             `),
           ],
         };
+
+        // Add distance calculation to attributes
+        searchOptions.attributes.push([
+          literal(`(
+            6371 * acos(
+              cos(radians(${userLat})) * 
+              cos(radians(ST_Y(location))) * 
+              cos(radians(${userLong}) - radians(ST_X(location))) + 
+              sin(radians(${userLat})) * 
+              sin(radians(ST_Y(location)))
+            )
+          )`),
+          'distance',
+        ]);
       }
 
-      const searchOptions: any = {
-        attributes: [
-          'id',
-          'title',
-          'description',
-          'createdAt',
-          'mediaUrls',
-          'userId',
-          'status',
-          'tags',
-          'likesCount',
-          'commentsCount',
-          'sharesCount',
-          'priority',
-          'videoUrl',
-          'postType',
-          'userName',
-          'isBusinessPost',
-          'whatsappNumber',
-          'showLocation',
-          'location',
-          // Only add distance calculation if coordinates are provided
-          ...(userLat && userLong
-            ? [
-                [
-                  literal(`(
-              6371 * acos(
-                cos(radians(${userLat})) * 
-                cos(radians(ST_Y(location))) * 
-                cos(radians(${userLong}) - radians(ST_X(location))) + 
-                sin(radians(${userLat})) * 
-                sin(radians(ST_Y(location)))
-              )
-            )`),
-                  'distance',
-                ],
-              ]
-            : []),
-          // Add relevance score for full-text search
-          ...(isSearch && searchText
-            ? [
-                [
-                  literal(
-                    `MATCH(title, description, tags) AGAINST(:searchQuery IN BOOLEAN MODE)`,
-                  ),
-                  'searchRelevance',
-                ],
-              ]
-            : []),
-          // Add priority score calculation
-          [
-            literal(`
-              CASE priority
-                WHEN 'high' THEN ${priorityWeights.high}
-                WHEN 'medium' THEN ${priorityWeights.medium}
-                ELSE ${priorityWeights.low}
-              END
-            `),
-            'priorityScore',
-          ],
-          [
-            literal(`
-              CASE 
-                WHEN created_at > DATE_SUB(NOW(), INTERVAL 30 DAY) 
-                THEN 1 
-                ELSE EXP(-DATEDIFF(NOW(), created_at) / 30)
-              END
-            `),
-            'timeRelevance',
-          ],
-          [
-            literal(`(
-              SELECT COUNT(id) FROM post_likes
-              WHERE postId = CommunityPost.id AND userId = ${userId}
-              Limit 1
-            )`),
-            'wasLiked',
-          ],
-        ],
-        where: whereConditions,
-        order: [
-          // Combined relevance score
-          [
-            literal(`
-              (
-                ${timeWeightFactor} * timeRelevance + 
-                ${distanceWeightFactor} * (1 - LEAST(distance / ${maxDistanceKm}, 1)) +
-                ${priorityWeightFactor} * priorityScore +
-                ${isSearch ? 'searchRelevance * 0.2' : '0'}
-              )
-            `),
-            'DESC',
-          ],
-          ['createdAt', 'DESC'], // Secondary sort by creation date
-        ],
-        limit: typeof pageSize === 'string' ? parseInt(pageSize) : pageSize,
-        offset: offset,
-        // Add index hints for better performance
-        indexHints: [
-          { type: 'FORCE', values: ['priority_idx', 'created_at_idx'] },
-        ],
-      };
-
-      // Add replacements for the search query if needed
+      // Update the search relevance calculation
       if (isSearch && searchText) {
-        searchOptions.replacements = {
-          searchQuery: `${searchText}*`, // Adding wildcard for partial matches
-        };
+        searchOptions.attributes.push([
+          literal(`
+            MATCH(title, description, tags) 
+            AGAINST(:searchQuery IN NATURAL LANGUAGE MODE WITH QUERY EXPANSION)
+          `),
+          'searchRelevance',
+        ]);
       }
+
+      // Add remaining attributes
+      searchOptions.attributes.push(
+        [
+          literal(`
+            CASE priority
+              WHEN 'high' THEN ${priorityWeights.high}
+              WHEN 'medium' THEN ${priorityWeights.medium}
+              ELSE ${priorityWeights.low}
+            END
+          `),
+          'priorityScore',
+        ],
+        [
+          literal(`
+            CASE 
+              WHEN created_at > DATE_SUB(NOW(), INTERVAL 30 DAY) 
+              THEN 1 
+              ELSE EXP(-DATEDIFF(NOW(), created_at) / 30)
+            END
+          `),
+          'timeRelevance',
+        ],
+        [
+          literal(`(
+            SELECT COUNT(id) FROM post_likes
+            WHERE postId = CommunityPost.id AND userId = ${userId}
+            Limit 1
+          )`),
+          'wasLiked',
+        ],
+      );
+
+      // Add where conditions and ordering
+      searchOptions.where = whereConditions;
+      searchOptions.order = [
+        ...(isSearch && searchText
+          ? [
+              // If searching, prioritize search relevance
+              [literal('searchRelevance'), 'DESC'],
+            ]
+          : [
+              // If not searching, use distance and time as primary factors with priority boost
+              [
+                literal(`
+                  (
+                    /* Time and distance are primary factors */
+                    (${timeWeightFactor} * timeRelevance + 
+                     ${distanceWeightFactor} * (1 - LEAST(distance / ${maxDistanceKm}, 1)))
+                    /* Priority acts as a multiplier */
+                    * CASE priority
+                        WHEN 'high' THEN ${priorityWeights.high}
+                        WHEN 'medium' THEN ${priorityWeights.medium}
+                        ELSE ${priorityWeights.low}
+                      END
+                  )
+                `),
+                'DESC',
+              ],
+            ]),
+        ['createdAt', 'DESC'],
+      ];
+      searchOptions.limit =
+        typeof pageSize === 'string' ? parseInt(pageSize) : pageSize;
+      searchOptions.offset = offset;
 
       const posts = await this.communityPostModel.findAll(searchOptions);
 
