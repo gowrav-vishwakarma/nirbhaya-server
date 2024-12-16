@@ -28,6 +28,7 @@ export interface PostDataWithDistance extends CommunityPost {
       type: 'FULLTEXT',
       name: 'post_search_idx',
       fields: ['title', 'description', 'tags'],
+      parser: 'ngram',
     },
   ],
 })
