@@ -142,6 +142,43 @@ export class CommunityPostService {
     const offsetNum = (pageNum - 1) * limitNum;
 
     const postsData = await this.communityPostModel.findAll({
+      attributes: [
+        'id',
+        'title',
+        'description',
+        'createdAt',
+        'mediaUrls',
+        'userId',
+        'status',
+        'tags',
+        'likesCount',
+        'commentsCount',
+        'sharesCount',
+        'priority',
+        'videoUrl',
+        'postType',
+        'userName',
+        'isBusinessPost',
+        'showLocation',
+        'location',
+        // Add distance calculation if location exists
+        [
+          literal(`
+            CASE 
+              WHEN location IS NOT NULL THEN
+                (6371 * acos(
+                  cos(radians(ST_Y(location))) * 
+                  cos(radians(ST_Y(location))) * 
+                  cos(radians(ST_X(location)) - radians(ST_X(location))) + 
+                  sin(radians(ST_Y(location))) * 
+                  sin(radians(ST_Y(location)))
+                ))
+              ELSE NULL
+            END
+          `),
+          'distance',
+        ],
+      ],
       where: {
         status: status || 'active',
         isDeleted: false,
@@ -160,26 +197,28 @@ export class CommunityPostService {
       offset: offsetNum,
       limit: limitNum,
     });
+
     const userData = await this.userModel.findByPk(userId, {
       attributes: ['id', 'name', 'email', 'businessName'],
     });
+
     const posts = postsData.map((post) => {
       const rawPost = post.toJSON();
-      console.log('Processing post:', post.id);
-      console.log('Post likes:', rawPost.likes);
       const wasLiked = rawPost.likes?.length > 0;
-      console.log('wasLiked value:', wasLiked);
 
-      const transformedPost = {
+      // Only include location if user is owner or showLocation is true
+      const postData = {
         ...rawPost,
         wasLiked,
-      } as PostResponse & { user: typeof userData };
+      };
 
-      console.log(
-        'Transformed post:',
-        JSON.stringify(transformedPost, null, 2),
-      );
-      return transformedPost;
+      // Remove location if not owner and showLocation is false
+      if (Number(userId) !== Number(logedinUser) && !rawPost.showLocation) {
+        delete postData.location;
+        delete postData.distance;
+      }
+
+      return postData;
     });
 
     return { posts, user: userData };
