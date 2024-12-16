@@ -531,6 +531,8 @@ export class CommunityPostService {
           'postType',
           'userName',
           'isBusinessPost',
+          'showLocation',
+          'location',
           [
             literal(`(
                 6371 * acos(
@@ -622,8 +624,14 @@ export class CommunityPostService {
       //     totalCount,
       //   },
       // };
-
-      return posts;
+      const processedPosts = posts.map((post) => {
+        const postData = post.toJSON();
+        if (!postData.showLocation) {
+          delete postData.location;
+        }
+        return postData;
+      });
+      return processedPosts;
     } catch (error) {
       console.log(`Failed to fetch relevant posts: ${error.message}`);
       return [];
