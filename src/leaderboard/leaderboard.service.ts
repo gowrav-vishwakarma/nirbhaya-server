@@ -21,7 +21,7 @@ const WEIGHTS = {
   VOLUNTEER_LOCATION: 50, // Points per location where user volunteers
   DAILY_APP_OPEN_SELF: 10, // Points per day for opening app
   DAILY_APP_OPEN_REFERRAL: 5, // Points per day for referrals opening app
-  MAX_DAILY_POINTS: 30, // Max points per day from app opens
+  MAX_DAILY_POINTS: 200, // Max points per day from app opens
 };
 
 export interface LeaderboardEntry {
