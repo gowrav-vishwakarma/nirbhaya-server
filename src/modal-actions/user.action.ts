@@ -22,6 +22,7 @@ export const UserAction: ActionListDTO = {
     name: 'delete',
     label: 'Delete',
     icon: 'delete',
+    iconColor: 'black',
     description: 'Delete Member',
     mode: 'SingleRecord',
     loadBy: 'id',
