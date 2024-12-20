@@ -178,6 +178,7 @@ export class AuthService {
 
     const tokenPayload: UserJWT = {
       id: user.id,
+      sub: user.id,
       phoneNumber: user.phoneNumber,
     };
 
