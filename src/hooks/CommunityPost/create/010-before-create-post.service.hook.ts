@@ -18,7 +18,7 @@ export class NewsCreateHook extends BaseHook {
   async execute(
     previousData: BeforeHookParamsWithFiles<any, any>,
   ): Promise<BeforeHookParamsWithFiles<any, any>> {
-    console.log('previousData.files...........', previousData);
+    console.log('previousData.files...........11111', previousData);
     if (previousData.files && previousData.files.length > 0) {
       const filePathArray = [];
       for (let index = 0; index < previousData.files.length; index++) {
@@ -56,6 +56,9 @@ export class NewsCreateHook extends BaseHook {
       ) {
         previousData.data.videoUrl = null;
       }
+    }
+    if(previousData.data?.location){
+      previousData.data.location = JSON.parse(previousData.data.location);
     }
     return previousData;
   }
