@@ -798,4 +798,78 @@ export class CommunityPostService {
       throw new Error('Failed to fetch post likes');
     }
   }
+
+  async update(updatePostDto: any, files: Array<Express.Multer.File>) {
+    try {
+      // Verify post ownership
+      const post = await this.communityPostModel.findOne({
+        where: {
+          id: updatePostDto.postId,
+          userId: updatePostDto.userId,
+        },
+      });
+
+      if (!post) {
+        throw new NotFoundException('Post not found or unauthorized');
+      }
+
+      // Handle image updates
+      let imageUrls = post.mediaUrls || [];
+
+      // Remove deleted images if specified
+      if (updatePostDto.deletedImages) {
+        const deletedImages = JSON.parse(updatePostDto.deletedImages);
+        imageUrls = imageUrls.filter((url) => !deletedImages.includes(url));
+      }
+
+      // Add new images
+      if (files.length > 0) {
+        const newImageUrls = await this.imageUpload(
+          files,
+          updatePostDto.userId,
+        );
+        imageUrls = [...imageUrls, ...newImageUrls].slice(0, 4); // Keep max 4 images
+      }
+
+      // Parse location
+      let location = null;
+      if (updatePostDto.location) {
+        const locationObj = JSON.parse(updatePostDto.location);
+        location = {
+          type: 'Point',
+          coordinates: locationObj.coordinates,
+        };
+      }
+
+      // Parse tags
+      let tags = updatePostDto.tags;
+      if (typeof tags === 'string') {
+        try {
+          tags = JSON.parse(tags);
+        } catch {
+          tags = [];
+        }
+      }
+
+      // Update post
+      const updatedPost = await post.update({
+        title: updatePostDto.title,
+        description: updatePostDto.description,
+        mediaUrls: imageUrls,
+        location: location,
+        tags: tags,
+        showLocation: updatePostDto.showLocation === 'true',
+        isBusinessPost: updatePostDto.isBusinessPost === 'true',
+        whatsappNumber:
+          updatePostDto.isBusinessPost === 'true'
+            ? updatePostDto.whatsappNumber
+            : null,
+      });
+
+      return updatedPost;
+    } catch (error) {
+      console.error('Update post error:', error);
+      throw error;
+    }
+  }
 }

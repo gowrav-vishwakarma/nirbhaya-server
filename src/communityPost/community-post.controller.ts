@@ -36,6 +36,20 @@ export class CommunityPostController {
     }
   }
 
+  @Post('/post-update')
+  @UseInterceptors(AnyFilesInterceptor())
+  async updatePost(
+    @Body() updatePostDto: any,
+    @UploadedFiles() files: Array<Express.Multer.File>,
+  ) {
+    try {
+      return await this.communityPostService.update(updatePostDto, files);
+    } catch (error) {
+      console.error('Update post error:', error);
+      throw new BadRequestException('Invalid data format');
+    }
+  }
+
   @UseGuards(AuthGuard)
   @Get('community-posts')
   async getCommunityPosts(
