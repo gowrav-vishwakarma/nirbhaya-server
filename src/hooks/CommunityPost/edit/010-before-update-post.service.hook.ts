@@ -55,8 +55,28 @@ export class NewsCreateHook extends BaseHook {
         previousData.data.videoUrl = null;
       }
     }
-    if(previousData.data?.location){
+    if (
+      previousData.data?.location &&
+      typeof previousData.data.location === 'string'
+    ) {
       previousData.data.location = JSON.parse(previousData.data.location);
+    }
+    if (previousData.data.hasOwnProperty('showLocation')) {
+      previousData.data.showLocation = Boolean(previousData.data.showLocation);
+    }
+    if (previousData.data.hasOwnProperty('isBusinessPost')) {
+      previousData.data.isBusinessPost = Boolean(
+        previousData.data.isBusinessPost,
+      );
+    }
+    if (previousData.data?.whatsappNumber) {
+      previousData.data.whatsappNumber = previousData.data.whatsappNumber
+        .replace(/[^\d+]/g, '')
+        .trim();
+
+      if (!previousData.data.whatsappNumber) {
+        previousData.data.whatsappNumber = null;
+      }
     }
     return previousData;
   }
