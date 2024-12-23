@@ -17,7 +17,7 @@ import { AppModule } from 'src/app.module';
 import { GlobalService } from 'src/global/global.service';
 import { CommunityPost } from '../models/CommunityPost';
 import { TempOtps } from 'src/models/TempOtps';
-import { FirebaseService } from 'src/sos/firebase.service';
+import { SosModule } from 'src/sos/sos.module';
 @Module({
   imports: [
     ConfigModule,
@@ -44,9 +44,10 @@ import { FirebaseService } from 'src/sos/firebase.service';
     ]),
     forwardRef(() => StreamingModule),
     forwardRef(() => AppModule),
+    forwardRef(() => SosModule),
   ],
   controllers: [AuthController],
-  providers: [AuthService, AuthGuard, GlobalService, FirebaseService],
+  providers: [AuthService, AuthGuard, GlobalService],
   exports: [AuthService, AuthGuard, JwtModule, GlobalService],
 })
 export class AuthModule {}
