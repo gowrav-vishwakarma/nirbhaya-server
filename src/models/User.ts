@@ -34,6 +34,13 @@ export enum RoleType {
   ADVISER = 'Adviser',
 }
 
+export enum DefaultApp {
+  SOS = 'sos',
+  NEWS = 'news',
+  COMMUNITY = 'community',
+  ASTROAI = 'astroai',
+}
+
 @Table({
   tableName: 'Users', // explicitly define table name
 })
@@ -327,4 +334,11 @@ export class User extends Model<User> {
     comment: 'Stores device/browser platform information',
   })
   platform: PlatformInfo;
+
+  @Column({
+    type: DataType.ENUM(...Object.values(DefaultApp)),
+    allowNull: false,
+    defaultValue: DefaultApp.SOS,
+  })
+  defaultApp: DefaultApp;
 }

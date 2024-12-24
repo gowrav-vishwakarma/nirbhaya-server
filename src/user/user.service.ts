@@ -69,6 +69,7 @@ export class UserService {
       if (data.broadcastAudioOnSos !== undefined)
         user.broadcastAudioOnSos = data.broadcastAudioOnSos;
       if (data.deviceId !== undefined) user.deviceId = data.deviceId; // Update deviceId
+      if (data.defaultApp !== undefined) user.defaultApp = data.defaultApp;
 
       if (data.referredBy) {
         const referredByUser = await this.userModel.findOne({
@@ -264,6 +265,7 @@ export class UserService {
       pincode: user.pincode,
       businessName: user.businessName,
       whatsappNumber: user.whatsappNumber,
+      defaultApp: user.defaultApp,
     };
   }
   async userEmergencyContactAdd(userId: number, contacts: any[]): Promise<any> {

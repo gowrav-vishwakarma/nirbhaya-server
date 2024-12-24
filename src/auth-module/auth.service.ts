@@ -99,6 +99,7 @@ export class AuthService {
       businessName: user.businessName,
       whatsappNumber: user.whatsappNumber,
       profileImage: user.profileImage,
+      defaultApp: user.defaultApp,
     };
   }
 
@@ -139,6 +140,7 @@ export class AuthService {
         'businessName',
         'whatsappNumber',
         'profileImage',
+        'defaultApp',
       ],
       include: [
         {

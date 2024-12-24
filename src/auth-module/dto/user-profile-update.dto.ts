@@ -1,4 +1,5 @@
 import { IsString, IsOptional, IsArray, IsBoolean } from 'class-validator';
+import { DefaultApp } from '../../models/User';
 
 export class EmergencyContactDto {
   @IsString()
@@ -96,4 +97,6 @@ export class UserProfileUpdateDto {
   @IsOptional()
   @IsString()
   dob: Date;
+
+  defaultApp?: DefaultApp;
 }
