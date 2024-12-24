@@ -371,10 +371,33 @@ export class LeaderboardService {
   }
 
   async getUserReferralInfo(userId: number) {
+    const users = (await this.userModel.findOne({
+      where: {
+        id: userId,
+      },
+      attributes: [
+        'id',
+        'name',
+        [
+          literal('(SELECT COUNT(id) FROM Users WHERE referUserId = User.id)'),
+          'referralCount',
+        ],
+        [
+          literal(
+            '(SELECT COUNT(ul.id) FROM Users u INNER JOIN UserLocations ul ON ul.userId = u.id WHERE u.referUserId = User.id OR u.id = User.id)',
+          ),
+          'referralLocationsCount',
+        ],
+      ],
+      limit: 1,
+    })) as User & { referralCount: number; referralLocationsCount: number };
+
     return {
+      users,
       referralId: userId,
-      peopleEncouraged: 5,
-      locationsSecured: 3,
+      peopleEncouraged: (users as any).getDataValue('referralCount') || 0,
+      locationsSecured:
+        (users as any).getDataValue('referralLocationsCount') || 0,
     };
   }
 }
