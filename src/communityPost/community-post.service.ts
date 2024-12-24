@@ -556,20 +556,20 @@ export class CommunityPostService {
     page: number = 1,
     pageSize: number = 5,
     maxDistanceKm: number = 1000,
-    timeWeightFactor: number = 0.4,
-    distanceWeightFactor: number = 0.3,
-    priorityWeightFactor: number = 0.3,
     status?: string,
     searchText?: string,
     isSearch?: boolean,
   ) {
+    const timeWeightFactor = 0.6;
+    const distanceWeightFactor = 0.2;
+
     const offset = (page - 1) * pageSize;
 
-    // Define priority weights
+    // Enhanced priority weights with more granular impact
     const priorityWeights: PriorityWeight = {
-      low: 1.0, // Base multiplier
-      medium: 1.2, // 20% boost
-      high: 1.5, // 50% boost
+      low: 1.0,
+      medium: 1.3, // 30% boost
+      high: 1.6, // 60% boost
     };
 
     try {
@@ -683,67 +683,116 @@ export class CommunityPostService {
         ]);
       }
 
-      // Add remaining attributes
-      searchOptions.attributes.push(
-        [
+      // Add time-based decay function with more granular control
+      searchOptions.attributes.push([
+        literal(`
+          CASE 
+            WHEN created_at > DATE_SUB(NOW(), INTERVAL 6 HOUR) THEN 1.5  /* Super fresh content boost */
+            WHEN created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR) THEN 1.3 /* Fresh content boost */
+            WHEN created_at > DATE_SUB(NOW(), INTERVAL 3 DAY) THEN 1.1   /* Recent content slight boost */
+            WHEN created_at > DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1.0   /* Normal relevance */
+            ELSE GREATEST(0.4, EXP(-DATEDIFF(NOW(), created_at) / 14))   /* Gradual decay with minimum threshold */
+          END
+        `),
+        'timeRelevance',
+      ]);
+
+      // Enhanced distance scoring with zones
+      if (userLat && userLong) {
+        searchOptions.attributes.push([
           literal(`
-            CASE priority
-              WHEN 'high' THEN ${priorityWeights.high}
-              WHEN 'medium' THEN ${priorityWeights.medium}
-              ELSE ${priorityWeights.low}
+            CASE
+              WHEN (
+                6371 * acos(
+                  cos(radians(${userLat})) * 
+                  cos(radians(ST_Y(location))) * 
+                  cos(radians(${userLong}) - radians(ST_X(location))) + 
+                  sin(radians(${userLat})) * 
+                  sin(radians(ST_Y(location)))
+                )
+              ) <= 1 THEN 1.5     /* Extremely local (≤1km) */
+              WHEN (
+                6371 * acos(
+                  cos(radians(${userLat})) * 
+                  cos(radians(ST_Y(location))) * 
+                  cos(radians(${userLong}) - radians(ST_X(location))) + 
+                  sin(radians(${userLat})) * 
+                  sin(radians(ST_Y(location)))
+                )
+              ) <= 5 THEN 1.3     /* Very local (1-5km) */
+              WHEN (
+                6371 * acos(
+                  cos(radians(${userLat})) * 
+                  cos(radians(ST_Y(location))) * 
+                  cos(radians(${userLong}) - radians(ST_X(location))) + 
+                  sin(radians(${userLat})) * 
+                  sin(radians(ST_Y(location)))
+                )
+              ) <= 10 THEN 1.1    /* Local (5-10km) */
+              ELSE GREATEST(0.5, 1 - (
+                6371 * acos(
+                  cos(radians(${userLat})) * 
+                  cos(radians(ST_Y(location))) * 
+                  cos(radians(${userLong}) - radians(ST_X(location))) + 
+                  sin(radians(${userLat})) * 
+                  sin(radians(ST_Y(location)))
+                )
+              ) / ${maxDistanceKm})  /* Gradual distance decay with minimum threshold */
             END
           `),
-          'priorityScore',
-        ],
-        [
-          literal(`
-            CASE 
-              WHEN created_at > DATE_SUB(NOW(), INTERVAL 30 DAY) 
-              THEN 1 
-              ELSE EXP(-DATEDIFF(NOW(), created_at) / 30)
-            END
-          `),
-          'timeRelevance',
-        ],
-        [
-          literal(`(
-            SELECT COUNT(id) FROM post_likes
-            WHERE postId = CommunityPost.id AND userId = ${userId}
-            Limit 1
-          )`),
-          'wasLiked',
-        ],
-      );
+          'distanceScore',
+        ]);
+      }
+
+      // Add engagement score to boost popular content
+      searchOptions.attributes.push([
+        literal(`
+          CASE
+            WHEN (likesCount + commentsCount * 2) > 100 THEN 1.3  /* Viral content boost */
+            WHEN (likesCount + commentsCount * 2) > 50 THEN 1.2   /* Popular content boost */
+            WHEN (likesCount + commentsCount * 2) > 20 THEN 1.1   /* Rising content boost */
+            ELSE 1.0
+          END
+        `),
+        'engagementScore',
+      ]);
+
+      // Final relevance calculation combining all factors
+      const orderExpression =
+        isSearch && searchText
+          ? [
+              [
+                literal(
+                  'searchRelevance * timeRelevance * distanceScore * engagementScore',
+                ),
+                'DESC',
+              ],
+            ]
+          : [
+              [
+                literal(`
+                (
+                  /* Base score combining time and distance */
+                  (${timeWeightFactor} * timeRelevance + 
+                   ${distanceWeightFactor} * distanceScore)
+                  /* Multiply by engagement factor */
+                  * engagementScore
+                  /* Apply priority multiplier */
+                  * CASE priority
+                      WHEN 'high' THEN ${priorityWeights.high}
+                      WHEN 'medium' THEN ${priorityWeights.medium}
+                      ELSE ${priorityWeights.low}
+                    END
+                )
+              `),
+                'DESC',
+              ],
+            ];
+
+      searchOptions.order = [...orderExpression, ['createdAt', 'DESC']];
 
       // Add where conditions and ordering
       searchOptions.where = whereConditions;
-      searchOptions.order = [
-        ...(isSearch && searchText
-          ? [
-              // If searching, prioritize search relevance
-              [literal('searchRelevance'), 'DESC'],
-            ]
-          : [
-              // If not searching, use distance and time as primary factors with priority boost
-              [
-                literal(`
-                  (
-                    /* Time and distance are primary factors */
-                    (${timeWeightFactor} * timeRelevance + 
-                     ${distanceWeightFactor} * (1 - LEAST(distance / ${maxDistanceKm}, 1)))
-                    /* Priority acts as a multiplier */
-                    * CASE priority
-                        WHEN 'high' THEN ${priorityWeights.high}
-                        WHEN 'medium' THEN ${priorityWeights.medium}
-                        ELSE ${priorityWeights.low}
-                      END
-                  )
-                `),
-                'DESC',
-              ],
-            ]),
-        ['createdAt', 'DESC'],
-      ];
       searchOptions.limit =
         typeof pageSize === 'string' ? parseInt(pageSize) : pageSize;
       searchOptions.offset = offset;
@@ -761,7 +810,7 @@ export class CommunityPostService {
 
       return processedPosts;
     } catch (error) {
-      console.log(`Failed to fetch relevant posts: ${error.message}`);
+      console.error(`Failed to fetch relevant posts: ${error.message}`);
       return [];
     }
   }
