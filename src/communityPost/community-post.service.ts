@@ -1032,6 +1032,10 @@ export class CommunityPostService {
           userId,
           status: 'active',
           isDeleted: false,
+          [Op.or]: [
+            { likesCount: { [Op.gt]: 0 } },
+            { commentsCount: { [Op.gt]: 0 } }
+          ]
         },
         include: [
           {
