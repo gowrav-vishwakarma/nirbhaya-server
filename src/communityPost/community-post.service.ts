@@ -14,7 +14,7 @@ import { User } from '../models/User';
 import { UserInteraction } from '../models/UserInteractions';
 import { Op, literal, where, fn, col } from 'sequelize';
 import { PostDataWithDistance } from '../models/CommunityPost';
-import { NotificationItem } from './types';
+// import { NotificationItem } from './types';
 
 type PostResponse = CommunityPost & {
   wasLiked: boolean;
@@ -1067,7 +1067,7 @@ export class CommunityPostService {
       const formattedPosts = posts.map((post) => {
         const postData = post.toJSON();
 
-        const notifications: NotificationItem[] = [
+        const notifications= [
           ...post.likes.map((like) => ({
             id: like.id,
             postId: post.id,
