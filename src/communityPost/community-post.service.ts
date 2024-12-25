@@ -14,6 +14,7 @@ import { User } from '../models/User';
 import { UserInteraction } from '../models/UserInteractions';
 import { Op, literal, where, fn, col } from 'sequelize';
 import { PostDataWithDistance } from '../models/CommunityPost';
+import { NotificationItem } from './types';
 
 type PostResponse = CommunityPost & {
   wasLiked: boolean;
@@ -870,6 +871,84 @@ export class CommunityPostService {
     } catch (error) {
       console.error('Update post error:', error);
       throw error;
+    }
+  }
+
+  async postNotifications(
+    postId: number,
+    page: number,
+    limit: number,
+    userId: number,
+  ) {
+    try {
+      const posts = await this.communityPostModel.findAll({
+        attributes: ['id', 'title', 'description', 'mediaUrls', 'likesCount', 'commentsCount', 'createdAt'], 
+        where: {
+          userId,
+          status: 'active',
+          isDeleted: false
+        },
+        include: [
+          {
+            model: PostLike,
+            as: 'likes',
+            include: [{
+              model: this.userModel,
+              attributes: ['id', 'name', 'email', 'profileImage']
+            }]
+          },
+          {
+            model: PostComment,
+            as: 'comments',
+            include: [{
+              model: this.userModel,
+              attributes: ['id', 'name', 'email', 'profileImage']
+            }]
+          }
+        ],
+        order: [['createdAt', 'DESC']],
+        limit,
+        offset: (page - 1) * limit
+      });
+
+      const formattedPosts = posts.map(post => {
+        const postData = post.toJSON();
+        
+        const notifications: NotificationItem[] = [
+          ...post.likes.map(like => ({
+            id: like.id,
+            postId: post.id,
+            type: 'like' as const,
+            userId: like.user.id,
+            userName: like.user.name,
+            profileImage: like.user.profileImage,
+            createdAt: new Date(like.createdAt)
+          })),
+          ...post.comments.map(comment => ({
+            id: comment.id,
+            postId: post.id,
+            type: 'comment' as const,
+            userId: comment.user.id,
+            userName: comment.user.name,
+            profileImage: comment.user.profileImage,
+            content: comment.content,
+            createdAt: new Date(comment.createdAt)
+          }))
+        ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+        return {
+          ...postData,
+          notifications
+        };
+      });
+
+      return {
+        posts: formattedPosts,
+      };
+
+    } catch (error) {
+      console.error('Error fetching user posts with notifications:', error);
+      throw new Error('Failed to fetch user posts with notifications');
     }
   }
 }

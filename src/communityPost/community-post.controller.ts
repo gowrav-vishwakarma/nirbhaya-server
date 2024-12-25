@@ -17,6 +17,7 @@ import { CommunityPostService } from './community-post.service';
 import { GetUser } from '../auth-module/getuser.decorator';
 import { UserJWT } from '../dto/user-jwt.dto';
 import { AuthGuard } from '../auth-module/auth.guard';
+import { NotificationItem } from './types';
 
 @Controller('posts')
 export class CommunityPostController {
@@ -233,4 +234,36 @@ export class CommunityPostController {
 
     return await this.communityPostService.getPostLikes(+postId, page, limit);
   }
+
+  @UseGuards(AuthGuard)
+  @Get('/post-notifications')
+  async getPostNotifications(
+    @Param('postId') postId: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 5,
+    @GetUser() user: UserJWT,
+  ) {
+    // Convert string parameters to numbers explicitly
+    const pageNum = Number(page);
+    const limitNum = Number(limit);
+    
+    return await this.communityPostService.postNotifications(
+      +postId, 
+      pageNum, 
+      limitNum,
+      user.id
+    );
+  }
+
+  @Get(':postId/notifications')
+  async postNotifications(
+    @Param('postId') postId: number,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Query('userId') userId: number
+  ) {
+    return this.communityPostService.postNotifications(postId, page, limit, userId);
+  }
+
+ 
 }
