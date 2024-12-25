@@ -565,6 +565,7 @@ export class CommunityPostService {
     status?: string,
     searchText?: string,
     isSearch?: boolean,
+    businessCategory?: string,
   ) {
     const timeWeightFactor = 0.6;
     const distanceWeightFactor = 0.2;
@@ -574,8 +575,8 @@ export class CommunityPostService {
     // Enhanced priority weights with more granular impact
     const priorityWeights: PriorityWeight = {
       low: 1.0,
-      medium: 1.3, // 30% boost
-      high: 1.6, // 60% boost
+      medium: 1.3,
+      high: 1.6,
     };
 
     try {
@@ -584,6 +585,11 @@ export class CommunityPostService {
         status: status || 'active',
         isDeleted: false,
       };
+
+      // Add businessCategory filter if provided
+      if (businessCategory) {
+        whereConditions.businessCategory = businessCategory;
+      }
 
       // Initialize searchOptions early
       const searchOptions: any = {
@@ -608,39 +614,98 @@ export class CommunityPostService {
           'whatsappNumber',
           'showLocation',
           'location',
+          'businessCategory',
         ],
       };
 
-      // Add full-text search if isSearch is true and searchText exists
-      if (isSearch && searchText) {
-        // Minimum search term length
-        if (searchText.length < 3) {
-          throw new BadRequestException(
-            'Search term must be at least 3 characters long',
-          );
-        }
+      // Add full-text search if isSearch is true and either searchText or businessCategory exists
+      if (isSearch) {
+        // Only validate searchText length if it's provided
+        if (searchText) {
+          if (searchText.length < 3) {
+            throw new BadRequestException(
+              'Search term must be at least 3 characters long',
+            );
+          }
 
-        // Clean and normalize search terms
-        const cleanSearchText = searchText
-          .trim()
-          .toLowerCase()
-          .replace(/[^\w\s]/g, ' ') // Replace special chars with space
-          .replace(/\s+/g, ' '); // Normalize spaces
+          // Clean and normalize search terms
+          const cleanSearchText = searchText
+            .trim()
+            .toLowerCase()
+            .replace(/[^\w\s]/g, ' ')
+            .replace(/\s+/g, ' ');
 
-        whereConditions = {
-          ...whereConditions,
-          [Op.and]: [
-            whereConditions,
+          whereConditions = {
+            ...whereConditions,
+            [Op.and]: [
+              whereConditions,
+              literal(`
+                MATCH(title, description, tags) 
+                AGAINST(:searchQuery IN NATURAL LANGUAGE MODE WITH QUERY EXPANSION)
+              `),
+            ],
+          };
+
+          searchOptions.replacements = {
+            searchQuery: cleanSearchText,
+          };
+
+          // Add search relevance only when there's a text search
+          searchOptions.attributes.push([
             literal(`
               MATCH(title, description, tags) 
               AGAINST(:searchQuery IN NATURAL LANGUAGE MODE WITH QUERY EXPANSION)
             `),
-          ],
-        };
+            'searchRelevance',
+          ]);
+        }
 
-        searchOptions.replacements = {
-          searchQuery: cleanSearchText,
-        };
+        // Adjust the ordering based on whether we have text search or just category
+        const orderExpression = searchText
+          ? [
+              [
+                literal(`
+                  (
+                    /* Search relevance is the primary factor when searching */
+                    searchRelevance * 2.0 +  
+                    /* Other factors have reduced weight during search */
+                    (
+                      (${timeWeightFactor * 0.3} * timeRelevance + 
+                       ${distanceWeightFactor * 0.3} * distanceScore) *
+                      engagementScore *
+                      CASE priority
+                        WHEN 'high' THEN ${priorityWeights.high}
+                        WHEN 'medium' THEN ${priorityWeights.medium}
+                        ELSE ${priorityWeights.low}
+                      END
+                    ) * 0.5
+                  )
+                `),
+                'DESC',
+              ],
+            ]
+          : [
+              [
+                literal(`
+                  (
+                    /* Base score combining time and distance */
+                  (${timeWeightFactor} * timeRelevance + 
+                   ${distanceWeightFactor} * distanceScore)
+                  /* Multiply by engagement factor */
+                  * engagementScore
+                  /* Apply priority multiplier */
+                  * CASE priority
+                      WHEN 'high' THEN ${priorityWeights.high}
+                      WHEN 'medium' THEN ${priorityWeights.medium}
+                      ELSE ${priorityWeights.low}
+                    END
+                  )
+                `),
+                'DESC',
+              ],
+            ];
+
+        searchOptions.order = [...orderExpression, ['createdAt', 'DESC']];
       }
 
       // Add distance condition if coordinates are provided
@@ -954,49 +1019,61 @@ export class CommunityPostService {
   ) {
     try {
       const posts = await this.communityPostModel.findAll({
-        attributes: ['id', 'title', 'description', 'mediaUrls', 'likesCount', 'commentsCount', 'createdAt'], 
+        attributes: [
+          'id',
+          'title',
+          'description',
+          'mediaUrls',
+          'likesCount',
+          'commentsCount',
+          'createdAt',
+        ],
         where: {
           userId,
           status: 'active',
-          isDeleted: false
+          isDeleted: false,
         },
         include: [
           {
             model: PostLike,
             as: 'likes',
-            include: [{
-              model: this.userModel,
-              attributes: ['id', 'name', 'email', 'profileImage']
-            }]
+            include: [
+              {
+                model: this.userModel,
+                attributes: ['id', 'name', 'email', 'profileImage'],
+              },
+            ],
           },
           {
             model: PostComment,
             as: 'comments',
-            include: [{
-              model: this.userModel,
-              attributes: ['id', 'name', 'email', 'profileImage']
-            }]
-          }
+            include: [
+              {
+                model: this.userModel,
+                attributes: ['id', 'name', 'email', 'profileImage'],
+              },
+            ],
+          },
         ],
         order: [['createdAt', 'DESC']],
         limit,
-        offset: (page - 1) * limit
+        offset: (page - 1) * limit,
       });
 
-      const formattedPosts = posts.map(post => {
+      const formattedPosts = posts.map((post) => {
         const postData = post.toJSON();
-        
+
         const notifications: NotificationItem[] = [
-          ...post.likes.map(like => ({
+          ...post.likes.map((like) => ({
             id: like.id,
             postId: post.id,
             type: 'like' as const,
             userId: like.user.id,
             userName: like.user.name,
             profileImage: like.user.profileImage,
-            createdAt: new Date(like.createdAt)
+            createdAt: new Date(like.createdAt),
           })),
-          ...post.comments.map(comment => ({
+          ...post.comments.map((comment) => ({
             id: comment.id,
             postId: post.id,
             type: 'comment' as const,
@@ -1004,20 +1081,19 @@ export class CommunityPostService {
             userName: comment.user.name,
             profileImage: comment.user.profileImage,
             content: comment.content,
-            createdAt: new Date(comment.createdAt)
-          }))
+            createdAt: new Date(comment.createdAt),
+          })),
         ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
         return {
           ...postData,
-          notifications
+          notifications,
         };
       });
 
       return {
         posts: formattedPosts,
       };
-
     } catch (error) {
       console.error('Error fetching user posts with notifications:', error);
       throw new Error('Failed to fetch user posts with notifications');

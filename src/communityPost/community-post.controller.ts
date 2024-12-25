@@ -62,6 +62,7 @@ export class CommunityPostController {
     @Query('longitude') longitude: string,
     @Query('prompt') searchText: string,
     @Query('isSearch') isSearch: string,
+    @Query('businessCategory') businessCategory: string,
     @GetUser() user: UserJWT,
   ) {
     return this.communityPostService.getRelevantPosts(
@@ -74,6 +75,7 @@ export class CommunityPostController {
       status,
       searchText,
       isSearch === 'true',
+      businessCategory,
     );
   }
 
@@ -243,12 +245,12 @@ export class CommunityPostController {
     // Convert string parameters to numbers explicitly
     const pageNum = Number(page);
     const limitNum = Number(limit);
-    
+
     return await this.communityPostService.postNotifications(
-      +postId, 
-      pageNum, 
+      +postId,
+      pageNum,
       limitNum,
-      user.id
+      user.id,
     );
   }
 
@@ -257,10 +259,13 @@ export class CommunityPostController {
     @Param('postId') postId: number,
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
-    @Query('userId') userId: number
+    @Query('userId') userId: number,
   ) {
-    return this.communityPostService.postNotifications(postId, page, limit, userId);
+    return this.communityPostService.postNotifications(
+      postId,
+      page,
+      limit,
+      userId,
+    );
   }
-
- 
 }
