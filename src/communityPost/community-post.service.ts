@@ -184,7 +184,15 @@ export class CommunityPostService {
         'showLocation',
         'location',
         'businessCategory',
-        // Add distance calculation if location exists
+        [
+          literal(`(
+            SELECT COUNT(id) > 0 
+            FROM post_likes 
+            WHERE postId = CommunityPost.id AND userId = ${logedinUser}
+            LIMIT 1
+          )`),
+          'wasLiked',
+        ],
         [
           literal(`
             CASE 
@@ -615,6 +623,15 @@ export class CommunityPostService {
           'showLocation',
           'location',
           'businessCategory',
+          [
+            literal(`(
+              SELECT COUNT(id) > 0 
+              FROM post_likes 
+              WHERE postId = CommunityPost.id AND userId = ${userId}
+              LIMIT 1
+            )`),
+            'wasLiked',
+          ],
         ],
       };
 
@@ -758,11 +775,11 @@ export class CommunityPostService {
       searchOptions.attributes.push([
         literal(`
           CASE 
-            WHEN created_at > DATE_SUB(NOW(), INTERVAL 6 HOUR) THEN 1.5  /* Super fresh content boost */
-            WHEN created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR) THEN 1.3 /* Fresh content boost */
-            WHEN created_at > DATE_SUB(NOW(), INTERVAL 3 DAY) THEN 1.1   /* Recent content slight boost */
-            WHEN created_at > DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1.0   /* Normal relevance */
-            ELSE GREATEST(0.4, EXP(-DATEDIFF(NOW(), created_at) / 14))   /* Gradual decay with minimum threshold */
+            WHEN updated_at > DATE_SUB(NOW(), INTERVAL 6 HOUR) THEN 1.5  /* Super fresh content boost */
+            WHEN updated_at > DATE_SUB(NOW(), INTERVAL 24 HOUR) THEN 1.3 /* Fresh content boost */
+            WHEN updated_at > DATE_SUB(NOW(), INTERVAL 3 DAY) THEN 1.1   /* Recent content slight boost */
+            WHEN updated_at > DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1.0   /* Normal relevance */
+            ELSE GREATEST(0.4, EXP(-DATEDIFF(NOW(), updated_at) / 14))   /* Gradual decay with minimum threshold */
           END
         `),
         'timeRelevance',
@@ -874,7 +891,7 @@ export class CommunityPostService {
               ],
             ];
 
-      searchOptions.order = [...orderExpression, ['createdAt', 'DESC']];
+      searchOptions.order = [...orderExpression, ['updatedAt', 'DESC']];
 
       // Add where conditions and ordering
       searchOptions.where = whereConditions;
@@ -1034,8 +1051,8 @@ export class CommunityPostService {
           isDeleted: false,
           [Op.or]: [
             { likesCount: { [Op.gt]: 0 } },
-            { commentsCount: { [Op.gt]: 0 } }
-          ]
+            { commentsCount: { [Op.gt]: 0 } },
+          ],
         },
         include: [
           {
