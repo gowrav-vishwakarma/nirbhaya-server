@@ -71,9 +71,6 @@ export class CommunityPostController {
       page ? Number(page) : undefined,
       limit ? Number(limit) : undefined,
       1000, // maxDistanceKm
-      0.4, // timeWeightFactor
-      0.3, // distanceWeightFactor
-      0.3, // priorityWeightFactor
       status,
       searchText,
       isSearch === 'true',
