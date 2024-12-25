@@ -183,6 +183,7 @@ export class CommunityPostService {
         'whatsappNumber',
         'showLocation',
         'location',
+        'businessCategory',
         // Add distance calculation if location exists
         [
           literal(`
