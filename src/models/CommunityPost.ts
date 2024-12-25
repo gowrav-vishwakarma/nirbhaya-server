@@ -219,6 +219,12 @@ export class CommunityPost extends Model<CommunityPost> {
   })
   whatsappNumber?: string;
 
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  businessCategory: string;
+
   @BelongsTo(() => User)
   user: User;
 

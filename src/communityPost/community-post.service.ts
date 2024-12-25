@@ -93,6 +93,10 @@ export class CommunityPostService {
           createPostDto.isBusinessPost === 'true'
             ? createPostDto.whatsappNumber
             : null,
+        businessCategory:
+          createPostDto.isBusinessPost === 'true'
+            ? createPostDto.businessCategory
+            : null,
       };
 
       console.log('postData.......', postData);
@@ -762,29 +766,43 @@ export class CommunityPostService {
         isSearch && searchText
           ? [
               [
-                literal(
-                  'searchRelevance * timeRelevance * distanceScore * engagementScore',
-                ),
+                literal(`
+                  (
+                    /* Search relevance is the primary factor when searching */
+                    searchRelevance * 2.0 +  
+                    /* Other factors have reduced weight during search */
+                    (
+                      (${timeWeightFactor * 0.3} * timeRelevance + 
+                       ${distanceWeightFactor * 0.3} * distanceScore) *
+                      engagementScore *
+                      CASE priority
+                        WHEN 'high' THEN ${priorityWeights.high}
+                        WHEN 'medium' THEN ${priorityWeights.medium}
+                        ELSE ${priorityWeights.low}
+                      END
+                    ) * 0.5
+                  )
+                `),
                 'DESC',
               ],
             ]
           : [
               [
                 literal(`
-                (
-                  /* Base score combining time and distance */
-                  (${timeWeightFactor} * timeRelevance + 
-                   ${distanceWeightFactor} * distanceScore)
-                  /* Multiply by engagement factor */
-                  * engagementScore
-                  /* Apply priority multiplier */
-                  * CASE priority
-                      WHEN 'high' THEN ${priorityWeights.high}
-                      WHEN 'medium' THEN ${priorityWeights.medium}
-                      ELSE ${priorityWeights.low}
-                    END
-                )
-              `),
+                  (
+                    /* Base score combining time and distance */
+                    (${timeWeightFactor} * timeRelevance + 
+                     ${distanceWeightFactor} * distanceScore)
+                    /* Multiply by engagement factor */
+                    * engagementScore
+                    /* Apply priority multiplier */
+                    * CASE priority
+                        WHEN 'high' THEN ${priorityWeights.high}
+                        WHEN 'medium' THEN ${priorityWeights.medium}
+                        ELSE ${priorityWeights.low}
+                      END
+                  )
+                `),
                 'DESC',
               ],
             ];
@@ -912,6 +930,10 @@ export class CommunityPostService {
         whatsappNumber:
           updatePostDto.isBusinessPost === 'true'
             ? updatePostDto.whatsappNumber
+            : null,
+        businessCategory:
+          updatePostDto.isBusinessPost === 'true'
+            ? updatePostDto.businessCategory
             : null,
       });
 
