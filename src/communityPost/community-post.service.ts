@@ -565,8 +565,8 @@ export class CommunityPostService {
 
   async getRelevantPosts(
     userId: number,
-    userLat: number,
-    userLong: number,
+    userLat: number | null,
+    userLong: number | null,
     page: number = 1,
     pageSize: number = 5,
     maxDistanceKm: number = 1000,
@@ -580,7 +580,6 @@ export class CommunityPostService {
 
     const offset = (page - 1) * pageSize;
 
-    // Enhanced priority weights with more granular impact
     const priorityWeights: PriorityWeight = {
       low: 1.0,
       medium: 1.3,
@@ -599,7 +598,7 @@ export class CommunityPostService {
         whereConditions.businessCategory = businessCategory;
       }
 
-      // Initialize searchOptions early
+      // Initialize searchOptions
       const searchOptions: any = {
         replacements: {},
         attributes: [
@@ -635,97 +634,45 @@ export class CommunityPostService {
         ],
       };
 
-      // Add full-text search if isSearch is true and either searchText or businessCategory exists
-      if (isSearch) {
-        // Only validate searchText length if it's provided
-        if (searchText) {
-          if (searchText.length < 3) {
-            throw new BadRequestException(
-              'Search term must be at least 3 characters long',
-            );
-          }
+      // Handle search functionality
+      if (isSearch && searchText) {
+        if (searchText.length < 3) {
+          throw new BadRequestException(
+            'Search term must be at least 3 characters long',
+          );
+        }
 
-          // Clean and normalize search terms
-          const cleanSearchText = searchText
-            .trim()
-            .toLowerCase()
-            .replace(/[^\w\s]/g, ' ')
-            .replace(/\s+/g, ' ');
+        const cleanSearchText = searchText
+          .trim()
+          .toLowerCase()
+          .replace(/[^\w\s]/g, ' ')
+          .replace(/\s+/g, ' ');
 
-          whereConditions = {
-            ...whereConditions,
-            [Op.and]: [
-              whereConditions,
-              literal(`
-                MATCH(title, description, tags) 
-                AGAINST(:searchQuery IN NATURAL LANGUAGE MODE WITH QUERY EXPANSION)
-              `),
-            ],
-          };
-
-          searchOptions.replacements = {
-            searchQuery: cleanSearchText,
-          };
-
-          // Add search relevance only when there's a text search
-          searchOptions.attributes.push([
+        whereConditions = {
+          ...whereConditions,
+          [Op.and]: [
+            whereConditions,
             literal(`
               MATCH(title, description, tags) 
               AGAINST(:searchQuery IN NATURAL LANGUAGE MODE WITH QUERY EXPANSION)
             `),
-            'searchRelevance',
-          ]);
-        }
+          ],
+        };
 
-        // Adjust the ordering based on whether we have text search or just category
-        const orderExpression = searchText
-          ? [
-              [
-                literal(`
-                  (
-                    /* Search relevance is the primary factor when searching */
-                    searchRelevance * 2.0 +  
-                    /* Other factors have reduced weight during search */
-                    (
-                      (${timeWeightFactor * 0.3} * timeRelevance + 
-                       ${distanceWeightFactor * 0.3} * distanceScore) *
-                      engagementScore *
-                      CASE priority
-                        WHEN 'high' THEN ${priorityWeights.high}
-                        WHEN 'medium' THEN ${priorityWeights.medium}
-                        ELSE ${priorityWeights.low}
-                      END
-                    ) * 0.5
-                  )
-                `),
-                'DESC',
-              ],
-            ]
-          : [
-              [
-                literal(`
-                  (
-                    /* Base score combining time and distance */
-                  (${timeWeightFactor} * timeRelevance + 
-                   ${distanceWeightFactor} * distanceScore)
-                  /* Multiply by engagement factor */
-                  * engagementScore
-                  /* Apply priority multiplier */
-                  * CASE priority
-                      WHEN 'high' THEN ${priorityWeights.high}
-                      WHEN 'medium' THEN ${priorityWeights.medium}
-                      ELSE ${priorityWeights.low}
-                    END
-                  )
-                `),
-                'DESC',
-              ],
-            ];
+        searchOptions.replacements = {
+          searchQuery: cleanSearchText,
+        };
 
-        searchOptions.order = [...orderExpression, ['createdAt', 'DESC']];
+        searchOptions.attributes.push([
+          literal(`
+            MATCH(title, description, tags) 
+            AGAINST(:searchQuery IN NATURAL LANGUAGE MODE WITH QUERY EXPANSION)
+          `),
+          'searchRelevance',
+        ]);
       }
 
-      // Add distance condition if coordinates are provided
+      // Add location-based calculations only if coordinates are provided
       if (userLat && userLong) {
         whereConditions = {
           ...whereConditions,
@@ -745,7 +692,6 @@ export class CommunityPostService {
           ],
         };
 
-        // Add distance calculation to attributes
         searchOptions.attributes.push([
           literal(`(
             6371 * acos(
@@ -758,35 +704,8 @@ export class CommunityPostService {
           )`),
           'distance',
         ]);
-      }
 
-      // Update the search relevance calculation
-      if (isSearch && searchText) {
-        searchOptions.attributes.push([
-          literal(`
-            MATCH(title, description, tags) 
-            AGAINST(:searchQuery IN NATURAL LANGUAGE MODE WITH QUERY EXPANSION)
-          `),
-          'searchRelevance',
-        ]);
-      }
-
-      // Add time-based decay function with more granular control
-      searchOptions.attributes.push([
-        literal(`
-          CASE 
-            WHEN updated_at > DATE_SUB(NOW(), INTERVAL 6 HOUR) THEN 1.5  /* Super fresh content boost */
-            WHEN updated_at > DATE_SUB(NOW(), INTERVAL 24 HOUR) THEN 1.3 /* Fresh content boost */
-            WHEN updated_at > DATE_SUB(NOW(), INTERVAL 3 DAY) THEN 1.1   /* Recent content slight boost */
-            WHEN updated_at > DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1.0   /* Normal relevance */
-            ELSE GREATEST(0.4, EXP(-DATEDIFF(NOW(), updated_at) / 14))   /* Gradual decay with minimum threshold */
-          END
-        `),
-        'timeRelevance',
-      ]);
-
-      // Enhanced distance scoring with zones
-      if (userLat && userLong) {
+        // Add distance score only when location is available
         searchOptions.attributes.push([
           literal(`
             CASE
@@ -798,7 +717,7 @@ export class CommunityPostService {
                   sin(radians(${userLat})) * 
                   sin(radians(ST_Y(location)))
                 )
-              ) <= 1 THEN 1.5     /* Extremely local (≤1km) */
+              ) <= 1 THEN 1.5
               WHEN (
                 6371 * acos(
                   cos(radians(${userLat})) * 
@@ -807,7 +726,7 @@ export class CommunityPostService {
                   sin(radians(${userLat})) * 
                   sin(radians(ST_Y(location)))
                 )
-              ) <= 5 THEN 1.3     /* Very local (1-5km) */
+              ) <= 5 THEN 1.3
               WHEN (
                 6371 * acos(
                   cos(radians(${userLat})) * 
@@ -816,7 +735,7 @@ export class CommunityPostService {
                   sin(radians(${userLat})) * 
                   sin(radians(ST_Y(location)))
                 )
-              ) <= 10 THEN 1.1    /* Local (5-10km) */
+              ) <= 10 THEN 1.1
               ELSE GREATEST(0.5, 1 - (
                 6371 * acos(
                   cos(radians(${userLat})) * 
@@ -825,75 +744,80 @@ export class CommunityPostService {
                   sin(radians(${userLat})) * 
                   sin(radians(ST_Y(location)))
                 )
-              ) / ${maxDistanceKm})  /* Gradual distance decay with minimum threshold */
+              ) / ${maxDistanceKm})
             END
           `),
           'distanceScore',
         ]);
       }
 
-      // Add engagement score to boost popular content
+      // Add time-based relevance
+      searchOptions.attributes.push([
+        literal(`
+          CASE 
+            WHEN updated_at > DATE_SUB(NOW(), INTERVAL 6 HOUR) THEN 1.5
+            WHEN updated_at > DATE_SUB(NOW(), INTERVAL 24 HOUR) THEN 1.3
+            WHEN updated_at > DATE_SUB(NOW(), INTERVAL 3 DAY) THEN 1.1
+            WHEN updated_at > DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1.0
+            ELSE GREATEST(0.4, EXP(-DATEDIFF(NOW(), updated_at) / 14))
+          END
+        `),
+        'timeRelevance',
+      ]);
+
+      // Add engagement score
       searchOptions.attributes.push([
         literal(`
           CASE
-            WHEN (likesCount + commentsCount * 2) > 100 THEN 1.3  /* Viral content boost */
-            WHEN (likesCount + commentsCount * 2) > 50 THEN 1.2   /* Popular content boost */
-            WHEN (likesCount + commentsCount * 2) > 20 THEN 1.1   /* Rising content boost */
+            WHEN (likesCount + commentsCount * 2) > 100 THEN 1.3
+            WHEN (likesCount + commentsCount * 2) > 50 THEN 1.2
+            WHEN (likesCount + commentsCount * 2) > 20 THEN 1.1
             ELSE 1.0
           END
         `),
         'engagementScore',
       ]);
 
-      // Final relevance calculation combining all factors
+      // Determine final ordering based on available data
       const orderExpression =
         isSearch && searchText
           ? [
               [
                 literal(`
+                (
+                  searchRelevance * 2.0 +
                   (
-                    /* Search relevance is the primary factor when searching */
-                    searchRelevance * 2.0 +  
-                    /* Other factors have reduced weight during search */
-                    (
-                      (${timeWeightFactor * 0.3} * timeRelevance + 
-                       ${distanceWeightFactor * 0.3} * distanceScore) *
-                      engagementScore *
-                      CASE priority
-                        WHEN 'high' THEN ${priorityWeights.high}
-                        WHEN 'medium' THEN ${priorityWeights.medium}
-                        ELSE ${priorityWeights.low}
-                      END
-                    ) * 0.5
-                  )
-                `),
+                    (${timeWeightFactor} * timeRelevance ${userLat && userLong ? `+ ${distanceWeightFactor} * distanceScore` : ''}) *
+                    engagementScore *
+                    CASE priority
+                      WHEN 'high' THEN ${priorityWeights.high}
+                      WHEN 'medium' THEN ${priorityWeights.medium}
+                      ELSE ${priorityWeights.low}
+                    END
+                  ) * 0.5
+                )
+              `),
                 'DESC',
               ],
             ]
           : [
               [
                 literal(`
-                  (
-                    /* Base score combining time and distance */
-                    (${timeWeightFactor} * timeRelevance + 
-                     ${distanceWeightFactor} * distanceScore)
-                    /* Multiply by engagement factor */
-                    * engagementScore
-                    /* Apply priority multiplier */
-                    * CASE priority
-                        WHEN 'high' THEN ${priorityWeights.high}
-                        WHEN 'medium' THEN ${priorityWeights.medium}
-                        ELSE ${priorityWeights.low}
-                      END
-                  )
-                `),
+                (
+                  (${timeWeightFactor} * timeRelevance ${userLat && userLong ? `+ ${distanceWeightFactor} * distanceScore` : ''}) *
+                  engagementScore *
+                  CASE priority
+                    WHEN 'high' THEN ${priorityWeights.high}
+                    WHEN 'medium' THEN ${priorityWeights.medium}
+                    ELSE ${priorityWeights.low}
+                  END
+                )
+              `),
                 'DESC',
               ],
             ];
 
       searchOptions.order = [...orderExpression, ['updatedAt', 'DESC']];
-
-      // Add where conditions and ordering
       searchOptions.where = whereConditions;
       searchOptions.limit =
         typeof pageSize === 'string' ? parseInt(pageSize) : pageSize;
