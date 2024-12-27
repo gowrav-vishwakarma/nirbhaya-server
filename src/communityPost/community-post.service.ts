@@ -755,11 +755,11 @@ export class CommunityPostService {
       searchOptions.attributes.push([
         literal(`
           CASE 
-            WHEN updated_at > DATE_SUB(NOW(), INTERVAL 6 HOUR) THEN 1.5
-            WHEN updated_at > DATE_SUB(NOW(), INTERVAL 24 HOUR) THEN 1.3
-            WHEN updated_at > DATE_SUB(NOW(), INTERVAL 3 DAY) THEN 1.1
-            WHEN updated_at > DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1.0
-            ELSE GREATEST(0.4, EXP(-DATEDIFF(NOW(), updated_at) / 14))
+            WHEN created_at > DATE_SUB(NOW(), INTERVAL 6 HOUR) THEN 1.5
+            WHEN created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR) THEN 1.3
+            WHEN created_at > DATE_SUB(NOW(), INTERVAL 3 DAY) THEN 1.1
+            WHEN created_at > DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1.0
+            ELSE GREATEST(0.4, EXP(-DATEDIFF(NOW(), created_at) / 14))
           END
         `),
         'timeRelevance',
@@ -817,7 +817,7 @@ export class CommunityPostService {
               ],
             ];
 
-      searchOptions.order = [...orderExpression, ['updatedAt', 'DESC']];
+      searchOptions.order = [...orderExpression, ['createdAt', 'DESC']];
       searchOptions.where = whereConditions;
       searchOptions.limit =
         typeof pageSize === 'string' ? parseInt(pageSize) : pageSize;
