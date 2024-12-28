@@ -28,6 +28,10 @@ export class PostComment extends Model<PostComment> {
   @Column(DataType.INTEGER)
   userId: number;
 
+  @ForeignKey(() => User)
+  @Column(DataType.INTEGER)
+  postUserId: number;
+
   @ForeignKey(() => CommunityPost)
   @Column(DataType.INTEGER)
   postId: number;
