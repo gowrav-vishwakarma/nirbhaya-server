@@ -296,7 +296,11 @@ export class CommunityPostService {
       await this.unlikePost(postId, userId);
     }
 
-    await this.postLikeModel.create({ postId, userId });
+    await this.postLikeModel.create({
+      postId,
+      userId,
+      postUserId: post.userId,
+    });
     await post.increment('likesCount', { by: 1 });
 
     await this.updateUserInteraction('like', userId);
@@ -338,6 +342,7 @@ export class CommunityPostService {
       content,
       likesCount: 0,
       repliesCount: 0,
+      postUserId: post.userId,
     });
 
     await post.increment('commentsCount', { by: 1 });
