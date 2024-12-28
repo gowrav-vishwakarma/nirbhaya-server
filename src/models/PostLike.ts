@@ -30,6 +30,13 @@ export class PostLike extends Model<PostLike> {
   })
   userId: number;
 
+  @ForeignKey(() => User)
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+  })
+  postUserId: number;
+
   @ForeignKey(() => CommunityPost)
   @Column({
     type: DataType.INTEGER,
