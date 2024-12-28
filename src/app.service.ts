@@ -7,28 +7,36 @@ import { Sequelize } from 'sequelize-typescript';
 import { Cron } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import { FirebaseService } from './sos/firebase.service';
+import { SystemConfig } from './models/SystemConfig';
 
 @Injectable()
 export class AppService {
-  private lastRunTime: Date;
   private readonly notificationIntervalHours: number;
+  private readonly LAST_NOTIFICATION_KEY = 'last_notification_run';
 
   constructor(
     private sequelize: Sequelize,
     private configService: ConfigService,
     private firebaseService: FirebaseService,
   ) {
-    // Default to 6 hours if not configured
     this.notificationIntervalHours =
       this.configService.get<number>('NOTIFICATION_INTERVAL_HOURS') || 6;
-    this.lastRunTime = new Date();
   }
 
   getHello(): string {
     return 'Hello World!';
   }
 
-  checkVersion(currentVersion: string) {
+  checkVersion(currentVersion: string): {
+    skipUpdate: boolean;
+    latestVersion: string;
+    latestIosVersion: string;
+    latestAndroidVersion: string;
+    forceUpdate: boolean;
+    minimumVersion: string;
+    androidUpdateUrl: string;
+    iosUpdateUrl: string;
+  } {
     return {
       skipUpdate: false,
       latestVersion: '0.0.213',
@@ -45,13 +53,26 @@ export class AppService {
   @Cron('0 */6 * * *', {
     name: 'sendPeriodicLikesAndCommentsNotification',
     timeZone: 'Asia/Kolkata',
-  }) // Runs every 6 hours at IST
+  })
   async sendDailyLikesAndCommentsNotification() {
     const now = new Date();
-    const lastRun = this.lastRunTime;
 
-    // Update lastRunTime for next execution
-    this.lastRunTime = now;
+    // Get last run time from database, default to 6 hours ago if not found
+    let lastRun = new Date(
+      now.getTime() - this.notificationIntervalHours * 60 * 60 * 1000,
+    );
+    const lastRunConfig = await SystemConfig.findOne({
+      where: { key: this.LAST_NOTIFICATION_KEY },
+    });
+    if (lastRunConfig) {
+      lastRun = new Date(lastRunConfig.value);
+    }
+
+    // Update last run time in database
+    await SystemConfig.upsert({
+      key: this.LAST_NOTIFICATION_KEY,
+      value: now.toISOString(),
+    });
 
     // Get users with their likes and comments counts since last run
     const usersWithActivity = (await User.findAll({
