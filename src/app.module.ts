@@ -60,6 +60,7 @@ import AclRoles from './models/AclRoles';
 import AdminQnatkController from './admin-auth/admin-auth-qnatk.controller';
 import { CommunityPost } from './models/CommunityPost';
 import { TempOtps } from './models/TempOtps';
+import { SystemConfig } from './models/SystemConfig';
 export const sequelizeModelArray = [
   User,
   EmergencyContact,
@@ -92,6 +93,7 @@ export const sequelizeModelArray = [
   AclRoles,
   CommunityPost,
   TempOtps,
+  SystemConfig,
 ];
 @Module({
   imports: [
