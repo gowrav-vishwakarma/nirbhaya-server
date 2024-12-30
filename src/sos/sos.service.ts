@@ -716,4 +716,15 @@ export class SosService {
     });
     return CurrentSOSEventList;
   }
+
+  testNotification() {
+    return this.firebaseService.sendPushNotification(
+      'ccg2RSetQA-Q1EGeOIRcLt:APA91bF5gvdUfmtdy2kA82JrmtJqR37rCWNEH5c-aBtqRkqp6SBYM0M48KTQ2KmLnUIdtqs0548li31BuOKneqr3QC7fij4AZUSFsfooCtLGCARyTRupVyI',
+      'test notification to check default sound ',
+      'test notification to check default sound ',
+      '',
+      '',
+      {},
+    );
+  }
 }

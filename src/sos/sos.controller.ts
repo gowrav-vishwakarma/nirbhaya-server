@@ -105,4 +105,10 @@ export class SosController {
     console.log('current-event-list data..........', data);
     return this.sosService.getCurrentEventList(data);
   }
+
+  @Get('test-notification')
+  @UseGuards(AuthGuard)
+  testNotification() {
+    return this.sosService.testNotification();
+  }
 }

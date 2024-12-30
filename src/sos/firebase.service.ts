@@ -108,6 +108,7 @@ export class FirebaseService {
         sosEventId,
         location,
         click_action: 'FLUTTER_NOTIFICATION_CLICK',
+        sound: 'sosalert.mp3', // Add sound to data payload as well
         screen: '/notifications',
         ...Object.entries(additionalData || {}).reduce(
           (acc, [key, value]) => ({
@@ -116,15 +117,18 @@ export class FirebaseService {
           }),
           {},
         ),
+        channelId: 'sosalertchannel',
       },
       android: {
         priority: 'high' as const,
         notification: {
+          title,
+          body,
           clickAction: 'FLUTTER_NOTIFICATION_CLICK',
           priority: 'high' as NotificationPriority,
-          defaultSound: true,
-          channelId: 'high_importance_channel',
-          sound: 'default',
+          defaultSound: false,
+          channelId: 'sosalertchannel',
+          sound: 'sosalert.mp3',
           visibility: 'public',
           vibrateTimingsMillis: [200, 500, 200, 500],
         },
@@ -141,7 +145,8 @@ export class FirebaseService {
               title,
               body,
             },
-            sound: 'default',
+            sound: 'sosalert',
+            channelId: 'sosalertchannel',
             badge: 1,
             category: 'SOS_CATEGORY',
             'content-available': 1,
@@ -157,6 +162,9 @@ export class FirebaseService {
       },
       token,
     };
+
+    if (sosEventId != null) {
+    }
 
     try {
       const response = await this.app.messaging().send(message);
