@@ -108,7 +108,6 @@ export class FirebaseService {
         sosEventId,
         location,
         click_action: 'FLUTTER_NOTIFICATION_CLICK',
-        sound: 'sosalert.mp3', // Add sound to data payload as well
         screen: '/notifications',
         ...Object.entries(additionalData || {}).reduce(
           (acc, [key, value]) => ({
@@ -117,7 +116,12 @@ export class FirebaseService {
           }),
           {},
         ),
-        channelId: 'sosalertchannel',
+        // sound: 'sosalert.mp3', // Add sound to data payload as well
+        sound: sosEventId == 'none' ? 'default' : 'sosalert.mp3', // Add sound to data payload as well
+        channelId:
+          sosEventId == 'none'
+            ? 'fcm_fallback_notification_channel'
+            : 'sosalertchannel',
       },
       android: {
         priority: 'high' as const,
@@ -126,11 +130,19 @@ export class FirebaseService {
           body,
           clickAction: 'FLUTTER_NOTIFICATION_CLICK',
           priority: 'high' as NotificationPriority,
-          defaultSound: false,
-          channelId: 'sosalertchannel',
-          sound: 'sosalert.mp3',
+          defaultSound: sosEventId == 'none' ? true : false,
+          // sound: 'sosalert.mp3', // Add sound to data payload as well
+          sound: sosEventId == 'none' ? 'default' : 'sosalert.mp3', // Add sound to data payload as well
+          channelId:
+            sosEventId == 'none'
+              ? 'fcm_fallback_notification_channel'
+              : 'sosalertchannel',
           visibility: 'public',
-          vibrateTimingsMillis: [200, 500, 200, 500],
+          defaultVibrateTimings: false,
+          vibrateTimingsMillis: [
+            200, 100, 200, 100, 200, 100, 500, 100, 500, 100, 500, 100, 200,
+            100, 200, 100, 200,
+          ],
         },
       },
       apns: {
@@ -145,8 +157,12 @@ export class FirebaseService {
               title,
               body,
             },
-            sound: 'sosalert',
-            channelId: 'sosalertchannel',
+            // sound: 'sosalert.mp3', // Add sound to data payload as well
+            sound: sosEventId == 'none' ? 'default' : 'sosalert.mp3', // Add sound to data payload as well
+            channelId:
+              sosEventId == 'none'
+                ? 'fcm_fallback_notification_channel'
+                : 'sosalertchannel',
             badge: 1,
             category: 'SOS_CATEGORY',
             'content-available': 1,
@@ -162,9 +178,6 @@ export class FirebaseService {
       },
       token,
     };
-
-    if (sosEventId != null) {
-    }
 
     try {
       const response = await this.app.messaging().send(message);
