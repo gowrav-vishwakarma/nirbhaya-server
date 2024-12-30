@@ -116,17 +116,33 @@ export class FirebaseService {
           }),
           {},
         ),
+        // sound: 'sosalert.mp3', // Add sound to data payload as well
+        sound: sosEventId == 'none' ? 'default' : 'sosalert.mp3', // Add sound to data payload as well
+        channelId:
+          sosEventId == 'none'
+            ? 'fcm_fallback_notification_channel'
+            : 'sosalertchannel',
       },
       android: {
         priority: 'high' as const,
         notification: {
+          title,
+          body,
           clickAction: 'FLUTTER_NOTIFICATION_CLICK',
           priority: 'high' as NotificationPriority,
-          defaultSound: true,
-          channelId: 'high_importance_channel',
-          sound: 'default',
+          defaultSound: sosEventId == 'none' ? true : false,
+          // sound: 'sosalert.mp3', // Add sound to data payload as well
+          sound: sosEventId == 'none' ? 'default' : 'sosalert.mp3', // Add sound to data payload as well
+          channelId:
+            sosEventId == 'none'
+              ? 'fcm_fallback_notification_channel'
+              : 'sosalertchannel',
           visibility: 'public',
-          vibrateTimingsMillis: [200, 500, 200, 500],
+          defaultVibrateTimings: false,
+          vibrateTimingsMillis: [
+            200, 100, 200, 100, 200, 100, 500, 100, 500, 100, 500, 100, 200,
+            100, 200, 100, 200,
+          ],
         },
       },
       apns: {
@@ -141,7 +157,12 @@ export class FirebaseService {
               title,
               body,
             },
-            sound: 'default',
+            // sound: 'sosalert.mp3', // Add sound to data payload as well
+            sound: sosEventId == 'none' ? 'default' : 'sosalert.mp3', // Add sound to data payload as well
+            channelId:
+              sosEventId == 'none'
+                ? 'fcm_fallback_notification_channel'
+                : 'sosalertchannel',
             badge: 1,
             category: 'SOS_CATEGORY',
             'content-available': 1,
