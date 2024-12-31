@@ -7,6 +7,8 @@ import { User } from '../models/User';
 import { AuthModule } from '../auth-module/auth.module';
 import { UserLocation } from 'src/models/UserLocation';
 import { CommunityPost } from 'src/models/CommunityPost';
+import { CatalogItem } from 'src/models/CatalogItem';
+import { FileModule } from 'src/files/file.module';
 
 @Module({
   imports: [
@@ -15,8 +17,10 @@ import { CommunityPost } from 'src/models/CommunityPost';
       User,
       UserLocation,
       CommunityPost,
+      CatalogItem,
     ]),
     forwardRef(() => AuthModule),
+    forwardRef(() => FileModule),
   ],
   controllers: [CommunityController],
   providers: [CommunityService],

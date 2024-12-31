@@ -16,6 +16,7 @@ import { CommunityApplications } from './CommunityApplications';
 import { Suggestion } from './Suggestion';
 import { Feedback } from './Feedback';
 import { UserInteraction } from './UserInteractions';
+import { CatalogItem } from './CatalogItem';
 
 interface PlatformInfo {
   [key: string]: any;
@@ -341,4 +342,25 @@ export class User extends Model<User> {
     defaultValue: DefaultApp.SOS,
   })
   defaultApp: DefaultApp;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+  })
+  hasCatalog: boolean;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+  })
+  doesDelivery: boolean;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  deliveryText: string;
+
+  @HasMany(() => CatalogItem)
+  catalogItems: CatalogItem[];
 }
