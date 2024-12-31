@@ -61,6 +61,7 @@ import AdminQnatkController from './admin-auth/admin-auth-qnatk.controller';
 import { CommunityPost } from './models/CommunityPost';
 import { TempOtps } from './models/TempOtps';
 import { SystemConfig } from './models/SystemConfig';
+import { CatalogItem } from './models/CatalogItem';
 export const sequelizeModelArray = [
   User,
   EmergencyContact,
@@ -94,6 +95,7 @@ export const sequelizeModelArray = [
   CommunityPost,
   TempOtps,
   SystemConfig,
+  CatalogItem,
 ];
 @Module({
   imports: [
