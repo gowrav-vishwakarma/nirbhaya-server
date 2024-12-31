@@ -15,6 +15,8 @@ import {
   UpdateCatalogItemDto,
 } from './dto/catalog-item.dto';
 import { FileService } from 'src/files/file.service';
+import { UserOrder, OrderStatus } from '../models/UserOrder';
+import { CreateOrderDto } from './dto/create-order.dto';
 
 @Injectable()
 export class CommunityService {
@@ -30,6 +32,8 @@ export class CommunityService {
     @InjectModel(CatalogItem)
     private readonly catalogItemModel: typeof CatalogItem,
     private readonly fileService: FileService,
+    @InjectModel(UserOrder)
+    private readonly userOrderModel: typeof UserOrder,
   ) {}
 
   async applyToCommunity(data: any, userId: number): Promise<any> {
@@ -252,5 +256,16 @@ export class CommunityService {
 
     await catalogItem.destroy();
     return { message: 'Catalog item deleted successfully' };
+  }
+
+  async createOrder(userId: number, orderData: CreateOrderDto) {
+    const order = await this.userOrderModel.create({
+      userId,
+      businessUserId: orderData.businessUserId,
+      order: orderData.order,
+      status: OrderStatus.PENDING,
+    });
+
+    return order;
   }
 }

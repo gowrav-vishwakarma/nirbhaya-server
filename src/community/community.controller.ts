@@ -21,6 +21,7 @@ import {
   UpdateCatalogItemDto,
 } from './dto/catalog-item.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { CreateOrderDto } from './dto/create-order.dto';
 
 @Controller('community')
 export class CommunityController {
@@ -104,5 +105,14 @@ export class CommunityController {
   @Delete('catalog-items/:id')
   async deleteCatalogItem(@Param('id') id: number, @GetUser() user: UserJWT) {
     return this.communityService.deleteCatalogItem(id, user.id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('orders')
+  async createOrder(
+    @Body() orderData: CreateOrderDto,
+    @GetUser() user: UserJWT,
+  ) {
+    return this.communityService.createOrder(user.id, orderData);
   }
 }

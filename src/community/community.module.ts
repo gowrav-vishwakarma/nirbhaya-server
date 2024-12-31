@@ -9,6 +9,7 @@ import { UserLocation } from 'src/models/UserLocation';
 import { CommunityPost } from 'src/models/CommunityPost';
 import { CatalogItem } from 'src/models/CatalogItem';
 import { FileModule } from 'src/files/file.module';
+import { UserOrder } from '../models/UserOrder';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { FileModule } from 'src/files/file.module';
       UserLocation,
       CommunityPost,
       CatalogItem,
+      UserOrder,
     ]),
     forwardRef(() => AuthModule),
     forwardRef(() => FileModule),
