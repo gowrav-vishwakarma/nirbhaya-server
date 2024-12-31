@@ -828,7 +828,16 @@ export class CommunityPostService {
         typeof pageSize === 'string' ? parseInt(pageSize) : pageSize;
       searchOptions.offset = offset;
 
-      const posts = await this.communityPostModel.findAll(searchOptions);
+      const posts = await this.communityPostModel.findAll({
+        include: [
+          {
+            model: User,
+            attributes: ['name', 'hasCatalog'],
+            required: true,
+          },
+        ],
+        ...searchOptions,
+      });
 
       const processedPosts = posts.map((post) => {
         const postData = post.toJSON() as PostDataWithDistance;
@@ -836,7 +845,11 @@ export class CommunityPostService {
           delete postData.location;
           delete postData.distance;
         }
-        return postData;
+        return {
+          ...postData,
+          userName: post.user?.name || 'Unknown',
+          hasCatalog: post.user?.hasCatalog || false,
+        };
       });
 
       return processedPosts;

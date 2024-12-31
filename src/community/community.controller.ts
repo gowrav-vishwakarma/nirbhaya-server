@@ -53,8 +53,18 @@ export class CommunityController {
   }
 
   @UseGuards(AuthGuard)
+  @Get('business-catalog/:userId')
+  async getBusinessCatalog(
+    @Param('userId') userId: number,
+  ): Promise<CatalogResponse> {
+    return this.communityService.getBusinessCatalog(userId);
+  }
+
+  @UseGuards(AuthGuard)
   @Get('business-catalog')
-  async getBusinessCatalog(@GetUser() user: UserJWT): Promise<CatalogResponse> {
+  async getOwnBusinessCatalog(
+    @GetUser() user: UserJWT,
+  ): Promise<CatalogResponse> {
     return this.communityService.getBusinessCatalog(user.id);
   }
 
