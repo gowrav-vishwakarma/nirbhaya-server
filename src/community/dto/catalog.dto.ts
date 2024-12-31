@@ -10,6 +10,7 @@ export interface CatalogResponse {
   doesDelivery: boolean;
   deliveryText: string | null;
   catalogItems: CatalogItem[];
+  whatsappNumber: string | null;
 }
 
 export interface UpdateCatalogDto {

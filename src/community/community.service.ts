@@ -120,7 +120,12 @@ export class CommunityService {
   async getBusinessCatalog(userId: number): Promise<CatalogResponse> {
     const user = await this.userModel.findOne({
       where: { id: userId },
-      attributes: ['hasCatalog', 'doesDelivery', 'deliveryText'],
+      attributes: [
+        'hasCatalog',
+        'doesDelivery',
+        'deliveryText',
+        'whatsappNumber',
+      ],
       include: [
         {
           model: this.catalogItemModel,
@@ -139,6 +144,7 @@ export class CommunityService {
 
     return {
       hasCatalog: user.hasCatalog,
+      whatsappNumber: user.whatsappNumber,
       doesDelivery: user.doesDelivery,
       deliveryText: user.deliveryText,
       catalogItems: user.catalogItems || [],
