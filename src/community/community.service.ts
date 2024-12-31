@@ -125,6 +125,7 @@ export class CommunityService {
         'doesDelivery',
         'deliveryText',
         'whatsappNumber',
+        'deliveryRange',
       ],
       include: [
         {
@@ -147,6 +148,7 @@ export class CommunityService {
       whatsappNumber: user.whatsappNumber,
       doesDelivery: user.doesDelivery,
       deliveryText: user.deliveryText,
+      deliveryRange: user.deliveryRange,
       catalogItems: user.catalogItems || [],
     };
   }
@@ -162,6 +164,7 @@ export class CommunityService {
       hasCatalog: catalogData.hasCatalog,
       doesDelivery: catalogData.doesDelivery,
       deliveryText: catalogData.deliveryText,
+      deliveryRange: catalogData.deliveryRange,
     });
 
     return {
@@ -170,6 +173,7 @@ export class CommunityService {
         hasCatalog: user.hasCatalog,
         doesDelivery: user.doesDelivery,
         deliveryText: user.deliveryText,
+        deliveryRange: user.deliveryRange,
       },
     };
   }

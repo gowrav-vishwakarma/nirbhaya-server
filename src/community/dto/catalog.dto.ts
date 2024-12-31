@@ -7,14 +7,21 @@ export interface CatalogItem {
 
 export interface CatalogResponse {
   hasCatalog: boolean;
+  whatsappNumber: string;
   doesDelivery: boolean;
-  deliveryText: string | null;
-  catalogItems: CatalogItem[];
-  whatsappNumber: string | null;
+  deliveryText: string;
+  deliveryRange: number;
+  catalogItems: {
+    id: number;
+    title: string;
+    imageUrl: string;
+    sequence: number;
+  }[];
 }
 
-export interface UpdateCatalogDto {
+export class UpdateCatalogDto {
   hasCatalog: boolean;
   doesDelivery: boolean;
-  deliveryText?: string;
+  deliveryText: string;
+  deliveryRange: number;
 }
