@@ -363,4 +363,11 @@ export class User extends Model<User> {
 
   @HasMany(() => CatalogItem)
   catalogItems: CatalogItem[];
+
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+    defaultValue: 1000,
+  })
+  deliveryRange: number;
 }

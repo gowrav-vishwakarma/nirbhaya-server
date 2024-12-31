@@ -832,7 +832,7 @@ export class CommunityPostService {
         include: [
           {
             model: User,
-            attributes: ['name', 'hasCatalog'],
+            attributes: ['name', 'hasCatalog', 'deliveryRange'],
             required: true,
           },
         ],
@@ -849,6 +849,7 @@ export class CommunityPostService {
           ...postData,
           userName: post.user?.name || 'Unknown',
           hasCatalog: post.user?.hasCatalog || false,
+          deliveryRange: post.user?.deliveryRange || 1000,
         };
       });
 
