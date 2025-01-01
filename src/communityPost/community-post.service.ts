@@ -230,7 +230,7 @@ export class CommunityPostService {
     });
 
     const userData = await this.userModel.findByPk(userId, {
-      attributes: ['id', 'name', 'email', 'businessName'],
+      attributes: ['id', 'name', 'email', 'businessName', 'hasCatalog'],
     });
 
     const posts = postsData.map((post) => {
