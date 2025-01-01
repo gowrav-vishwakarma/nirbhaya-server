@@ -3,6 +3,14 @@ export interface OrderItem {
   text: string;
 }
 
+export interface BoxData {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  label: string;
+}
+
 export class CreateOrderDto {
   businessUserId: number;
   order: OrderItem[];
