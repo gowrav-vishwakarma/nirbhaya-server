@@ -41,7 +41,7 @@ export class AppService {
       skipUpdate: false,
       latestVersion: '0.0.213',
       latestIosVersion: '0.0.213',
-      latestAndroidVersion: '0.0.213',
+      latestAndroidVersion: '0.0.215',
       forceUpdate: false,
       minimumVersion: '0.0.213',
       androidUpdateUrl:
