@@ -10,6 +10,7 @@ import {
   Delete,
   UseInterceptors,
   UploadedFile,
+  Res,
 } from '@nestjs/common';
 import { CommunityService } from './community.service';
 import { AuthGuard } from '../auth-module/auth.guard';
@@ -22,6 +23,8 @@ import {
 } from './dto/catalog-item.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { Response } from 'express';
+import fetch from 'node-fetch';
 
 @Controller('community')
 export class CommunityController {
@@ -114,5 +117,30 @@ export class CommunityController {
     @GetUser() user: UserJWT,
   ) {
     return this.communityService.createOrder(user.id, orderData);
+  }
+
+  @Get('proxy-image/*')
+  async proxyImage(@Param('0') imageUrl: string, @Res() res: Response) {
+    const response = await fetch(
+      'https://xavoc-technocrats-pvt-ltd.blr1.cdn.digitaloceanspaces.com/' +
+        imageUrl,
+    );
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Content-Type', response.headers.get('content-type'));
+    res.send(buffer);
+  }
+
+  @UseGuards(AuthGuard)
+  @Put('catalog-items/:id/boxes')
+  async updateCatalogItemBoxes(
+    @Param('id') id: number,
+    @Body() data: { boxes: string },
+    @GetUser() user: UserJWT,
+  ) {
+    const boxes = JSON.parse(data.boxes);
+    return [];
+    // return this.communityService.updateCatalogItemBoxes(id, user.id, boxes);
   }
 }
