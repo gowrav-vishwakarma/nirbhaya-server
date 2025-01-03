@@ -370,4 +370,10 @@ export class User extends Model<User> {
     defaultValue: 1000,
   })
   deliveryRange: number;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  businessCategory: string;
 }

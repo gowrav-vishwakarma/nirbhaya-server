@@ -421,20 +421,24 @@ export class UserService {
   }
 
   async addBusinessInformation(businessInfo: any, user: any) {
-    // Update user business information
     console.log('businessInfo........', businessInfo);
 
     const userBusinessObj = {
       businessName: businessInfo.businessName,
       whatsappNumber: businessInfo.whatsappNumber,
+      businessCategory: businessInfo.businessCategory,
     };
+
     await this.userModel.update(userBusinessObj, {
       where: { id: user.id },
     });
 
     // Handle location logic
     const [location, created] = await this.userLocationModel.findOrCreate({
-      where: { userId: user.id },
+      where: {
+        userId: user.id,
+        isBusinessLocation: true,
+      },
       defaults: {
         name: businessInfo.locationName,
         location: {
@@ -446,20 +450,19 @@ export class UserService {
     });
 
     if (!created) {
-      // Update the location if it already exists
       await location.update({
         name: businessInfo.locationName,
         location: {
           type: 'Point',
           coordinates: [businessInfo.longitude, businessInfo.latitude],
         },
-        isBusinessLocation: true,
       });
     }
 
     return {
       success: true,
       message: 'Business information updated successfully.',
+      locationId: location.id,
     };
   }
 
