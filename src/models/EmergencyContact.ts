@@ -82,4 +82,11 @@ export class EmergencyContact extends Model {
     defaultValue: 'Active',
   })
   status: 'Active' | 'Inactive';
+
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+    allowNull: false,
+  })
+  is_primary: boolean;
 }

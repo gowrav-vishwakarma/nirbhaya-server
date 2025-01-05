@@ -319,6 +319,7 @@ export class UserService {
           isAppUser: true,
           contactUserId: user.id, // Add this line to save the contact's user ID
           consentGiven: false, // Set default consent to false
+          is_primary: contactData.is_primary || false,
         },
       });
 
@@ -328,6 +329,7 @@ export class UserService {
           contactName: contactData.contactName,
           isAppUser: true,
           contactUserId: user.id, // Update the contact's user ID
+          is_primary: contactData.is_primary || false,
         });
       }
     }
