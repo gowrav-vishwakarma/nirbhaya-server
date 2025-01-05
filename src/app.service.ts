@@ -39,9 +39,9 @@ export class AppService {
   } {
     return {
       skipUpdate: false,
-      latestVersion: '0.0.218',
-      latestIosVersion: '0.0.218',
-      latestAndroidVersion: '0.0.218',
+      latestVersion: '0.0.219',
+      latestIosVersion: '0.0.219',
+      latestAndroidVersion: '0.0.219',
       forceUpdate: false,
       minimumVersion: '0.0.213',
       androidUpdateUrl:
