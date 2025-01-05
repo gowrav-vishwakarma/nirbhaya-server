@@ -627,6 +627,7 @@ export class CommunityPostService {
           'showLocation',
           'location',
           'businessCategory',
+          'userName',
           [
             literal(`(
               SELECT COUNT(id) > 0 
@@ -847,7 +848,7 @@ export class CommunityPostService {
         }
         return {
           ...postData,
-          userName: post.user?.name || 'Unknown',
+          // userName: post.user?.name || 'Unknown',
           hasCatalog: post.user?.hasCatalog || false,
           deliveryRange: post.user?.deliveryRange || 1000,
         };
