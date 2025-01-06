@@ -129,7 +129,7 @@ export class AppService {
       fcmToken,
       'New Activity', // title
       message, // body
-      '', // data
+      'none', // data
       'high', // priority
       true, // contentAvailable
     );

@@ -246,7 +246,14 @@ export class CommunityPostService {
     });
 
     const userData = await this.userModel.findByPk(userId, {
-      attributes: ['id', 'name', 'email', 'businessName', 'hasCatalog'],
+      attributes: [
+        'id',
+        'name',
+        'email',
+        'businessName',
+        'hasCatalog',
+        'profileImage',
+      ],
     });
 
     const posts = postsData.map((post) => {
@@ -849,7 +856,7 @@ export class CommunityPostService {
         include: [
           {
             model: User,
-            attributes: ['name', 'hasCatalog', 'deliveryRange'],
+            attributes: ['name', 'hasCatalog', 'deliveryRange', 'profileImage'],
             required: true,
           },
         ],
