@@ -17,7 +17,6 @@ import { CommunityPostService } from './community-post.service';
 import { GetUser } from '../auth-module/getuser.decorator';
 import { UserJWT } from '../dto/user-jwt.dto';
 import { AuthGuard } from '../auth-module/auth.guard';
-import { NotificationItem } from './types';
 
 @Controller('posts')
 export class CommunityPostController {

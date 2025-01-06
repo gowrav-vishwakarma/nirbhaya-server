@@ -12,7 +12,7 @@ import { CommentReply } from '../models/CommentReply';
 import { FileService } from '../files/file.service';
 import { User } from '../models/User';
 import { UserInteraction } from '../models/UserInteractions';
-import { Op, literal, where, fn, col } from 'sequelize';
+import { Op, literal } from 'sequelize';
 import { PostDataWithDistance } from '../models/CommunityPost';
 // import { NotificationItem } from './types';
 
@@ -104,7 +104,23 @@ export class CommunityPostService {
 
       await this.updateUserInteraction('post', createPostDto.userId);
 
-      return await this.communityPostModel.create(postData);
+      const res = await this.communityPostModel.create(postData);
+      const userData = await this.userModel.findOne({
+        where: {
+          id: createPostDto.userId,
+        },
+        attributes: ['name', 'hasCatalog', 'deliveryRange'],
+      });
+
+      res.dataValues['hasCatalog'] = userData?.hasCatalog || false;
+      res.dataValues['deliveryRange'] = userData?.deliveryRange || 5000;
+      if (res.dataValues.location && res.dataValues.location.coordinates)
+        res.dataValues['location'] = {
+          x: res.dataValues.location.coordinates[0],
+          y: res.dataValues.location.coordinates[1],
+        };
+
+      return res;
     } catch (error) {
       console.error('Create post error:', error);
       throw error;
@@ -1028,7 +1044,7 @@ export class CommunityPostService {
       const formattedPosts = posts.map((post) => {
         const postData = post.toJSON();
 
-        const notifications= [
+        const notifications = [
           ...post.likes.map((like) => ({
             id: like.id,
             postId: post.id,
