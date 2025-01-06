@@ -340,7 +340,7 @@ export class UserService {
     console.log('entrrrr..');
     // Get all existing locations for the user
     const existingLocations = await this.userLocationModel.findAll({
-      where: { userId: userId },
+      where: { userId: userId, isBusinessLocation: false },
     });
 
     const existingNames = existingLocations.map((location) => location.name);
@@ -356,6 +356,7 @@ export class UserService {
       where: {
         userId: userId,
         name: namesToDelete,
+        isBusinessLocation: false,
       },
     });
 
@@ -374,6 +375,7 @@ export class UserService {
         where: {
           userId: userId,
           name: locationData.name,
+          isBusinessLocation: false,
         },
       });
 
