@@ -370,12 +370,15 @@ export class UserService {
         ],
       };
 
-      // Try to find an existing location with the same name
+      // Check if isBusinessLocation is defined in locationData
+      const isBusinessLocation = locationData.isBusinessLocation || false;
+
+      // Try to find an existing location with the same name and isBusinessLocation
       const existingLocation = await this.userLocationModel.findOne({
         where: {
           userId: userId,
           name: locationData.name,
-          isBusinessLocation: false,
+          isBusinessLocation: isBusinessLocation,
         },
       });
 
@@ -390,6 +393,7 @@ export class UserService {
           userId: userId,
           name: locationData.name,
           location: location,
+          isBusinessLocation: isBusinessLocation, // Include isBusinessLocation in creation
         });
         await this.globalService.updateEventCount('registerVolunteers', userId);
       }
