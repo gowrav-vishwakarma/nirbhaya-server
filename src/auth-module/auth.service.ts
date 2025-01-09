@@ -455,11 +455,23 @@ export class AuthService {
     }
   }
 
-  async validatePhone(phoneNumber: string): Promise<{ isValid: boolean }> {
+  async validatePhone(phoneNumber: string, createNew: boolean = false, name: string = ''): Promise<{ isValid: boolean; IsCreated?: boolean }> {
     try {
       const user = await this.userModel.findOne({
         where: { phoneNumber },
       });
+
+      if (!user && createNew) {
+        // Create a new user if not found
+        const IsCreatedByEmg = true;
+        await this.userModel.create({
+          phoneNumber,
+          name,
+          IsCreatedByEmg,
+          // Add other default values as necessary
+        });
+        return { isValid: true, IsCreated: true }; // Return true as the user is created
+      }
 
       return { isValid: !!user };
     } catch (error) {

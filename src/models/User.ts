@@ -376,4 +376,10 @@ export class User extends Model<User> {
     allowNull: true,
   })
   businessCategory: string;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+  })
+  IsCreatedByEmg: boolean;
 }
