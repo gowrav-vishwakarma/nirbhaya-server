@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { Transaction } from 'sequelize';
-import { BeforeHookParams, HookContextType } from 'src/qnatk/src';
+import { BeforeHookParams } from 'src/qnatk/src';
 import { BaseHook } from 'src/qnatk/src/hooks/base-hook';
-import { UserLocation } from 'src/models/UserLocation';
 import { InjectModel } from '@nestjs/sequelize';
+import { EventLog } from 'src/models/EventLog';
 @Injectable()
 export class BeforeDeleteUser extends BaseHook {
   constructor(
-    @InjectModel(UserLocation)
-    private readonly userLocation: typeof UserLocation,
+    @InjectModel(EventLog)
+    private readonly eventLog: typeof EventLog,
   ) {
     super();
   }
@@ -17,19 +17,12 @@ export class BeforeDeleteUser extends BaseHook {
     transaction: Transaction | undefined,
   ): Promise<any> {
     if (previousData.data.primaryKey) {
-      const locationData = await this.userLocation.findAll({
+      await this.eventLog.destroy({
         where: {
-          id: Number(previousData.data.primaryKey),
+          userId: Number(previousData.data.primaryKey),
         },
+        transaction,
       });
-      if (locationData) {
-        await this.userLocation.destroy({
-          where: {
-            userId: Number(previousData.data.primaryKey),
-          },
-          transaction,
-        });
-      }
     }
     return previousData;
   }
