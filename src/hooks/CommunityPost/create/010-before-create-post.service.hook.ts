@@ -57,9 +57,13 @@ export class NewsCreateHook extends BaseHook {
         previousData.data.videoUrl = null;
       }
     }
-    if(previousData.data?.location){
-      previousData.data.location = JSON.parse(previousData.data.location);
-    }
+    // if (previousData.data?.location) {
+    //   console.log(
+    //     'previousData.data.location...........11111',
+    //     previousData.data.location,
+    //   );
+    //   previousData.data.location = JSON.parse(previousData.data.location);
+    // }
     return previousData;
   }
 }
