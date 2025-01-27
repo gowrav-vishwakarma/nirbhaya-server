@@ -1,8 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { User } from './models/User';
-import { PostLike } from './models/PostLike';
-import { PostComment } from './models/PostComment';
-import { Op } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
 import { Cron } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
@@ -27,7 +24,10 @@ export class AppService {
     return 'Hello World!';
   }
 
-  checkVersion(currentVersion: string): {
+  checkVersion(
+    currentVersion: string,
+    deviceId: string,
+  ): {
     skipUpdate: boolean;
     latestVersion: string;
     latestIosVersion: string;
@@ -37,6 +37,22 @@ export class AppService {
     androidUpdateUrl: string;
     iosUpdateUrl: string;
   } {
+    console.log('currentVersion', currentVersion);
+
+    const deviceIds = process.env.TESTER_DEVICE_IDS || [];
+    if (deviceIds.includes(deviceId)) {
+      return {
+        skipUpdate: false,
+        latestVersion: '0.0.221',
+        latestIosVersion: '0.0.220',
+        latestAndroidVersion: '0.0.221',
+        forceUpdate: false,
+        minimumVersion: '0.0.213',
+        androidUpdateUrl:
+          'https://play.google.com/store/apps/details?id=com.xavoc.shoutout',
+        iosUpdateUrl: 'https://apps.apple.com/app/6738719612',
+      };
+    }
     return {
       skipUpdate: false,
       latestVersion: '0.0.220',
