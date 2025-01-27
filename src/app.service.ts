@@ -36,6 +36,7 @@ export class AppService {
     minimumVersion: string;
     androidUpdateUrl: string;
     iosUpdateUrl: string;
+    testVersion: Record<number, string>;
   } {
     console.log('currentVersion', currentVersion);
 
@@ -63,6 +64,11 @@ export class AppService {
       androidUpdateUrl:
         'https://play.google.com/store/apps/details?id=com.xavoc.shoutout',
       iosUpdateUrl: 'https://apps.apple.com/app/6738719612',
+      testVersion: {
+        // userId: app version
+        1: '0.0.225',
+        22: '0.0.224',
+      },
     };
   }
 
