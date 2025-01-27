@@ -1,8 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { User } from './models/User';
-import { PostLike } from './models/PostLike';
-import { PostComment } from './models/PostComment';
-import { Op } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
 import { Cron } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
@@ -39,9 +36,9 @@ export class AppService {
   } {
     return {
       skipUpdate: false,
-      latestVersion: '0.0.220',
-      latestIosVersion: '0.0.220',
-      latestAndroidVersion: '0.0.220',
+      latestVersion: '0.0.221',
+      latestIosVersion: '0.0.221',
+      latestAndroidVersion: '0.0.222',
       forceUpdate: false,
       minimumVersion: '0.0.213',
       androidUpdateUrl:
