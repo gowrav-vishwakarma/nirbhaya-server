@@ -162,6 +162,7 @@ export class UserService {
 
     return contacts.map((contact) => ({
       id: contact.id,
+      is_primary: contact.is_primary,
       requesterName: contact.user.name,
       requesterPhone: contact.user.phoneNumber,
       consentGiven: contact.consentGiven,

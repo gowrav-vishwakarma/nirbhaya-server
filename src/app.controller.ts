@@ -12,7 +12,8 @@ export class AppController {
   }
 
   @Post('check-version')
-  checkVersion(@Body() body: { currentVersion: string }) {
-    return this.appService.checkVersion(body.currentVersion);
+  checkVersion(@Body() body: { currentVersion: string; deviceId?: string }) {
+    console.log('Checking version');
+    return this.appService.checkVersion(body.currentVersion, body.deviceId || 'anydeviceId');
   }
 }

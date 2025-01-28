@@ -32,6 +32,13 @@ export class BeforeDeleteEmergencyContactExecuteHook extends BaseHook {
           transaction,
         });
       }
+      // remove from emergencyContacts of others also
+      await this.emergencyContactModel.destroy({
+        where: {
+          contactUserId: Number(previousData.data.primaryKey),
+        },
+        transaction,
+      });
     }
     return previousData;
   }

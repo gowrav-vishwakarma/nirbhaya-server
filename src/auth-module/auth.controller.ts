@@ -49,8 +49,12 @@ export class AuthController {
   }
 
   @Post('validate-phone')
-  async validatePhone(@Body('phoneNumber') phoneNumber: string) {
-    return this.authService.validatePhone(phoneNumber);
+  async validatePhone(
+    @Body('phoneNumber') phoneNumber: string,
+    @Body('createNew') createNew: boolean = false,
+    @Body('name') name: string = ''
+  ) {
+    return this.authService.validatePhone(phoneNumber, createNew, name);
   }
 
   @UseGuards(AuthGuard)

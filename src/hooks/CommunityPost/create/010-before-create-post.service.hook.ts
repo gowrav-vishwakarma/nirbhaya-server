@@ -57,7 +57,10 @@ export class NewsCreateHook extends BaseHook {
         previousData.data.videoUrl = null;
       }
     }
-    if(previousData.data?.location){
+    if (
+      previousData.data?.location &&
+      typeof previousData.data.location === 'string'
+    ) {
       previousData.data.location = JSON.parse(previousData.data.location);
     }
     return previousData;
