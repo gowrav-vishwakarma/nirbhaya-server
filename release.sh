@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Check if we are in the develop branch
-current_branch=$(git branch --show-current)
-if [ "$current_branch" != "develop" ]; then
-  echo "You are not on the develop branch. Please switch to the develop branch and try again."
-  exit 1
-fi
+# current_branch=$(git branch --show-current)
+# if [ "$current_branch" != "develop" ]; then
+#   echo "You are not on the develop branch. Please switch to the develop branch and try again."
+#   exit 1
+# fi
 
 # Check if the branch is clean
 if [ -n "$(git status --porcelain)" ]; then
