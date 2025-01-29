@@ -43,9 +43,9 @@ export class AppService {
     if (deviceIds.includes(deviceId)) {
       return {
         skipUpdate: false,
-        latestVersion: '0.0.221',
-        latestIosVersion: '0.0.220',
-        latestAndroidVersion: '0.0.221',
+        latestVersion: '0.0.222',
+        latestIosVersion: '0.0.222',
+        latestAndroidVersion: '0.0.222',
         forceUpdate: false,
         minimumVersion: '0.0.213',
         androidUpdateUrl:
