@@ -54,11 +54,11 @@ export class AppService {
       };
     }
     return {
-      skipUpdate: false,
-      latestVersion: '0.0.221',
-      latestIosVersion: '0.0.221',
-      latestAndroidVersion: '0.0.221',
-      forceUpdate: false,
+      skipUpdate: true,
+      latestVersion: '0.0.222',
+      latestIosVersion: '0.0.222',
+      latestAndroidVersion: '0.0.222',
+      forceUpdate: true,
       minimumVersion: '0.0.213',
       androidUpdateUrl:
         'https://play.google.com/store/apps/details?id=com.xavoc.shoutout',
