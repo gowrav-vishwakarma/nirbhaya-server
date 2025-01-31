@@ -158,7 +158,7 @@ export class User extends Model<User> {
 
   @Column({
     type: DataType.BOOLEAN,
-    defaultValue: true,
+    defaultValue: false,
   })
   startAudioVideoRecordOnSos: boolean;
 
@@ -382,4 +382,10 @@ export class User extends Model<User> {
     defaultValue: false,
   })
   IsCreatedByEmg: boolean;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: true,
+  })
+  autoNotifyNearbyDefault: boolean;
 }
