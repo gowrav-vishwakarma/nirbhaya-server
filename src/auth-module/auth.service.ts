@@ -81,6 +81,7 @@ export class AuthService {
         user.availableForPaidProfessionalService,
       hasJoinedCommunity: user.hasJoinedCommunity,
       emergencyContacts: user.emergencyContacts,
+      autoNotifyNearbyDefault: user.autoNotifyNearbyDefault,
       locations: userLocations.map((location) => ({
         id: location.id,
         name: location.name,
@@ -126,6 +127,7 @@ export class AuthService {
         'availableForPaidProfessionalService',
         'hasJoinedCommunity',
         'startAudioVideoRecordOnSos',
+        'autoNotifyNearbyDefault',
         'streamAudioVideoOnSos',
         'broadcastAudioOnSos',
         'deviceId',
@@ -455,7 +457,11 @@ export class AuthService {
     }
   }
 
-  async validatePhone(phoneNumber: string, createNew: boolean = false, name: string = ''): Promise<{ isValid: boolean; IsCreated?: boolean }> {
+  async validatePhone(
+    phoneNumber: string,
+    createNew: boolean = false,
+    name: string = '',
+  ): Promise<{ isValid: boolean; IsCreated?: boolean }> {
     try {
       const user = await this.userModel.findOne({
         where: { phoneNumber },
