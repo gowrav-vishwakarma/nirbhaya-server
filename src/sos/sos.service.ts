@@ -222,7 +222,7 @@ export class SosService {
     return { informedCount }; // Return the informed count
   }
 
-  private async notifyNearbyUsers(
+  public async notifyNearbyUsers(
     sosEvent: SosEvent,
     force: boolean = false,
   ): Promise<number> {

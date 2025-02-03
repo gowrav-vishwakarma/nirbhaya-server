@@ -430,6 +430,19 @@ export class UserService {
           contactPhone: phoneNumber,
         },
       });
+
+      // if the user has not loggedin with phoneNumber then delete the user
+      const user = await this.userModel.findOne({
+        where: {
+          phoneNumber: phoneNumber,
+          isVerified: false,
+          IsCreatedByEmg: true,
+        },
+      });
+      if (user) {
+        await this.userModel.destroy({ where: { phoneNumber: phoneNumber } });
+      }
+
       return {
         success: true,
         message: 'Emergency contact deleted successfully',

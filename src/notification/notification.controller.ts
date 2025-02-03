@@ -31,4 +31,16 @@ export class NotificationController {
   async getUnreadNotificationCount(@GetUser() user: UserJWT) {
     return this.notificationService.getUnreadNotificationCount(user.id);
   }
+
+  @UseGuards(AuthGuard)
+  @Post(':id/broadcast')
+  async broadcastNotification(
+    @Param('id') id: string,
+    @GetUser() user: UserJWT,
+  ) {
+    return this.notificationService.broadcastNotification(
+      parseInt(id),
+      user.id,
+    );
+  }
 }

@@ -8,6 +8,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Notification } from '../models/Notification';
 import { SosEvent } from '../models/SosEvent';
 import { GlobalService } from 'src/global/global.service';
+import { SosService } from '../sos/sos.service';
 
 @Injectable()
 export class NotificationService {
@@ -15,6 +16,9 @@ export class NotificationService {
     @InjectModel(Notification)
     private readonly notificationModel: typeof Notification,
     private globalService: GlobalService,
+    private readonly sosService: SosService,
+    @InjectModel(SosEvent)
+    private readonly sosEventModel: typeof SosEvent,
   ) {}
 
   async getNotifications(userId: number): Promise<any[]> {
@@ -118,6 +122,79 @@ export class NotificationService {
       throw new HttpException(
         'Failed to fetch unread notification count',
         HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async broadcastNotification(notificationId: number, byUserId: number) {
+    try {
+      // Find the notification with its associated SOS event
+      const notification = await this.notificationModel.findOne({
+        where: { id: notificationId },
+        include: [
+          {
+            model: SosEvent,
+            // Explicitly specify the attributes we need
+            attributes: ['id', 'location', 'contactsOnly', 'status'],
+          },
+        ],
+      });
+
+      if (!notification) {
+        throw new NotFoundException('Notification not found');
+      }
+
+      if (!notification.sosEvent) {
+        throw new HttpException(
+          'No SOS event associated with this notification',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const sosEvent = notification.sosEvent;
+
+      if (sosEvent.contactsOnly) {
+        return {
+          success: true,
+          notifiedCount: 0,
+          message: 'Already notified nearby volunteers',
+        };
+      }
+
+      // Check if location exists and has valid coordinates
+      if (
+        !sosEvent.location?.coordinates ||
+        sosEvent.location.coordinates.length !== 2 ||
+        (sosEvent.location.coordinates[0] === 0 &&
+          sosEvent.location.coordinates[1] === 0)
+      ) {
+        throw new HttpException(
+          'Invalid or missing location coordinates for this SOS event.',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      await this.sosEventModel.update(
+        { contactsOnly: false },
+        { where: { id: sosEvent.id } },
+      );
+
+      // Notify nearby users after updating the event
+      const notifiedCount = await this.sosService.notifyNearbyUsers(
+        sosEvent,
+        true,
+      );
+
+      return {
+        success: true,
+        notifiedCount,
+        message: `Successfully notified ${notifiedCount} new nearby users`,
+      };
+    } catch (error) {
+      console.error('Error in broadcastNotification:', error);
+      throw new HttpException(
+        error.message || 'Failed to broadcast notification',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

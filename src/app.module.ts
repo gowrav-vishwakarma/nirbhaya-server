@@ -125,6 +125,12 @@ export const sequelizeModelArray = [
           typeCast: true,
           multipleStatements: true,
         },
+        pool: {
+          max: 20,
+          min: 0,
+          acquire: 60000,
+          idle: 10000,
+        },
       }),
       inject: [ConfigService],
     }),
