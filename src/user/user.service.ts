@@ -209,11 +209,21 @@ export class UserService {
     const contacts = await this.emergencyContactModel.findAll({
       where: { userId: userId },
       attributes: ['contactPhone', 'consentGiven'],
+      include: [
+        {
+          model: User,
+          as: 'contactUser',
+          attributes: ['isVerified', 'IsCreatedByEmg'],
+          required: false,
+        },
+      ],
     });
 
     return contacts.map((contact) => ({
       contactPhone: contact.contactPhone,
       consentGiven: contact.consentGiven,
+      isVerified: contact.contactUser?.isVerified || false,
+      isCreatedByEmg: contact.contactUser?.IsCreatedByEmg || false,
     }));
   }
 
