@@ -275,7 +275,10 @@ export class SosService {
       where: Sequelize.literal(`ST_Distance_Sphere(
         point(${longitude}, ${latitude}),
         location
-      ) <= ${this.NEARBY_DISTANCE_METERS} AND User.id != ${sosEvent.userId} AND User.id NOT IN (${contactIdsToExclude.join(',')})`),
+      ) <= ${this.NEARBY_DISTANCE_METERS} 
+      AND User.id != ${sosEvent.userId} 
+      AND User.id NOT IN (${contactIdsToExclude.join(',')})
+      AND User.availableForCommunity = 1`),
     });
 
     // Add logging for debugging
@@ -685,15 +688,19 @@ export class SosService {
     try {
       // Get total number of users
       const totalVolunteers = await this.userModel.count();
-      const activeLocations = 0;
+      const activeLocations = await this.userModel.count({
+        where: {
+          availableForCommunity: true,
+        },
+      });
       const successRate = 0;
       const totalHelped = 0;
       const avgResponseTime = 0;
       const activeMember = 0;
-      // const Together, We’ve Helped = 0;
+
       return {
         totalVolunteers,
-        activeLocations: totalVolunteers - 1, // for temporary solution
+        activeLocations,
         totalHelped,
         successRate,
         avgResponseTime,
