@@ -135,7 +135,7 @@ export class NotificationService {
           {
             model: SosEvent,
             // Explicitly specify the attributes we need
-            attributes: ['id', 'location', 'contactsOnly', 'status'],
+            attributes: ['id', 'location', 'contactsOnly', 'status', 'userId'],
           },
         ],
       });
@@ -153,7 +153,7 @@ export class NotificationService {
 
       const sosEvent = notification.sosEvent;
 
-      if (sosEvent.contactsOnly) {
+      if (!sosEvent.contactsOnly) {
         return {
           success: true,
           notifiedCount: 0,

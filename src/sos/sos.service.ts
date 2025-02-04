@@ -316,7 +316,7 @@ export class SosService {
 
       // Update SOS event counts
       sosEvent.informed += notifiedCount;
-      sosEvent.escalationLevel = 1;
+      sosEvent.escalationLevel = 2;
       await sosEvent.save();
 
       // Send push notifications
