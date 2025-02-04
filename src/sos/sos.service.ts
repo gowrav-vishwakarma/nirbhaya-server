@@ -726,12 +726,13 @@ export class SosService {
 
   testNotification() {
     return this.firebaseService.sendPushNotification(
-      'eLb4HsUPtktnjtBRuCmEeI:APA91bFDauK8BJrZ0EavigoZCyMqPbogf4Zz0yFNT5A_qurTdvfccvOCP1iEVWdGWdY3Wnw2bkWemBA2DL8_kTfBiyiJ_O777mFgEFOuSx8axXDmhoj0aYI',
+      'e0wm_VKqTfus8jf2czL2ih:APA91bHI5FkwtVHhknHMgerIU6Er6tdSmWgu27ptIEU0mA0p2Noikuynbd60X3BKkiSgi3hKiK-tBj3R2SwXoMqH_Xbnsu-wPLYU5_5mkB1-utNXu_8hgFE',
       'test notification to check default sound ',
       'test notification to check default sound ',
       'none',
       '',
       {},
+      'community',
     );
   }
 }

@@ -85,6 +85,7 @@ export class FirebaseService {
     sosEventId: string,
     location: string,
     additionalData?: any,
+    screen: string = '/notifications',
   ): Promise<NotificationResult> {
     if (!this.isInitialized) {
       this.logger.warn(
@@ -108,7 +109,7 @@ export class FirebaseService {
         sosEventId,
         location,
         click_action: 'FLUTTER_NOTIFICATION_CLICK',
-        screen: '/notifications',
+        screen: screen,
         ...Object.entries(additionalData || {}).reduce(
           (acc, [key, value]) => ({
             ...acc,
@@ -119,9 +120,7 @@ export class FirebaseService {
         // sound: 'sosalert.mp3', // Add sound to data payload as well
         sound: sosEventId == 'none' ? 'default' : 'sosalert.mp3', // Add sound to data payload as well
         channelId:
-          sosEventId == 'none'
-            ? 'fcm_fallback_notification_channel'
-            : 'sosalertchannel',
+          sosEventId == 'none' ? 'fcm_default_channel' : 'sosalertchannel',
       },
       android: {
         priority: 'high' as const,
@@ -134,9 +133,7 @@ export class FirebaseService {
           // sound: 'sosalert.mp3', // Add sound to data payload as well
           sound: sosEventId == 'none' ? 'default' : 'sosalert.mp3', // Add sound to data payload as well
           channelId:
-            sosEventId == 'none'
-              ? 'fcm_fallback_notification_channel'
-              : 'sosalertchannel',
+            sosEventId == 'none' ? 'fcm_default_channel' : 'sosalertchannel',
           visibility: 'public',
           defaultVibrateTimings: false,
           vibrateTimingsMillis: [
@@ -160,9 +157,7 @@ export class FirebaseService {
             // sound: 'sosalert.mp3', // Add sound to data payload as well
             sound: sosEventId == 'none' ? 'default' : 'sosalert.mp3', // Add sound to data payload as well
             channelId:
-              sosEventId == 'none'
-                ? 'fcm_fallback_notification_channel'
-                : 'sosalertchannel',
+              sosEventId == 'none' ? 'fcm_default_channel' : 'sosalertchannel',
             badge: 1,
             category: 'SOS_CATEGORY',
             'content-available': 1,
@@ -172,7 +167,7 @@ export class FirebaseService {
           },
           sosEventId,
           location,
-          screen: '/notifications',
+          screen: screen,
           ...additionalData,
         },
       },
