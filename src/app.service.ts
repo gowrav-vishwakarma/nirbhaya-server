@@ -42,7 +42,7 @@ export class AppService {
     const deviceIds = process.env.TESTER_DEVICE_IDS || [];
     if (deviceIds.includes(deviceId)) {
       return {
-        skipUpdate: false,
+        skipUpdate: true,
         latestVersion: '0.0.223',
         latestIosVersion: '0.0.223',
         latestAndroidVersion: '0.0.223',
@@ -54,7 +54,7 @@ export class AppService {
       };
     }
     return {
-      skipUpdate: false,
+      skipUpdate: true,
       latestVersion: '0.0.223',
       latestIosVersion: '0.0.223',
       latestAndroidVersion: '0.0.223',
