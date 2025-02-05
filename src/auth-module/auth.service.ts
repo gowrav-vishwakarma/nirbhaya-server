@@ -7,7 +7,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { User } from 'src/models/User';
+import { User, UserStatus } from 'src/models/User';
 import { EmergencyContact } from 'src/models/EmergencyContact';
 import { UserLocation } from 'src/models/UserLocation';
 import { SosEvent } from 'src/models/SosEvent';
@@ -101,6 +101,9 @@ export class AuthService {
       whatsappNumber: user.whatsappNumber,
       profileImage: user.profileImage,
       defaultApp: user.defaultApp,
+      status: user.status,
+      deletionRequestedAt: user.deletionRequestedAt,
+      deletionReason: user.deletionReason,
     };
   }
 
@@ -143,6 +146,9 @@ export class AuthService {
         'whatsappNumber',
         'profileImage',
         'defaultApp',
+        'status',
+        'deletionRequestedAt',
+        'deletionReason',
       ],
       include: [
         {
@@ -255,6 +261,7 @@ export class AuthService {
         'token',
         'otpExpiresAt',
         'isVerified',
+        'status',
       ],
       where: {
         phoneNumber: mobileNumber,

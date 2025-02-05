@@ -85,6 +85,22 @@ export class UserController {
   ) {
     return await this.userService.deleteEmergencyContact(userId, phoneNumber);
   }
+
+  @UseGuards(AuthGuard)
+  @Post('/delete-account')
+  async deleteAccount(
+    @Body('reason') reason: string,
+    @GetUser() user: UserJWT,
+  ) {
+    return await this.userService.deleteAccount(user.id, reason);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('/cancel-deletion')
+  async cancelDeletion(@GetUser() user: UserJWT) {
+    return await this.userService.cancelDeletion(user.id);
+  }
+
   @UseGuards(AuthGuard)
   @Post('/add-business-information')
   async addBusinessInformation(

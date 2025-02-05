@@ -26,6 +26,7 @@ export enum UserStatus {
   ACTIVE = 'active',
   INACTIVE = 'inactive',
   BLOCKED = 'blocked',
+  DELETE_REQUESTED = 'delete_requested',
 }
 
 export enum RoleType {
@@ -388,4 +389,22 @@ export class User extends Model<User> {
     defaultValue: true,
   })
   autoNotifyNearbyDefault: boolean;
+
+  @Column({
+    type: DataType.TEXT,
+    allowNull: true,
+  })
+  deletionReason: string;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: true,
+  })
+  deletionRequestedAt: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: true,
+  })
+  scheduledDeletionAt: Date;
 }

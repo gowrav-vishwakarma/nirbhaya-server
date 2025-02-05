@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { User } from '../models/User';
+import { User, UserStatus } from '../models/User';
 import { EmergencyContact } from '../models/EmergencyContact';
 import { UserLocation } from '../models/UserLocation';
 import { UserJWT } from '../dto/user-jwt.dto';
@@ -526,6 +526,64 @@ export class UserService {
     } catch (error) {
       console.error('Error removing business information:', error);
       throw new BadRequestException('Failed to remove business information');
+    }
+  }
+
+  async deleteAccount(userId: number, reason: string): Promise<any> {
+    try {
+      const user = await this.userModel.findByPk(userId);
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      const now = new Date();
+      const scheduledDeletion = new Date(
+        now.getTime() + 90 * 24 * 60 * 60 * 1000,
+      ); // 90 days from now
+
+      // Update user status and deletion information
+      await user.update({
+        status: UserStatus.DELETE_REQUESTED,
+        deletionReason: reason,
+        deletionRequestedAt: now,
+        scheduledDeletionAt: scheduledDeletion,
+      });
+
+      return {
+        success: true,
+        message:
+          'Account deletion process initiated. Your account will be permanently deleted after 90 days.',
+      };
+    } catch (error) {
+      throw new Error('Failed to process account deletion: ' + error.message);
+    }
+  }
+
+  async cancelDeletion(userId: number): Promise<any> {
+    try {
+      const user = await this.userModel.findByPk(userId);
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      if (user.status !== UserStatus.DELETE_REQUESTED) {
+        throw new Error('Account is not pending deletion');
+      }
+
+      // Reactivate the account
+      await user.update({
+        status: UserStatus.ACTIVE,
+        deletionReason: null,
+        deletionRequestedAt: null,
+        scheduledDeletionAt: null,
+      });
+
+      return {
+        success: true,
+        message: 'Account deletion cancelled successfully.',
+      };
+    } catch (error) {
+      throw new Error('Failed to cancel account deletion: ' + error.message);
     }
   }
 }
