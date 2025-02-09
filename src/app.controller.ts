@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { AppService } from './app.service';
-import { Cron } from '@nestjs/schedule';
+import businessCategories from './businessCategories.json';
 
 @Controller()
 export class AppController {
@@ -11,9 +11,17 @@ export class AppController {
     return this.appService.getHello();
   }
 
+  @Get('business-categories')
+  getBusinessCategories() {
+    return businessCategories;
+  }
+
   @Post('check-version')
   checkVersion(@Body() body: { currentVersion: string; deviceId?: string }) {
     console.log('Checking version');
-    return this.appService.checkVersion(body.currentVersion, body.deviceId || 'anydeviceId');
+    return this.appService.checkVersion(
+      body.currentVersion,
+      body.deviceId || 'anydeviceId',
+    );
   }
 }

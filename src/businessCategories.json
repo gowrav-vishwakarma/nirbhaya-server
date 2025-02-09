@@ -1,0 +1,317 @@
+[
+  {
+    "group": "Emergency Services",
+    "options": [
+      {
+        "label": "Hospitals with Emergency Care",
+        "value": "hospitals_with_emergency_care"
+      },
+      {
+        "label": "24x7 Pharmacies",
+        "value": "24x7_pharmacies"
+      },
+      {
+        "label": "Ambulance Services",
+        "value": "24x7_ambulance_services"
+      },
+      {
+        "label": "Fire & Rescue Services",
+        "value": "24x7_fire_rescue_services"
+      },
+      {
+        "label": "Emergency Electricians & Plumbers",
+        "value": "24x7_emergency_electricians_plumbers"
+      }
+    ]
+  },
+  {
+    "group": "Medical Services",
+    "options": [
+      {
+        "label": "General Physicians & Family Doctors",
+        "value": "general_physicians"
+      },
+      {
+        "label": "Ayurvedic Doctors & Clinics",
+        "value": "ayurvedic_doctors"
+      },
+      {
+        "label": "Homeopathic Doctors & Clinics",
+        "value": "homeopathic_doctors"
+      },
+      {
+        "label": "Dental Clinics",
+        "value": "dental_clinics"
+      },
+      {
+        "label": "Eye Specialists & Opticians",
+        "value": "eye_specialists"
+      },
+      {
+        "label": "Pediatricians",
+        "value": "pediatricians"
+      },
+      {
+        "label": "Gynecologists",
+        "value": "gynecologists"
+      },
+      {
+        "label": "Orthopedics",
+        "value": "orthopedics"
+      },
+      {
+        "label": "Diagnostic Centers & Labs",
+        "value": "diagnostic_labs"
+      },
+      {
+        "label": "Medical Stores & Pharmacies",
+        "value": "medical_stores"
+      },
+      {
+        "label": "Mental Health Specialists",
+        "value": "mental_health"
+      },
+      {
+        "label": "Physiotherapy Centers",
+        "value": "physiotherapy"
+      },
+      {
+        "label": "Veterinary Clinics & Pet Care",
+        "value": "veterinary"
+      }
+    ]
+  },
+  {
+    "group": "Properties & Real Estate",
+    "options": [
+      {
+        "label": "Houses & Apartments for Sale",
+        "value": "houses_sale"
+      },
+      {
+        "label": "Rental Properties & PG",
+        "value": "rental"
+      },
+      {
+        "label": "Commercial Spaces & Offices",
+        "value": "commercial"
+      },
+      {
+        "label": "Land & Plots",
+        "value": "land"
+      }
+    ]
+  },
+  {
+    "group": "Retail & Shopping",
+    "options": [
+      {
+        "label": "Store Updates & Offers",
+        "value": "store_updates"
+      },
+      {
+        "label": "Electronics & Appliances",
+        "value": "electronics"
+      },
+      {
+        "label": "Fashion & Lifestyle",
+        "value": "fashion"
+      },
+      {
+        "label": "Grocery & Supermarket",
+        "value": "grocery"
+      },
+      {
+        "label": "Home & Furniture",
+        "value": "home_furniture"
+      },
+      {
+        "label": "Books & Stationery",
+        "value": "books"
+      }
+    ]
+  },
+  {
+    "group": "Food & Dining",
+    "options": [
+      {
+        "label": "Restaurant & Cafe",
+        "value": "restaurant"
+      },
+      {
+        "label": "Home Food & Tiffin Services",
+        "value": "home_food"
+      },
+      {
+        "label": "Food Stalls & Street Food",
+        "value": "street_food"
+      },
+      {
+        "label": "Catering & Events",
+        "value": "catering"
+      },
+      {
+        "label": "Bakery & Confectionery",
+        "value": "bakery"
+      },
+      {
+        "label": "Ice Cream & Desserts",
+        "value": "desserts"
+      },
+      {
+        "label": "Beverages & Drinks",
+        "value": "beverages"
+      }
+    ]
+  },
+  {
+    "group": "Professional Services",
+    "options": [
+      {
+        "label": "Home & Repair Services",
+        "value": "home_services"
+      },
+      {
+        "label": "Legal & Financial Services",
+        "value": "legal_financial"
+      },
+      {
+        "label": "Education & Training",
+        "value": "education"
+      },
+      {
+        "label": "Beauty & Wellness",
+        "value": "beauty"
+      },
+      {
+        "label": "IT & Software Services",
+        "value": "it_services"
+      },
+      {
+        "label": "Computer Repair & Support",
+        "value": "computer_repair"
+      }
+    ]
+  },
+  {
+    "group": "Jobs & Careers",
+    "options": [
+      {
+        "label": "Full-time Jobs",
+        "value": "fulltime"
+      },
+      {
+        "label": "Part-time & Freelance",
+        "value": "parttime"
+      },
+      {
+        "label": "Internships & Training",
+        "value": "internships"
+      },
+      {
+        "label": "Hiring & Recruitment",
+        "value": "hiring"
+      }
+    ]
+  },
+  {
+    "group": "Automotive & Transport",
+    "options": [
+      {
+        "label": "Car Services & Repair",
+        "value": "car_service"
+      },
+      {
+        "label": "Taxi & Transportation",
+        "value": "transport"
+      },
+      {
+        "label": "Driving Schools",
+        "value": "driving_school"
+      },
+      {
+        "label": "Vehicle Sales & Rental",
+        "value": "vehicle_sales"
+      }
+    ]
+  },
+  {
+    "group": "Art & Creative Services",
+    "options": [
+      {
+        "label": "Photography & Videography",
+        "value": "photography"
+      },
+      {
+        "label": "Graphic Design & Printing",
+        "value": "design"
+      },
+      {
+        "label": "Art & Craft",
+        "value": "art"
+      },
+      {
+        "label": "Music & Dance Classes",
+        "value": "music_dance"
+      }
+    ]
+  },
+  {
+    "group": "Travel & Tourism",
+    "options": [
+      {
+        "label": "Travel Agencies",
+        "value": "travel_agency"
+      },
+      {
+        "label": "Hotels & Accommodation",
+        "value": "hotels"
+      },
+      {
+        "label": "Tour Guides & Packages",
+        "value": "tours"
+      },
+      {
+        "label": "Adventure Sports",
+        "value": "adventure"
+      }
+    ]
+  },
+  {
+    "group": "Events & Entertainment",
+    "options": [
+      {
+        "label": "Carnivals & Mega Melas",
+        "value": "carnival_mela"
+      },
+      {
+        "label": "Exhibitions & Trade Shows",
+        "value": "exhibitions"
+      },
+      {
+        "label": "Cultural Events & Festivals",
+        "value": "cultural_events"
+      },
+      {
+        "label": "Concerts & Music Shows",
+        "value": "concerts"
+      },
+      {
+        "label": "Theater & Drama",
+        "value": "theater"
+      },
+      {
+        "label": "Comedy Shows",
+        "value": "comedy"
+      },
+      {
+        "label": "Kids Events & Activities",
+        "value": "kids_events"
+      },
+      {
+        "label": "Religious Events",
+        "value": "religious_events"
+      }
+    ]
+  }
+]

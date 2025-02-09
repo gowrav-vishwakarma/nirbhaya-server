@@ -13,7 +13,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { UserJWT } from 'src/dto/user-jwt.dto';
 import { StreamingGateway } from 'src/streaming/streaming.gateway';
 import { Op } from 'sequelize';
-import * as moment from 'moment';
+import moment from 'moment';
 import { Feedback } from 'src/models/Feedback';
 import { GlobalService } from 'src/global/global.service';
 
