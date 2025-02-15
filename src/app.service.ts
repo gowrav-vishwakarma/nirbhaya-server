@@ -43,9 +43,9 @@ export class AppService {
     if (deviceIds.includes(deviceId)) {
       return {
         skipUpdate: true,
-        latestVersion: '0.0.223',
-        latestIosVersion: '0.0.223',
-        latestAndroidVersion: '0.0.223',
+        latestVersion: '0.0.227',
+        latestIosVersion: '0.0.227',
+        latestAndroidVersion: '0.0.226',
         forceUpdate: true,
         minimumVersion: '0.0.213',
         androidUpdateUrl:
@@ -55,11 +55,11 @@ export class AppService {
     }
     return {
       skipUpdate: true,
-      latestVersion: '0.0.225',
-      latestIosVersion: '0.0.226',
-      latestAndroidVersion: '0.0.225',
+      latestVersion: '0.0.227',
+      latestIosVersion: '0.0.227',
+      latestAndroidVersion: '0.0.226',
       forceUpdate: false,
-      minimumVersion: '0.0.213',
+      minimumVersion: '0.0.227',
       androidUpdateUrl:
         'https://play.google.com/store/apps/details?id=com.xavoc.shoutout',
       iosUpdateUrl: 'https://apps.apple.com/app/6738719612',
