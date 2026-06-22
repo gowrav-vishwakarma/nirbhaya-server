@@ -113,7 +113,7 @@ export const sequelizeModelArray = [
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
         autoLoadModels: true,
-        logQueryParameters: true,
+        logQueryParameters: false,
         synchronize: false,
         // sync: {
         //   alter: true,
