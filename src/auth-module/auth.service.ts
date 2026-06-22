@@ -12,6 +12,7 @@ import { EmergencyContact } from 'src/models/EmergencyContact';
 import { UserLocation } from 'src/models/UserLocation';
 import { SosEvent } from 'src/models/SosEvent';
 import { Notification } from 'src/models/Notification'; // Add this import
+import { resolveMediaUrl } from '../utils/media-url.util';
 import { CommunityApplications } from 'src/models/CommunityApplications';
 import { Suggestion } from 'src/models/Suggestion';
 import { SuggestionDto } from '../suggestion/suggestion.dto';
@@ -99,7 +100,7 @@ export class AuthService {
       canCreatePost: user.canCreatePost,
       businessName: user.businessName,
       whatsappNumber: user.whatsappNumber,
-      profileImage: user.profileImage,
+      profileImage: resolveMediaUrl(user.profileImage),
       defaultApp: user.defaultApp,
       status: user.status,
       deletionRequestedAt: user.deletionRequestedAt,

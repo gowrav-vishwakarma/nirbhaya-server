@@ -10,6 +10,7 @@ import {
   PutObjectCommand,
   DeleteObjectCommand,
 } from '@aws-sdk/client-s3';
+import { resolveMediaUrl } from '../utils/media-url.util';
 
 @Injectable()
 export class FileService {
@@ -48,6 +49,10 @@ export class FileService {
         secretAccessKey,
       },
     });
+  }
+
+  getPublicUrl(path: string): string {
+    return resolveMediaUrl(path) ?? path;
   }
 
   async uploadFile(

@@ -25,10 +25,14 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { Response } from 'express';
 import fetch from 'node-fetch';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('community')
 export class CommunityController {
-  constructor(private readonly communityService: CommunityService) {}
+  constructor(
+    private readonly communityService: CommunityService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @UseGuards(AuthGuard)
   @Post('apply')
@@ -121,10 +125,8 @@ export class CommunityController {
 
   @Get('proxy-image/*')
   async proxyImage(@Param('0') imageUrl: string, @Res() res: Response) {
-    const response = await fetch(
-      'https://xavoc-technocrats-pvt-ltd.blr1.cdn.digitaloceanspaces.com/' +
-        imageUrl,
-    );
+    const cdn = this.configService.get('S3_IMAGE_CDN')?.replace(/\/$/, '');
+    const response = await fetch(`${cdn}/${imageUrl.replace(/^\//, '')}`);
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     res.set('Access-Control-Allow-Origin', '*');

@@ -17,6 +17,7 @@ import { Suggestion } from './Suggestion';
 import { Feedback } from './Feedback';
 import { UserInteraction } from './UserInteractions';
 import { CatalogItem } from './CatalogItem';
+import { resolveMediaUrl } from '../utils/media-url.util';
 
 interface PlatformInfo {
   [key: string]: any;
@@ -407,4 +408,12 @@ export class User extends Model<User> {
     allowNull: true,
   })
   scheduledDeletionAt: Date;
+
+  toJSON() {
+    const values = { ...this.get() };
+    if (values.profileImage) {
+      values.profileImage = resolveMediaUrl(values.profileImage);
+    }
+    return values;
+  }
 }

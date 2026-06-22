@@ -7,6 +7,7 @@ import {
   BelongsTo,
 } from 'sequelize-typescript';
 import { User } from './User';
+import { resolveMediaUrl } from '../utils/media-url.util';
 
 @Table({
   tableName: 'CatalogItems',
@@ -47,4 +48,12 @@ export class CatalogItem extends Model<CatalogItem> {
 
   @BelongsTo(() => User)
   user: User;
+
+  toJSON() {
+    const values = { ...this.get() };
+    if (values.imageUrl) {
+      values.imageUrl = resolveMediaUrl(values.imageUrl);
+    }
+    return values;
+  }
 }

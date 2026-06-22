@@ -12,6 +12,7 @@ import {
 import { User } from './User';
 import { PostLike } from './PostLike';
 import { PostComment } from './PostComment';
+import { resolveMediaUrl, resolveMediaUrls } from '../utils/media-url.util';
 
 export interface PostDataWithDistance extends CommunityPost {
   distance?: number;
@@ -247,4 +248,15 @@ export class CommunityPost extends Model<CommunityPost> {
     field: 'updated_at',
   })
   updatedAt: Date;
+
+  toJSON() {
+    const values = { ...this.get() };
+    if (typeof values.mediaUrls === 'string') {
+      (values as { mediaUrls: string | string[] }).mediaUrls =
+        resolveMediaUrl(values.mediaUrls) ?? values.mediaUrls;
+    } else {
+      values.mediaUrls = resolveMediaUrls(values.mediaUrls);
+    }
+    return values;
+  }
 }

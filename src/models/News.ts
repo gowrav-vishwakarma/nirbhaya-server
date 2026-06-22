@@ -9,6 +9,7 @@ import {
 } from 'sequelize-typescript';
 import { User } from './User';
 import { NewsTranslation } from './NewsTranslation';
+import { resolveMediaUrls } from '../utils/media-url.util';
 
 @Table
 export class News extends Model {
@@ -183,4 +184,10 @@ export class News extends Model {
     defaultValue: true,
   })
   isIndianNews: boolean;
+
+  toJSON() {
+    const values = { ...this.get() };
+    values.mediaUrls = resolveMediaUrls(values.mediaUrls);
+    return values;
+  }
 }

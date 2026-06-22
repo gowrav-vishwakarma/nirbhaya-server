@@ -16,6 +16,7 @@ import {
 import { IncidentService } from './incident.service';
 import { AuthGuard } from 'src/auth-module/auth.guard';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { resolveMediaUrls } from '../utils/media-url.util';
 
 @Controller('incidents')
 @UseGuards(AuthGuard)
@@ -109,7 +110,7 @@ export class IncidentController {
       throw new BadRequestException('No files uploaded');
     }
 
-    return this.incidentService.imageUpload(files);
+    return resolveMediaUrls(await this.incidentService.imageUpload(files));
   }
 
   @Get('reel:id')

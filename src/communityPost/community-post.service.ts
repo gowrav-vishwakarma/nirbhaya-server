@@ -10,6 +10,7 @@ import { PostLike } from '../models/PostLike';
 import { CommentLike } from '../models/CommentLike';
 import { CommentReply } from '../models/CommentReply';
 import { FileService } from '../files/file.service';
+import { resolveMediaUrl } from '../utils/media-url.util';
 import { User } from '../models/User';
 import { UserInteraction } from '../models/UserInteractions';
 import { Op, literal } from 'sequelize';
@@ -1058,7 +1059,7 @@ export class CommunityPostService {
             type: 'like' as const,
             userId: like.user.id,
             userName: like.user.name,
-            profileImage: like.user.profileImage,
+            profileImage: resolveMediaUrl(like.user.profileImage),
             createdAt: new Date(like.createdAt),
           })),
           ...post.comments.map((comment) => ({
@@ -1067,7 +1068,7 @@ export class CommunityPostService {
             type: 'comment' as const,
             userId: comment.user.id,
             userName: comment.user.name,
-            profileImage: comment.user.profileImage,
+            profileImage: resolveMediaUrl(comment.user.profileImage),
             content: comment.content,
             createdAt: new Date(comment.createdAt),
           })),

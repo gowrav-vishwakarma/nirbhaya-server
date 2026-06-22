@@ -17,6 +17,7 @@ import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { GetUser } from 'src/auth-module/getuser.decorator';
 import { AuthGuard } from 'src/auth-module/auth.guard';
 import { ConfigService } from '@nestjs/config';
+import { resolveMediaUrls } from '../utils/media-url.util';
 
 @Controller('news')
 export class NewsController {
@@ -79,7 +80,7 @@ export class NewsController {
       throw new BadRequestException('No files uploaded');
     }
 
-    return this.newsService.imageUpload(files);
+    return resolveMediaUrls(await this.newsService.imageUpload(files));
   }
 
   @Put('update-news/:id')

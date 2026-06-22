@@ -211,9 +211,9 @@ export class NewsService {
 
     // Delete associated media files
     if (news.mediaUrls && news.mediaUrls.length > 0) {
-      const deletePromises = news.mediaUrls.map((filePath) =>
-        this.fileService.deleteFile(filePath),
-      );
+      const deletePromises = news.mediaUrls
+        .filter((filePath) => !filePath.startsWith('http'))
+        .map((filePath) => this.fileService.deleteFile(filePath));
       await Promise.all(deletePromises);
     }
 
