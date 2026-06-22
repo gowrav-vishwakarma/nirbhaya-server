@@ -85,8 +85,15 @@ export class CommunityPostService {
         showLocation = createPostDto.showLocation === 'true';
       }
 
+      const postType =
+        createPostDto.postType === 'testimonial' ||
+        createPostDto.postType === 'other'
+          ? createPostDto.postType
+          : 'post';
+
       const postData = {
         ...createPostDto,
+        postType,
         mediaUrls: imageUrls,
         location: location,
         tags: tags,

@@ -63,6 +63,12 @@ export class NewsCreateHook extends BaseHook {
     ) {
       previousData.data.location = JSON.parse(previousData.data.location);
     }
+    if (
+      previousData.data?.postType !== 'testimonial' &&
+      previousData.data?.postType !== 'other'
+    ) {
+      previousData.data.postType = 'post';
+    }
     return previousData;
   }
 }
