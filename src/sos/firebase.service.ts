@@ -87,6 +87,13 @@ export class FirebaseService {
     additionalData?: any,
     screen: string = '/notifications',
   ): Promise<NotificationResult> {
+    // Unset or anything other than "true" still sends. Set this while a non-production
+    // database is attached so pushes do not reach real devices.
+    if (this.configService.get<string>('MUTE_PUSH_NOTIFICATIONS') === 'true') {
+      this.logger.log(`Push muted, not sent: ${title}`);
+      return { success: true, messageId: 'muted' };
+    }
+
     if (!this.isInitialized) {
       this.logger.warn(
         'Firebase is not initialized. Cannot send notification.',
