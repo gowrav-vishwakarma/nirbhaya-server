@@ -62,6 +62,7 @@ import { CommunityPost } from './models/CommunityPost';
 import { TempOtps } from './models/TempOtps';
 import { SystemConfig } from './models/SystemConfig';
 import { CatalogItem } from './models/CatalogItem';
+import { AppConfigService } from './app-config/app-config.service';
 export const sequelizeModelArray = [
   User,
   EmergencyContact,
@@ -170,6 +171,7 @@ export const sequelizeModelArray = [
   controllers: [AppController, NirbhayaQnatkController, AdminQnatkController],
   providers: [
     AppService,
+    AppConfigService,
     SmsService,
     ConfigService,
     GlobalService,

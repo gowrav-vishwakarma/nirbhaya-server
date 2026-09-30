@@ -1,10 +1,14 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Header, Post, Query } from '@nestjs/common';
 import { AppService } from './app.service';
+import { AppConfigService } from './app-config/app-config.service';
 import businessCategories from './businessCategories.json';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    private readonly appConfigService: AppConfigService,
+  ) {}
 
   @Get()
   getHello(): string {
@@ -14,6 +18,20 @@ export class AppController {
   @Get('business-categories')
   getBusinessCategories() {
     return businessCategories;
+  }
+
+  /**
+   * Public runtime settings + version info. Unauthenticated on purpose: clients
+   * fetch it at startup, before login. Contains no secrets.
+   */
+  @Get('app-config')
+  @Header('Cache-Control', 'public, max-age=60')
+  async getAppConfig(@Query('deviceId') deviceId?: string) {
+    const [config, version] = await Promise.all([
+      this.appConfigService.getPublicConfig(),
+      this.appConfigService.getVersionInfo(deviceId),
+    ]);
+    return { config, version, serverTime: new Date().toISOString() };
   }
 
   @Post('check-version')

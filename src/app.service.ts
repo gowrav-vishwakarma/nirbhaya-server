@@ -5,6 +5,7 @@ import { Cron } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import { FirebaseService } from './sos/firebase.service';
 import { SystemConfig } from './models/SystemConfig';
+import { AppConfigService } from './app-config/app-config.service';
 
 @Injectable()
 export class AppService {
@@ -15,6 +16,7 @@ export class AppService {
     private sequelize: Sequelize,
     private configService: ConfigService,
     private firebaseService: FirebaseService,
+    private appConfigService: AppConfigService,
   ) {
     this.notificationIntervalHours =
       this.configService.get<number>('NOTIFICATION_INTERVAL_HOURS') || 6;
@@ -24,46 +26,9 @@ export class AppService {
     return 'Hello World!';
   }
 
-  checkVersion(
-    currentVersion: string,
-    deviceId: string,
-  ): {
-    skipUpdate: boolean;
-    latestVersion: string;
-    latestIosVersion: string;
-    latestAndroidVersion: string;
-    forceUpdate: boolean;
-    minimumVersion: string;
-    androidUpdateUrl: string;
-    iosUpdateUrl: string;
-  } {
+  checkVersion(currentVersion: string, deviceId: string) {
     console.log('currentVersion', currentVersion);
-
-    const deviceIds = process.env.TESTER_DEVICE_IDS || [];
-    if (deviceIds.includes(deviceId)) {
-      return {
-        skipUpdate: true,
-        latestVersion: '0.0.227',
-        latestIosVersion: '0.0.227',
-        latestAndroidVersion: '0.0.226',
-        forceUpdate: true,
-        minimumVersion: '0.0.213',
-        androidUpdateUrl:
-          'https://play.google.com/store/apps/details?id=com.xavoc.shoutout',
-        iosUpdateUrl: 'https://apps.apple.com/app/6738719612',
-      };
-    }
-    return {
-      skipUpdate: true,
-      latestVersion: '0.0.227',
-      latestIosVersion: '0.0.227',
-      latestAndroidVersion: '0.0.226',
-      forceUpdate: false,
-      minimumVersion: '0.0.227',
-      androidUpdateUrl:
-        'https://play.google.com/store/apps/details?id=com.xavoc.shoutout',
-      iosUpdateUrl: 'https://apps.apple.com/app/6738719612',
-    };
+    return this.appConfigService.getVersionInfo(deviceId);
   }
 
   @Cron('0 */6 * * *', {
