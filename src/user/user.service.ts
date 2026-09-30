@@ -423,33 +423,17 @@ export class UserService {
   }
 
   async deleteEmergencyContact(userId: number, phoneNumber: string) {
-    try {
-      await this.emergencyContactModel.destroy({
-        where: {
-          userId: userId,
-          contactPhone: phoneNumber,
-        },
-      });
+    await this.emergencyContactModel.destroy({
+      where: {
+        userId: userId,
+        contactPhone: phoneNumber,
+      },
+    });
 
-      // if the user has not loggedin with phoneNumber then delete the user
-      const user = await this.userModel.findOne({
-        where: {
-          phoneNumber: phoneNumber,
-          isVerified: false,
-          IsCreatedByEmg: true,
-        },
-      });
-      if (user) {
-        await this.userModel.destroy({ where: { phoneNumber: phoneNumber } });
-      }
-
-      return {
-        success: true,
-        message: 'Emergency contact deleted successfully',
-      };
-    } catch (error) {
-      throw new error('Failed to delete emergency contact', error);
-    }
+    return {
+      success: true,
+      message: 'Emergency contact deleted successfully',
+    };
   }
 
   async addBusinessInformation(businessInfo: any, user: any) {
