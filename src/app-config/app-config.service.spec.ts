@@ -37,6 +37,8 @@ describe('AppConfigService', () => {
     expect(cfg.JITSI_MEET_URL).toBe('https://meeting.sosbharat.com');
     expect(cfg.SHOW_INSTALL_PROMPT).toBe(true);
     expect(cfg.ENABLE_ASTRO_APP).toBe(false);
+    expect(cfg.SOS_CANCEL_SECONDS).toBe(10);
+    expect(cfg.SOS_VOLUNTEER_DELAY_SECONDS).toBe(180);
     expect(cfg.IMAGE_CDN_URL).toBeUndefined();
   });
 

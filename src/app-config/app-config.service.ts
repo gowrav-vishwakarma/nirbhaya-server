@@ -11,7 +11,7 @@ import { setMediaCdnOverride } from '../utils/media-url.util';
  * DB keys are `app.<KEY>` (e.g. `app.IMAGE_CDN_URL`) and `app.version.<field>`.
  * NEVER add secrets here: this is served to unauthenticated clients.
  */
-type Kind = 'string' | 'boolean';
+type Kind = 'string' | 'boolean' | 'number';
 
 interface KeyDef {
   key: string;
@@ -38,6 +38,8 @@ export const PUBLIC_CONFIG_KEYS: KeyDef[] = [
   { key: 'ENABLE_ASTRO_APP', kind: 'boolean', default: 'false' },
   { key: 'SHOW_INSTALL_PROMPT', kind: 'boolean', default: 'true' },
   { key: 'STREAM_SAVE', kind: 'boolean', default: 'true' },
+  { key: 'SOS_CANCEL_SECONDS', kind: 'number', default: '10' },
+  { key: 'SOS_VOLUNTEER_DELAY_SECONDS', kind: 'number', default: '180' },
 ];
 
 const VERSION_KEYS: KeyDef[] = [
@@ -56,7 +58,7 @@ const VERSION_KEYS: KeyDef[] = [
   { key: 'iosUpdateUrl', kind: 'string', default: 'https://apps.apple.com/app/6738719612' },
 ];
 
-export type PublicConfigValues = Record<string, string | boolean>;
+export type PublicConfigValues = Record<string, string | boolean | number>;
 
 export interface VersionInfo {
   skipUpdate: boolean;
@@ -110,8 +112,13 @@ export class AppConfigService implements OnModuleInit {
     return def.default;
   }
 
-  private coerce(def: KeyDef, value: string): string | boolean {
-    return def.kind === 'boolean' ? value === 'true' || value === '1' : value;
+  private coerce(def: KeyDef, value: string): string | boolean | number {
+    if (def.kind === 'boolean') return value === 'true' || value === '1';
+    if (def.kind === 'number') {
+      const n = Number(value);
+      return Number.isFinite(n) ? n : Number(def.default ?? '0');
+    }
+    return value;
   }
 
   async getPublicConfig(): Promise<PublicConfigValues> {
@@ -129,7 +136,7 @@ export class AppConfigService implements OnModuleInit {
     const v: Record<string, string | boolean> = {};
     for (const def of VERSION_KEYS) {
       const raw = this.raw(def, `${VERSION_PREFIX}${def.key}`);
-      if (raw !== undefined) v[def.key] = this.coerce(def, raw);
+      if (raw !== undefined) v[def.key] = this.coerce(def, raw) as string | boolean;
     }
 
     // Tester devices (TESTER_DEVICE_IDS) get a relaxed minimum version, as before.
