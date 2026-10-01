@@ -1,0 +1,42 @@
+{
+  "name": "qnatk-n",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Qnatk for NestJS, A hook and headless rest api system",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "echo 'Error: no test specified' && exit 1",
+    "build": "rimraf dist && tsc",
+    "prepublish": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gowrav-vishwakarma/qnatk-n.git"
+  },
+  "author": "gowravvishwakarma@gmail.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gowrav-vishwakarma/qnatk-n/issues"
+  },
+  "homepage": "https://github.com/gowrav-vishwakarma/qnatk-n#readme",
+  "devDependencies": {
+    "@types/multer": "^1.4.11",
+    "@types/sequelize": "^4.28.19",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.3.2"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^10.2.10",
+    "@nestjs/core": "^10.2.10",
+    "@nestjs/event-emitter": "^2.0.3",
+    "@nestjs/sequelize": "^10.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.0",
+    "sequelize": "^6.35.1",
+    "sequelize-typescript": "^2.1.5"
+  },
+  "files": [
+    "src/**/*"
+  ]
+}
