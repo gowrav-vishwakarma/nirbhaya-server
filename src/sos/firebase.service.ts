@@ -149,6 +149,11 @@ export class FirebaseService {
           ],
         },
       },
+      webpush: {
+        headers: {
+          Urgency: 'high',
+        },
+      },
       apns: {
         headers: {
           'apns-priority': '10',
