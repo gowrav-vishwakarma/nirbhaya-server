@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { CommunityPost } from '../models/CommunityPost';
@@ -27,6 +28,9 @@ interface FindAllParams {
   offset?: number;
   limit?: number;
 }
+
+/** Age group the apps store for users under 13; they cannot use the community. */
+export const UNDER_13_USER_TYPE = 'Below (13)';
 
 type PriorityWeight = {
   [key: string]: number;
@@ -54,6 +58,17 @@ export class CommunityPostService {
     private userModel: typeof User,
     private readonly fileService: FileService,
   ) {}
+
+  async assertCanUseCommunity(userId: number) {
+    const user = await this.userModel.findByPk(userId, {
+      attributes: ['userType'],
+    });
+    if (user?.userType === UNDER_13_USER_TYPE) {
+      throw new ForbiddenException(
+        'The community is available only to users aged 13 and above.',
+      );
+    }
+  }
 
   async create(createPostDto: any, files: Array<Express.Multer.File>) {
     try {

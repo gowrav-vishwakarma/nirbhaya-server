@@ -28,6 +28,9 @@ export class CommunityPostController {
     @Body() createPostDto: any,
     @UploadedFiles() files: Array<Express.Multer.File>,
   ) {
+    await this.communityPostService.assertCanUseCommunity(
+      Number(createPostDto?.userId),
+    );
     try {
       return await this.communityPostService.create(createPostDto, files);
     } catch (error) {
@@ -42,6 +45,9 @@ export class CommunityPostController {
     @Body() updatePostDto: any,
     @UploadedFiles() files: Array<Express.Multer.File>,
   ) {
+    await this.communityPostService.assertCanUseCommunity(
+      Number(updatePostDto?.userId),
+    );
     try {
       return await this.communityPostService.update(updatePostDto, files);
     } catch (error) {
@@ -64,6 +70,7 @@ export class CommunityPostController {
     @Query('businessCategory') businessCategory: string,
     @GetUser() user: UserJWT,
   ) {
+    await this.communityPostService.assertCanUseCommunity(user.id);
     return this.communityPostService.getRelevantPosts(
       Number(userId),
       Number(latitude),
@@ -87,6 +94,7 @@ export class CommunityPostController {
     @Query('limit') limit: number = 5,
     @GetUser() user: UserJWT,
   ) {
+    await this.communityPostService.assertCanUseCommunity(user.id);
     console.log('user.id........', userId, status, page, limit);
     return this.communityPostService.findAllmyPost({
       userId,
@@ -116,6 +124,7 @@ export class CommunityPostController {
     if (!data.userId) {
       throw new UnauthorizedException('User not authenticated');
     }
+    await this.communityPostService.assertCanUseCommunity(user.id);
     return this.communityPostService.likePost(postId, user.id);
   }
   @UseGuards(AuthGuard)
@@ -141,6 +150,7 @@ export class CommunityPostController {
     if (!user.id) {
       throw new Error('User not authenticated');
     }
+    await this.communityPostService.assertCanUseCommunity(user.id);
 
     return await this.communityPostService.addComment(
       +postId,
@@ -185,6 +195,7 @@ export class CommunityPostController {
     @Param('commentId') commentId: string,
     @GetUser() user: UserJWT,
   ) {
+    await this.communityPostService.assertCanUseCommunity(user.id);
     return await this.communityPostService.likeComment(+commentId, user.id);
   }
 
@@ -206,6 +217,7 @@ export class CommunityPostController {
     @Body('userId') userId: number,
     @GetUser() user: UserJWT,
   ) {
+    await this.communityPostService.assertCanUseCommunity(user.id);
     return await this.communityPostService.addReply(
       +commentId,
       content,
